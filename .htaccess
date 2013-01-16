@@ -1,0 +1,8 @@
+AddType text/x-component .htc
+
+RewriteEngine on
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+RewriteRule ^.* index.php?APPLR_friendlyURL=1 [QSA,L]

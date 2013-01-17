@@ -10,7 +10,8 @@
 /*********************************************************/
 
 
-include 'config.php';
+include_once 'credentials.php';
+include_once 'config.php';
 
 
 /*********************************************************/
@@ -63,8 +64,9 @@ if(strpos($_SERVER["HTTP_HOST"],URI_DOMAIN_DEVELOP) !== false) {
 /**********				INCLUDE PATH			**********/
 /**********										**********/
 
-$strPath = $_SERVER['DOCUMENT_ROOT'].LOCAL_DIR.'PEAR/';
-set_include_path(get_include_path().PATH_SEPARATOR.$strPath);
+$strPath = $_SERVER['DOCUMENT_ROOT'].LOCAL_DIR;
+$strPEARPath = $_SERVER['DOCUMENT_ROOT'].LOCAL_DIR.'PEAR/';
+set_include_path(get_include_path() . PATH_SEPARATOR . $strPath . PATH_SEPARATOR . $strPEARPath);
 
 
 /*********************************************************/

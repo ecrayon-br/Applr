@@ -15,57 +15,68 @@ class Model {
 	public		$intError;
 	
 	/**
-	 * Inicializador da classe, realiza a conexao ao DB de acordo com o ID recebido por parametro
+	 * Class constructor
 	 * 
+	 * @param 	mixed	$intConnection	Client's connection ID
+	 * 
+	 * @since	2013-01-18
 	 * @author	Diego Flores <diegotf [at] gmail dot com>
-	 * @since	2007-06-04
 	 * 
-	 * @todo 	Validar fetch_mode em $this->setFetchMode
-	 * @todo	Reconstruir metodos $this->getClientConnection, $this->insert, $this->select, $this->update, $this->replace, $this->delete
+	 * @todo 	Check MDB2 values to $this->setFetchMode
+	 * @todo	Implement $this->getClientConnection
+	 * @todo	Set INSERT and UPDATE query syntax using MDB2 at $this->prepareInsertQuery, $this->prepareUpdateQuery, $this->recordExists
+	 * @todo	Check $this->delete regarding MDB@ syntax and methods
 	**/
-	public function __construct() {
-		$this->boolConnStatus = $this->setConnection();
-	}
-	
-	public function getSectionConfig() {
-		
+	public function __construct($intConnection = null) {
+		$this->boolConnStatus = $this->setConnection($intConnection);
 	}
 	
 	/**
-	 * Realiza e verifica a conexao com o DB
+	 * Creates DB connection
 	 * 
-	 * @param 	mixed	$intConnection	ID da conexao do cliente
+	 * @param 	mixed	$intConnection	Client's connection ID
 	 * 
 	 * @return	boolean
 	 *
 	 * @author	Diego Flores <diegotf [at] gmail dot com>
-	 * @since	2008-01-29
+	 * @since	2013-01-18
 	**/
 	public function setConnection($intConnection = null) {
 		if(!is_null($intConnection) && !is_numeric($intConnection))	return false;
-		/*
-		$strDSN			= "$this->_dbType://$this->_userName:$this->_password@$this->_hostName/$this->_dbName";
+		
+		$arrDSN			= 	array(
+								'phptype'	=> $this->_dbType,
+								'hostspec'	=> $this->_hostName,
+								'database'	=> $this->_dbName,
+								'username'	=> $this->_userName,
+								'password'	=> $this->_password
+							);
+		
 		$arrOptions		= array	(
-		    					'debug'       => 2,
-		    					'portability' => DB_PORTABILITY_ALL,
+		    					'debug'       	=> 2,
+		    					'portability' 	=> MDB2_PORTABILITY_ALL,
+								'persistent'	=> true,
+								'seqcol_name'	=> 'id'
 								);
-		$this->objConn 	=& DB::connect($strDSN,$arrOptions);
 		
-		#var_dump($this->objConn);
+		$this->objConn 	=& MDB2::connect($arrDSN,$arrOptions);
 		
-		if (PEAR::isError($this->objConn)) return false;
+		if($this->_boolDebug) { echo '<pre>'; var_dump($this->objConn); echo '</pre>'; }
+		
+		if (PEAR::isError($this->objConn)) {
+			define('ERROR_MSG',$this->objConn->getMessage());
+			return false;
+		}
 		
 		$this->setFetchMode();
 		
 		return true;
-		*/
-		return false;
 	}
 	
 	/**
-	 * Seta as variaveis de conexao
+	 * Sets connections vars
 	 *
-	 * @param	string	$strTemp	Valor atribuido a variavel interna
+	 * @param	string	$strTemp	Value to be assigned
 	 * 
 	 * @return	void
 	 *
@@ -73,42 +84,49 @@ class Model {
 	 * @since	2007-06-04
 	**/
 	public function setDBType($strTemp) {
-		// Valida os argumentos do metodo
+		// Validates attribute
 		if(!is_string($strTemp) || empty($strTemp))	return false;
 		
 		$this->_dbType		= $strTemp;
 	}
 	
 	public function setHostName($strTemp) {
-		// Valida os argumentos do metodo
+		// Validates attribute
 		if(!is_string($strTemp) || empty($strTemp))	return false;
 		
 		$this->_hostName	= $strTemp;
 	}
 	
 	public function setUserName($strTemp) {
-		// Valida os argumentos do metodo
+		// Validates attribute
 		if(!is_string($strTemp) || empty($strTemp))	return false;
 		
 		$this->_userName	= $strTemp;
 	}
 	
 	public function setPassword($strTemp) {
-		// Valida os argumentos do metodo
+		// Validates attribute
 		if(!is_string($strTemp) || empty($strTemp))	return false;
 		
 		$this->_password	= $strTemp;
 	}
 	
 	public function setDBName($strTemp) {
-		// Valida os argumentos do metodo
+		// Validates attribute
 		if(!is_string($strTemp) || empty($strTemp))	return false;
 		
 		$this->_dbName		= $strTemp;
 	}
 	
+	private function setDebug($boolDebug) {
+		// Validates attribute
+		if(!is_bool($boolDebug) && $boolDebug !== 0 && $boolDebug !== 1)	$boolDebug = false;
+		
+		$this->_boolDebug = $boolDebug;
+	}
+	
 	/**
-	 * Retorna o valor as variaveis de conexao
+	 * Returns connection vars values
 	 *
 	 * @return	string
 	 * 
@@ -136,9 +154,9 @@ class Model {
 	}
 	
 	/**
-	 * Define o fetchMode do objeto de conexao
+	 * Defines result queries FETCHMODE 
 	 *
-	 * @param	string	$mxdFetch	Defines DB_FETCHMODE constant
+	 * @param	string	$mxdFetch	Defines fetchmode constant
 	 * 
 	 * @return	void
 	 *
@@ -150,7 +168,6 @@ class Model {
 		if(!is_string($mxdFetch) && !is_numeric($mxdFetch))		return false;
 		if(is_string($mxdFetch))								$mxdFetch = strtoupper($mxdFetch);
 		
-		// Seta o FETCH_MODE
 		switch($mxdFetch) {
 			case 'OBJ':
 			case 0:
@@ -171,23 +188,7 @@ class Model {
 	}
 	
 	/**
-	 * Controla a exibicao do debug de resultado dos metodos
-	 *
-	 * @param	boolean	$boolDebug	Define a exibicao do debug de resultado
-	 * 
-	 * @return	void
-	 *
-	 * @author	Diego Flores
-	 * @since	2007-06-04
-	**/
-	private function setDebug($boolDebug = false) {
-		if(!is_bool($boolDebug) && $boolDebug !== 0 && $boolDebug !== 1)	$boolDebug = false;
-		
-		$this->_boolDebug = $boolDebug;
-	}
-	
-	/**
-	 * Checks fields syntax and prepare string values with pre and post quotes. Assumes that column quantity is count(reset($arrData))
+	 * Checks fields syntax and prepare string values with pre and post quotes. Assumes that number of columns is count(reset($arrData))
 	 *
 	 * @param 		array $arrData				Array with query values
 	 * 
@@ -199,20 +200,10 @@ class Model {
 	 */
 	private function prepareColumnData($arrData) {
 		if(!is_array($arrData) || count($arrData) == 0)	return false;
-		/*
-		echo '>>>>> -----------------------'."\n";
-		echo '>>>>> -----------------------'."\n";
-		print_r($arrData);
-		*/
+		
 		// Defines column quantity per row
 		$intColumn	= count(reset($arrData));
-		//var_dump($intColumn);
 		foreach($arrData AS $intRowKey => &$arrRowData) {
-			/*
-			echo '>> -----------------------'."\n";
-			print_r($arrRowData);
-			echo '>> -----------------------'."\n";
-			*/
 			$intRow	= count($arrRowData);
 			
 			if($intRow > 0) {
@@ -227,7 +218,7 @@ class Model {
 				
 				foreach($arrRowData AS $intColumnKey => &$mxdColumnData) {
 					// Checks STRING syntax
-					if(is_null($mxdColumnData)) {
+					if(is_null($mxdColumnData) || strtoupper($mxdColumnData) == 'NULL') {
 						$mxdColumnData = 'NULL';
 					} elseif(is_string($mxdColumnData) && strtoupper($mxdColumnData) != 'NULL' && strpos($mxdColumnData,'"') !== 0 && strpos($mxdColumnData,"'") !== 0) {
 						$mxdColumnData = '"'.$mxdColumnData.'"';
@@ -239,12 +230,7 @@ class Model {
 				unset($arrData[$intRowKey]);
 			}
 		}
-		/*
-		echo '>> -----------------------'."\n";
-		print_r($arrData);
-		echo '>>>>> -----------------------'."\n";
-		echo '>>>>> -----------------------'."\n";
-		*/
+		
 		return $arrData;
 	}
 	
@@ -339,8 +325,9 @@ class Model {
 	 * 
 	 */
 	protected function prepareUpdateQuery($strTable,$arrField,$strWhere = '1') {
-		if(!is_string($strTable)|| empty($strTable))									return false;
-		if(!is_array($arrField) || count($arrField) == 0)								return false;
+		if(!is_string($strTable)|| empty($strTable))		return false;
+		if(!is_array($arrField) || count($arrField) == 0)	return false;
+		if(is_array($strWhere)) 							$strWhere 	= implode(' AND ',$strWhere);
 		
 		// Prepare row's syntax
 		$arrField	= $this->prepareUpdateRowSyntax($arrField);
@@ -368,8 +355,8 @@ class Model {
 		if(!is_string($strWhere)		|| empty($strWhere))	return false;
 		if(!is_bool($boolReturnValue) 	&& $boolReturnValue !== 1 && $boolReturnValue !== 0)	return false;
 		
-		$objRS	= $this->executeQuery('SELECT ' . $strField . ' FROM ' . $strTable . ' WHERE ' . $strWhere . ';');
-		$objRS	= $objRS->fetchRow();
+		$objQuery	= $this->executeQuery('SELECT ' . $strField . ' FROM ' . $strTable . ' WHERE ' . $strWhere . ';');
+		$objQuery	= $objQuery->fetchRow();
 		
 		if(isset($objRS->$strField) && !is_null($objRS->$strField)) { return ($boolReturnValue ? $objRS->$strField : true); }
 		return false;
@@ -380,273 +367,276 @@ class Model {
 	 *
 	 * @param 		string $strQuery	Query to execute
 	 * 
-	 * @return 		DB::object
+	 * @return 		If PEAR::isError, sets ERROR_MSG constant and returns false; if SELECT statement, returns MDB2_Result_object; is INSERT/DELETE/UPDATE statement, returns the number of affected rows
 	 * 
-	 * @since 		2008-12-07
+	 * @since 		2013-01-18
 	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
 	 * 
 	 */
 	protected function executeQuery($strQuery) {
 		if(!is_string($strQuery)|| empty($strQuery))	return false;
-		//var_dump($this->objConn);
-		//echo '<br /><br />'.$strQuery.'<br /><br />';
-		return $this->objConn->query($strQuery);
+		
+		if(strpos($strQuery,'SELECT') !== false) {
+			$objQuery = $this->objConn->query($strQuery);
+		
+			if($this->_boolDebug) { echo '<pre>'; var_dump($objQuery); echo '</pre>'; }
+			
+			if(PEAR::isError($objQuery)) {
+				define('ERROR_MSG',$this->objConn->getMessage());
+				return false;
+			} else {
+				return $objQuery;
+			}
+		} else {
+			$objQuery = $this->objConn->exec($strQuery);
+		
+			if($this->_boolDebug) { echo '<pre>'; var_dump($objQuery); echo '</pre>'; }
+			
+			if(PEAR::isError($objQuery)) {
+				define('ERROR_MSG',$this->objConn->getMessage());
+				return false;
+			} else {
+				return $objQuery;
+			}
+		}
 	}
 	
 	/**
 	 * Returns last auto_increment primary key value inserted on database
 	 *
+	 * @param	string	$strTable	Table name
+	 * 
 	 * @return	integer
 	 * 
 	 * @since 	2009-04-27
 	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
 	 * 
 	 */
-	public function getLastInsertID() {
-		return $this->objConn->getOne('SELECT LAST_INSERT_ID();');
+	public function getLastInsertID($strTable) {
+		// Validates attribute
+		if(!is_string($strTable) || empty($strTable))	return false;
+		
+		return $this->objConn->lastInsertID($strTable, 'id');
 	}
 	
 	/**
 	 * Inserts LOG record
 	 * 
 	 * @param	integer		$intUser	User ID
-	 * @param	integer		$intUC		Use Case ID / DB::secao_sistema.cod_secao_sistema value
-	 * @param	integer		$intAction	Action code: 1 - Inserido com sucesso; 2 - Erro ao inserir; 3 - Dados inválidos ao inserir; 4 - Atualizado com sucesso; 5 - Erro ao atualizar; 6 – Dados inválidos ao atualizar; 7 - Importado com sucesso; 8 - Erro ao importar; 9 - Dados inválidos ao importar; 10 - Mês/Ano existente; 11 - Deletado com sucesso; 12 - Erro ao deletar; 13 - Visualizou
-	 * @param	array		$arrParam	Optional parameters array; options defined in $this->setLog->arrTestParam
+	 * @param	integer		$intSection	Section ID
+	 * @param	integer		$intAction	Action code: 1 - inserted; 2 - updated; 3 - deleted; 4 - deleted permanently
+	 * @param	integer		$intObject	Object code: 1 - register; 2 - section; 3 - user
+	 * @param	string		$strContent	Object name
 	 * 
 	 * @return	boolean
 	 * 
-	 * @since 	2009-05-13
+	 * @since 	2013-01-18
 	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
 	 * 
 	 */
-	public function setLog($intUser,$intUC,$intAction,$arrParam = array()) {
+	public function setLog($intUser,$intSection,$intAction,$intObject,$strContent) {
 		if(!is_numeric($intUser) 	|| $intUser 	<= 0) return false;
-		if(!is_numeric($intUC) 		|| $intUC 		<= 0) return false;
-		if(!is_numeric($intAction)	|| $intAction 	<= 0) return false;
-		
-		$arrTestParam	= array('cod_cnpj','num_ano','num_mes','cod_tipo_indice_boh','cod_fnrh');
-		foreach($arrTestParam AS $strParam) {
-			if(isset($arrParam[$strParam])) {
-				$arrParam[$strParam] = '"' . Controller::escapeXSS($arrParam[$strParam]) . '"';
-			} else {
-				$arrParam[$strParam] = 'NULL';
-			}
-		}
+		if(!is_numeric($intSection) || $intSection 	<= 0) return false;
+		if(!is_numeric($intAction)	|| $intAction 	<= 0 || $intAction > 4) return false;
+		if(!is_numeric($intObject)	|| $intObject 	<= 0 || $intObject > 3) return false;
+		if(!is_string($strContent)	|| empty($strContent))	$strContent = '';
 		
 		// Executes query
-		$objQuery = $this->executeQuery('INSERT INTO log_sistema (dat_log,cod_usuario,cod_secao_sistema,num_acao,cod_cnpj,num_ano,num_mes,cod_tipo_indice_boh,cod_fnrh) VALUES (NOW(),' . Controller::escapeXSS($intUser) . ',' . Controller::escapeXSS($intUC) . ',' . Controller::escapeXSS($intAction) . ',' . implode(',',$arrParam) . ');');
+		$objQuery = $this->executeQuery('INSERT INTO sys_log (usr_data_id,sec_config_id,action,object,date,content) VALUES (' . Controller::escapeXSS($intUser) . ',' . Controller::escapeXSS($intSection) . ',' . Controller::escapeXSS($intAction) . ',' . Controller::escapeXSS($intObject) . ',NOW(),' . implode(',',$arrParam) . ');');
 		
 		// Returns boolean
-		if(!DB::isError($objQuery)) {
+		if($objQuery) {
 			return true;
 		} else {
 			return false;
 		}
 	}
 	
-	/****************************************************/
-	
 	/**
-	 * Seleciona dados do DB
+	 * Selects data content
 	 *
-	 * @param 	array	$arrCampo	Seta os campos selecionados
-	 * @param 	array	$arrTabela	Seta as tabelas selecionadas
-	 * @param 	array	$arrJoin	Seta os JOINS pertinentes a busca
-	 * @param 	array	$arrWhere	Seta os filtros da busca
-	 * @param 	array	$arrOrdem	Seta os parametros de ordenacao da busca
-	 * @param 	array	$arrGroup	Seta os parametros de agrupamento da busca
-	 * @param 	integer	$intOffSet	Seta o indice de inicio do resultado para o recordset
-	 * @param 	integer	$intLimit	Seta o total de registros retornados no recordset, a partir de $intOffset
-	 * @param 	string 	$strFetch 	Seta o FETCH_MODE da busca (All, Col, Pairs, Row, One)
+	 * @param 	array	$arrField		Table fields
+	 * @param 	array	$arrTable		Table name
+	 * @param 	array	$arrJoin		JOIN statement
+	 * @param 	array	$arrWhere		WHERE statement
+	 * @param 	array	$arrOrderBy		ORDER BY statement
+	 * @param 	array	$arrGroupBy		GROUP BY statement
+	 * @param 	integer	$intOffSet		Limit OFFSET
+	 * @param 	integer	$intLimit		Limit value
+	 * @param 	string 	$strFetchMode 	FETCHMODE statement 
 	 *
-	 * @return 	recordset
+	 * @return 	If PEAR::isError, sets ERROR_MSG constant and returns false; else, returns MDB2_Result_object
 	 *
+	 * @since	2013-01-18
 	 * @author 	Diego Flores <diegotf [at] gmail dot com>
-	 * @since	2008-01-29
+	 * 
 	**/
-	public function select($arrCampo,$arrTabela,$arrJoin = array(),$arrWhere = array(),$arrOrdem = array(),$arrGroup = array(),$intOffSet = 0,$intLimit = null,$strFetch = 'All') {
+	public function select($arrField,$arrTable,$arrJoin = array(),$arrWhere = array(),$arrOrderBy = array(),$arrGroupBy = array(),$intOffSet = 0,$intLimit = null,$strFetchMode = 'All') {
 		$arrFetch	= array('All' => 'getAll','One' => 'getOne');
 		
-		if(!is_object($this->objConn))																	return false;
+		if(!is_object($this->objConn))																					return false;
 		
-		if(is_string($arrCampo) && !empty($arrCampo))													$arrCampo 	= array($arrCampo);
-		if(!is_array($arrCampo))																		return false;
+		if(is_string($arrField) 	&& !empty($arrField))																$arrField 		= array($arrField);
+		if(!is_array($arrField))																						return false;
 		
-		if(is_string($arrTabela) && !empty($arrTabela))													$arrTabela 	= array($arrTabela);
-		if(!is_array($arrTabela))																		return false;
+		if(is_string($arrTable) 	&& !empty($arrTable))																$arrTable 		= array($arrTable);
+		if(!is_array($arrTable))																						return false;
 		
-		if(is_string($arrJoin)	&& !empty($arrJoin)) 													$arrJoin 	= array($arrJoin); 
-		if(!is_array($arrJoin))																			return false;
+		if(is_string($arrJoin)		&& !empty($arrJoin)) 																$arrJoin 		= array($arrJoin); 
+		if(!is_array($arrJoin))																							return false;
 		
-		if(is_string($arrWhere)	&& !empty($arrWhere)) 													$arrWhere 	= array($arrWhere);
-		if(!is_array($arrWhere))																		return false;
+		if(is_string($arrWhere)		&& !empty($arrWhere)) 																$arrWhere 		= array($arrWhere);
+		if(!is_array($arrWhere))																						return false;
 		
-		if(is_string($arrOrdem)	&& !empty($arrOrdem)) 													$arrOrdem 	= array($arrOrdem);
-		if(!is_array($arrOrdem))																		return false;
+		if(is_string($arrOrderBy)	&& !empty($arrOrderBy)) 															$arrOrderBy 	= array($arrOrderBy);
+		if(!is_array($arrOrderBy))																						return false;
 		
-		if(is_string($arrGroup)	&& !empty($arrGroup)) 													$arrGroup 	= array($arrGroup);
-		if(!is_array($arrGroup))																		return false;
+		if(is_string($arrGroupBy)	&& !empty($arrGroupBy)) 															$arrGroupBy 	= array($arrGroupBy);
+		if(!is_array($arrGroupBy))																						return false;
 		
-		if(!is_numeric($intOffSet)) 																	$intOffSet 	= 0;
-		if(!is_numeric($intLimit)) 																		$intLimit 	= null;
+		if(!is_numeric($intOffSet)) 																					$intOffSet 		= 0;
+		if(!is_numeric($intLimit)) 																						$intLimit 		= null;
 		
-		if(!is_string($strFetch) || (is_string($strFetch) && !array_key_exists($strFetch,$arrFetch))) 	return $strFetch;
+		if(!is_string($strFetchMode) || (is_string($strFetchMode) && !array_key_exists($strFetchMode,$arrFetch))) 		return $strFetchMode;
 		
 		// Monta a query
 		$strQuery	= ' SELECT 
-							'.implode(',',$arrCampo).' 
+							'.implode(',',$arrField).' 
 						FROM
-							'.implode(' JOIN ',$arrTabela).' 
-						'.(count($arrJoin)	> 0 ? implode(' ',$arrJoin)						: '').'
-						'.(count($arrWhere) > 0 ? 'WHERE 	'.implode(' AND '	,$arrWhere)	: '').'
-						'.(count($arrGroup) > 0 ? 'GROUP BY	'.implode(' , '		,$arrGroup)	: '').'
-						'.(count($arrOrdem) > 0 ? 'ORDER BY '.implode(' ,'		,$arrOrdem) : '').'
-						'.(is_numeric($intLimit)? 'LIMIT	'.$intOffSet.','.$intLimit		: '').';';
+							'.implode(' JOIN ',$arrTable).' 
+						'.(count($arrJoin)	> 0 	? implode(' ',$arrJoin)							: '').'
+						'.(count($arrWhere) > 0 	? 'WHERE 	'.implode(' AND '	,$arrWhere)		: '').'
+						'.(count($arrGroupBy) > 0 	? 'GROUP BY	'.implode(' , '		,$arrGroupBy)	: '').'
+						'.(count($arrOrderBy) > 0 	? 'ORDER BY '.implode(' ,'		,$arrOrderBy) 	: '').'
+						'.(is_numeric($intLimit)	? 'LIMIT	'.$intOffSet.','.$intLimit			: '').';';
 		
 		// Executa a acao no DB
-		$objRS		= $this->objConn->$arrFetch[$strFetch]($strQuery);
+		$objQuery	= $this->objConn->$arrFetch[$strFetchMode]($strQuery);
 		
-		// Exibe o debug de resultado
-		if($this->_boolDebug) { echo $strQuery.'<pre>'; print_r($objRS); echo '</pre>'; }
+		if($this->_boolDebug) { echo '<pre>'; var_dump($objQuery); echo '</pre>'; }
 		
-		return $objRS;
-	}
-	
-	/**
-	 * insert - Insere dados no DB
-	 *
-	 * @param	string	$strTabela	Seta a tabela para insercao dos dados
-	 * @param	array	$arrCampo	Array de pares coordenados, onde a chave identifica o nome do campo no DB e o valor correspondente identifica os dados inseridos no mesmo
-	 *
-	 * @return	mixed	$rs			Caso exista campo auto_increment, retorna o valor PK do ultimo registro inserido; caso contrario, se affected_rows == 1 retorna true, senao retorna false
-	 *
-	 * @author	Diego Flores
-	 * @since	2007-06-01
-	**/
-	public function insert($strTabela,$arrCampo) {
-		// Valida os argumentos do metodo
-		if(is_array($strTabela)) 																		$strTabela = reset($strTabela);
-		if(!is_string($strTabela) || empty($strTabela))													return false;
-		if(empty($arrCampo)) 																			return false;
-		if(!is_array($arrCampo)) 																		$arrCampo 	= array($arrCampo);
-		
-		// Executa a acao no DB
-		$rs		= $this->objConn->insert($strTabela,$arrCampo);
-		
-		// Verifica a existencia de PK AUTO_INCREMENT e retorna lastInsertID || affectedRows || false
-		$arr	= reset($this->objConn->describeTable($strTabela));
-		if($arr['IDENTITY']) { 
-			$rs	= $this->getLastInsertID();
-		} elseif($rs == 1) {
-			$rs	= true;
-		} else { //var_dump($rs);
-			$rs = false;
+		if(PEAR::isError($objQuery)) {
+			define('ERROR_MSG',$this->objConn->getMessage());
+			return false;
+		} else {
+			return $objQuery;
 		}
-		
-		// Exibe o debug de resultado
-		if($this->_boolDebug) { var_dump($rs); }
-		
-		return $rs;
 	}
 	
-	
 	/**
-	 * Insere dados no DB, atualizando registros de mesma PK
+	 * Inserts data
 	 *
-	 * @param	string	$strTabela	Seta a tabela para insercao dos dados
-	 * @param	array	$arrCampo	Array de pares coordenados, onde a chave identifica o nome do campo no DB e o valor correspondente identifica os dados inseridos no mesmo
+	 * @param	string	$strTable	Table name
+	 * @param	array	$arrField	Associative array with field_name => field_value
 	 *
-	 * @return	mixed	$rs			Caso exista campo auto_increment, retorna o valor PK do ultimo registro inserido; caso contrario, se affected_rows == 1 retorna true, senao retorna false
+	 * @return	mixed
 	 *
-	 * @author	Diego Flores
-	 * @since	2007-06-01
+	 * @since	2013-01-18
+	 * @author 	Diego Flores <diegotf [at] gmail dot com>
+	 * 
 	**/
-	public function replace($strTabela,$arrCampo) {
-		// Valida os argumentos do metodo
-		if(is_array($strTabela)) 																		$strTabela = reset($strTabela);
-		if(!is_string($strTabela) || empty($strTabela))													return false;
-		if(empty($arrCampo)) 																			return false;
-		if(!is_array($arrCampo)) 																		$arrCampo 	= array($arrCampo);
+	public function insert($strTable,$arrField) {
+		if(is_array($strTable)) 						$strTable = reset($strTable);
+		if(!is_string($strTable) || empty($strTable))	return false;
+		if(empty($arrField)) 							return false;
+		if(!is_array($arrField)) 						$arrField 	= array($arrField);
 		
-		// Verifica se o primeiro valor de $arrCampo e a chave primaria da tabela; caso FALSE, quebra a execucao do metodo
-		$arr	= reset($this->objConn->describeTable($strTabela));
-		if(!$arr['PRIMARY'] || $arr['COLUMN_NAME'] != key(reset($arrCampo)))							return false;
+		// Prepares and execute query
+		$strQuery = $this->prepareInsertQuery($strTable,$arrField);
+		$objQuery = $this->executeQuery($strQuery);
 		
-		// Executa a acao no DB
-		$rs		= $this->objConn->query("REPLACE INTO ".$strTabela." (".implode(",",array_keys($arrCampo)).") VALUES ('".implode("','",$arrCampo)."');");
-		
-		// Verifica a existencia de PK AUTO_INCREMENT e retorna lastInsertID || affectedRows || false
-		if($arr['IDENTITY']) { 
-			$rs	= $this->objConn->lastInsertId();
-		} elseif($rs == 1) {
-			$rs	= true;
-		} else { //var_dump($rs);
-			$rs = false;
-		}
-		
-		// Exibe o debug de resultado
-		if($this->_boolDebug) { var_dump($rs); }
-		
-		return $rs;
+		return $objQuery;
 	}
 	
-	
 	/**
-	 * update - Atualiza dados no DB
+	 * Replaces data
 	 *
-	 * @param	string	$strTabela	Seta a tabela para atualizacao dos dados
-	 * @param	array	$arrCampo	Array de pares coordenados, onde a chave identifica o nome do campo no DB e o valor correspondente identifica os dados inseridos no mesmo
-	 * @param	mixed	$strWhere	Seta os filtros para atualizacao
+	 * @param	string	$strTable	Table name
+	 * @param	array	$arrField	Associative array with field_name => field_value
 	 *
-	 * @return	integer	$rs			affectedRows
+	 * @return	mixed
 	 *
-	 * @author	Diego Flores
-	 * @since	2007-06-01
+	 * @since	2013-01-18
+	 * @author 	Diego Flores <diegotf [at] gmail dot com>
+	 * 
 	**/
-	public function update($strTabela, $arrCampo, $strWhere = '') {
+	public function replace($strTable,$arrField) {
+		if(is_array($strTable)) 						$strTable = reset($strTable);
+		if(!is_string($strTable) || empty($strTable))	return false;
+		if(empty($arrField)) 							return false;
+		if(!is_array($arrField)) 						$arrField 	= array($arrField);
 		
-		// Valida os argumentos do metodo
-		if(is_array($strTabela)) 																		$strTabela 	= reset($strTabela);
-		if(!is_string($strTabela) 	|| empty($strTabela))												return false;
-		if(empty($arrCampo)) 																			return false;
-		if(!is_array($arrCampo)) 																		$arrCampo 	= array($arrCampo);
-		if(is_array($strWhere)) 																		$strWhere 	= implode(' AND ',$strWhere);
-		if(!is_string($strWhere)	&& !empty($strWhere)) 												$strWhere 	= NULL;
+		// Prepares and execute query
+		$strQuery = $this->prepareInsertQuery($strTable,$arrField,false);
+		$objQuery = $this->executeQuery($strQuery);
 		
-		// Executa a acao no DB
-		$rs			= $this->objConn->update($strTabela,$arrCampo,$strWhere);
-		
-		if($this->_boolDebug) { var_dump($rs); }
-		
-		return $rs;
+		return $objQuery;
 	}
 	
+	/**
+	 * Updates data
+	 *
+	 * @param	string	$strTable	Table name; if array, gets first element
+	 * @param	array	$arrField	Associative array with field_name => field_value
+	 * @param	mixed	$strWhere	WHERE statement
+	 *
+	 * @return	mixed
+	 *
+	 * @since	2013-01-18
+	 * @author 	Diego Flores <diegotf [at] gmail dot com>
+	 * 
+	**/
+	public function update($strTable, $arrField, $strWhere = '') {
+		if(is_array($strTable)) 							$strTable = reset($strTable);
+		if(!is_string($strTable) || empty($strTable))		return false;
+		if(empty($arrField)) 								return false;
+		if(!is_array($arrField)) 							$arrField 	= array($arrField);
+		if(is_array($strWhere)) 							$strWhere 	= implode(' AND ',$strWhere);
+		if(!is_string($strWhere)	&& !empty($strWhere)) 	$strWhere 	= '1';
+		
+		// Prepares and execute query
+		$strQuery = $this->prepareUpdateQuery($strTable,$arrField,$strWhere);
+		$objQuery = $this->executeQuery($strQuery);
+		
+		return $objQuery;
+	}
 	
 	/**
-	 * delete - Deleta dados no DB
+	 * Deletes data
 	 *
-	 * @param	string	$strTabela	Seta a tabela para delecao dos dados
-	 * @param	array	$arrWhere	Seta os filtros para delecao
+	 * @param	string	$strTable	Table name; if array, gets first element
+	 * @param	mixed	$strWhere	WHERE statement
 	 *
-	 * @return	integer	$rs			affectedRows
+	 * @return	integer
 	 *
-	 * @author	Diego Flores
-	 * @since	2007-06-01
+	 * @since	2013-01-18
+	 * @author 	Diego Flores <diegotf [at] gmail dot com>
+	 * 
 	**/
-	public function delete($strTabela,$arrWhere = array()) {
-		// Valida os argumentos do metodo
-		if(is_array($strTabela)) 																		$strTabela	= reset($strTabela);
-		if(!is_string($strTabela) || empty($strTabela))													return false;
-		if(!is_string($arrWhere)  && !is_array($arrWhere))												return false;
-		if(is_array($arrWhere)) 																		$arrWhere	= implode(' AND ',$arrWhere);
+	public function delete($strTable,$arrWhere = array()) {
+		if(is_array($strTable)) 							$strTable = reset($strTable);
+		if(!is_string($strTable) || empty($strTable))		return false;
+		if(is_array($strWhere)) 							$strWhere 	= implode(' AND ',$strWhere);
+		if(!is_string($strWhere)	&& !empty($strWhere)) 	$strWhere 	= '1';
 		
-		// Executa a acao no DB
-		$rs			= $this->objConn->delete($strTabela,$arrWhere);
+		return $this->objConn->delete($strTable,$strWhere);
+	}
+	
+	/**
+	 * Get Applr section config info
+	 * 
+	 * @param	integer		$intSection	Section ID
+	 *
+	 * @return 	If PEAR::isError, sets ERROR_MSG constant and returns false; else, returns MDB2_Result_object
+	 *
+	 * @since	2013-01-18
+	 * @author 	Diego Flores <diegotf [at] gmail dot com>
+	 * 
+	 */
+	public function getSectionConfig($intSection) {
+		if(!is_numeric($intSection) || $intSection 	<= 0) return false;
 		
-		if($this->_boolDebug) { var_dump($rs); }
-		
-		return $rs;
+		return;
 	}
 }
 ?>

@@ -24,7 +24,7 @@ if(strpos($_SERVER["HTTP_HOST"],URI_DOMAIN_DEVELOP) !== false) {
 	define('URI_DOMAIN'	,URI_DOMAIN_DEVELOP);
 	define('LOCAL_DIR'	,'/' . DIR_DEVELOP . '/www/');
 
-	error_reporting(0);
+	error_reporting(E_ERROR); #E_ALL&~E_NOTICE&~E_WARNING&~E_DEPRECATED&~E_STRICT);
 	
 	define('DB_HOST'	,DB_DEVELOP_HOST);
 	define('DB_USER'	,DB_DEVELOP_USER);
@@ -48,7 +48,7 @@ if(strpos($_SERVER["HTTP_HOST"],URI_DOMAIN_DEVELOP) !== false) {
 	define('URI_DOMAIN'	,URI_DOMAIN_PROD);
 	define('LOCAL_DIR'	,'/');
 
-	error_reporting(E_ALL);
+	error_reporting(0);
 	
 	define('DB_HOST'	,DB_PROD_HOST);
 	define('DB_USER'	,DB_PROD_USER);

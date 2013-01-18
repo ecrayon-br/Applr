@@ -50,6 +50,7 @@ class Controller {
 	}
 	
 	static function setInitVars() {
+		
 		/*********************************************************/
 		/*********************************************************/
 		/**********										**********/
@@ -59,7 +60,6 @@ class Controller {
 		set_include_path(get_include_path() . PATH_SEPARATOR . SYS_ROOT . PATH_SEPARATOR . SYS_ROOT . 'lib/PEAR/');
 		
 		include SYS_ROOT . 'config.php';
-		include SYS_ROOT . 'lib/PEAR/DB.php';
 
 		/*********************************************************/
 		/*********************************************************/
@@ -620,7 +620,7 @@ class Controller {
 			foreach($arrSource AS $intKey => &$strData) {
 				if(is_array($strData)) {
 					// Executes next iteration form next dimension
-					$arrReturn[$intKey] = $this->multiArrayWalk(&$strData, $strMethod, $objInherit, false);
+					$arrReturn[$intKey] = $this->multiArrayWalk($strData, $strMethod, $objInherit, false);
 				} else {
 					// Runs defined method on array element
 					if(function_exists($strMethod)) {
@@ -639,7 +639,7 @@ class Controller {
 			foreach($arrSource AS $intKey => &$strData) {
 				if(is_array($strData)) {
 					// Executes next iteration form next dimension
-					$arrReturn->$intKey = $this->multiArrayWalk(&$strData, $strMethod, $objInherit, false);
+					$arrReturn->$intKey = $this->multiArrayWalk($strData, $strMethod, $objInherit, false);
 				} else {
 					// Runs defined method on array element
 					if(function_exists($strMethod)) {

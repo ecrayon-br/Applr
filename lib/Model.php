@@ -61,7 +61,7 @@ class Model {
 								'seqcol_name'	=> 'id'
 								);
 		
-		$this->objConn 	=& MDB2::connect($arrDSN,$arrOptions);
+		$this->objConn 	=& PEAR_ApplrDB::connect($arrDSN,$arrOptions);
 		
 		if($this->_boolDebug) { echo '<pre>'; var_dump($this->objConn); echo '</pre>'; }
 		

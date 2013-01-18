@@ -1,6 +1,4 @@
 <?php
-include_once 'DB.php';
-
 class Model {
 	
 	protected 	$_dbType	= DB_TYPE;
@@ -29,6 +27,10 @@ class Model {
 		$this->boolConnStatus = $this->setConnection();
 	}
 	
+	public function getSectionConfig() {
+		
+	}
+	
 	/**
 	 * Realiza e verifica a conexao com o DB
 	 * 
@@ -41,7 +43,7 @@ class Model {
 	**/
 	public function setConnection($intConnection = null) {
 		if(!is_null($intConnection) && !is_numeric($intConnection))	return false;
-		
+		/*
 		$strDSN			= "$this->_dbType://$this->_userName:$this->_password@$this->_hostName/$this->_dbName";
 		$arrOptions		= array	(
 		    					'debug'       => 2,
@@ -56,6 +58,8 @@ class Model {
 		$this->setFetchMode();
 		
 		return true;
+		*/
+		return false;
 	}
 	
 	/**
@@ -407,7 +411,7 @@ class Model {
 	 * 
 	 * @param	integer		$intUser	User ID
 	 * @param	integer		$intUC		Use Case ID / DB::secao_sistema.cod_secao_sistema value
-	 * @param	integer		$intAction	Action code: 1 - Inserido com sucesso; 2 - Erro ao inserir; 3 - Dados inválidos ao inserir; 4 - Atualizado com sucesso; 5 - Erro ao atualizar; 6 – Dados inválidos ao atualizar; 7 - Importado com sucesso; 8 - Erro ao importar; 9 - Dados inválidos ao importar; 10 - Mês/Ano existente; 11 - Deletado com sucesso; 12 - Erro ao deletar; 13 - Visualizou
+	 * @param	integer		$intAction	Action code: 1 - Inserido com sucesso; 2 - Erro ao inserir; 3 - Dados invÃ¡lidos ao inserir; 4 - Atualizado com sucesso; 5 - Erro ao atualizar; 6 â€“ Dados invÃ¡lidos ao atualizar; 7 - Importado com sucesso; 8 - Erro ao importar; 9 - Dados invÃ¡lidos ao importar; 10 - MÃªs/Ano existente; 11 - Deletado com sucesso; 12 - Erro ao deletar; 13 - Visualizou
 	 * @param	array		$arrParam	Optional parameters array; options defined in $this->setLog->arrTestParam
 	 * 
 	 * @return	boolean

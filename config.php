@@ -21,7 +21,7 @@ define('MAIN_LANGUAGE'	,1);
 /***												***/
 /*** 			PHP ENVIRONMENT CONFIG 				***/
 /***												***/
-define('MEMORY_LIMIT'	,'100M');
+define('MEMORY_LIMIT'	,'128M');
 define('TIMEZONE'		,'America/Sao_Paulo');
 define('DB_TYPE'		,'mysql');
 

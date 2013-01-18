@@ -1,7 +1,7 @@
 <?php
 include_once 'init.php';
 
-$strURL = str_replace(array(DOMAIN,LOCAL_DIR),'',$_SERVER['REQUEST_URI']);
+$strURL = str_replace(array(URI_DOMAIN,LOCAL_DIR),'',$_SERVER['REQUEST_URI']);
 if($strURL == '' || $strURL == '/') $strURL = 'main';
 
 if(!empty($_SERVER['QUERY_STRING'])) $strURL .= '/?' . $_SERVER['QUERY_STRING'];
@@ -53,6 +53,7 @@ if(ACTION == 'cms') {
 </html>
 <?php
 } else {
+	die(HTTP.'site/conteudo/' . $strURL);
 	echo file_get_contents(HTTP.'site/conteudo/' . $strURL);
 }
 ?>

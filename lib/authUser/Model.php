@@ -1,14 +1,5 @@
 <?php
-include_once '../../../cms/include-sistema/config_banco.php';
-
-class authUser_Model {
-		
-	protected 	$_dbType	= DB_TYPE;
-	protected 	$_hostName	= DB_HOST;
-	protected 	$_userName	= DB_USER;
-	protected 	$_password	= DB_PASSWORD;
-	protected 	$_dbName	= DATABASE;
-	protected  	$objConn;
+class authUser_Model extends Model {
 	
 	/**
 	 * Class constructor
@@ -21,82 +12,7 @@ class authUser_Model {
 	 * 
 	 */
 	public function __construct() {
-		$this->setConnection();
-	}
-	
-	/**
-	 * Connects with DB
-	 * 
-	 * @return	boolean
-	 *
-	 * @author	Diego Flores <diegotf [at] gmail dot com>
-	 * @since	2008-01-29
-	**/
-	public function setConnection() {
-		$strDSN			= "$this->_dbType://$this->_userName:$this->_password@$this->_hostName/$this->_dbName";
-		$arrOptions		= array	(
-		    					'debug'       => 2,
-		    					'portability' => DB_PORTABILITY_ALL,
-								);
-		$this->objConn 	=& DB::connect($strDSN,$arrOptions);
-		
-		if (PEAR::isError($this->objConn)) return false;
-		
-		$this->setFetchMode();
-		
-		return true;
-	}
-	
-	/**
-	 * Defines DB_FETCHMODE constant
-	 *
-	 * @param	string	$mxdFetch	Defines DB_FETCHMODE constant
-	 * 
-	 * @return	void
-	 *
-	 * @author	Diego Flores <diegotf [at] gmail dot com>
-	 * @since	2008-01-29
-	**/
-	public function setFetchMode($mxdFetch = 0) {
-		if(!is_object($this->objConn))							return false;
-		if(!is_string($mxdFetch) && !is_numeric($mxdFetch))		return false;
-		if(is_string($mxdFetch))								$mxdFetch = strtoupper($mxdFetch);
-		
-		// Seta o FETCH_MODE
-		switch($mxdFetch) {
-			case 'OBJ':
-			case 0:
-			default:
-				$this->objConn->setFetchMode(DB_FETCHMODE_OBJECT);
-			break;
-			
-			case 'ORDERED':
-			case 1:
-				$this->objConn->setFetchMode(DB_FETCHMODE_ORDERED);
-			break;
-			
-			case 'ASSOC':
-			case 2:
-				$this->objConn->setFetchMode(DB_FETCHMODE_ASSOC);
-			break;
-		}
-	}
-	
-	/**
-	 * Executes query on database
-	 *
-	 * @param 		string $strQuery	Query to execute
-	 * 
-	 * @return 		DB::object
-	 * 
-	 * @since 		2008-12-07
-	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
-	 * 
-	 */
-	protected function executeQuery($strQuery) {
-		if(!is_string($strQuery)|| empty($strQuery))	return false;
-		
-		return $this->objConn->query($strQuery);
+		parent::__construct();
 	}
 	
 	/**
@@ -131,11 +47,11 @@ class authUser_Model {
 			$strPwd = authUser_Controller::replaceQuoteAndSlash($strPwd);
 		}
 		
-		$strQuery	= 'SELECT *, '.($authCode ? 'bn_authcode' : 'NULL AS bn_authcode').' FROM tb_conteudo_usuario WHERE '.(!is_null($userField) ? $userField : 'bt_login').' = "'.authUser_Controller::replaceQuoteAndSlash($strLogin).'" AND bt_senha = "'.$strPwd.'" '.($authCode ? 'AND bb_preenchido_simnao = 1' : '').';';
+		$strQuery	= 'SELECT *, '.($authCode ? 'authcode' : 'NULL AS authcode').' FROM usr_data WHERE '.(!is_null($userField) ? $userField : 'username').' = "'.authUser_Controller::replaceQuoteAndSlash($strLogin).'" AND password = "'.$strPwd.'" '.($authCode ? 'AND authcode_true = 1' : '').';';
 		$objQuery	= $this->executeQuery($strQuery);
 		$objQuery	= $objQuery->fetchRow();
 		
-		if(isset($objQuery->bn_id) && is_numeric($objQuery->bn_id)) {
+		if(isset($objQuery->id) && is_numeric($objQuery->id)) {
 			return $objQuery;
 		} else {
 			return false;

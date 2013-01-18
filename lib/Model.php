@@ -22,13 +22,14 @@ class Model {
 	 * @since	2013-01-18
 	 * @author	Diego Flores <diegotf [at] gmail dot com>
 	 * 
-	 * @todo 	Check MDB2 values to $this->setFetchMode
 	 * @todo	Implement $this->getClientConnection
-	 * @todo	Set INSERT and UPDATE query syntax using MDB2 at $this->prepareInsertQuery, $this->prepareUpdateQuery, $this->recordExists
-	 * @todo	Check $this->delete regarding MDB@ syntax and methods
 	**/
 	public function __construct($intConnection = null) {
 		$this->boolConnStatus = $this->setConnection($intConnection);
+		
+		if($this->boolConnStatus) {
+			$this->objConn->loadModule('Extended');
+		}
 	}
 	
 	/**
@@ -49,7 +50,8 @@ class Model {
 								'hostspec'	=> $this->_hostName,
 								'database'	=> $this->_dbName,
 								'username'	=> $this->_userName,
-								'password'	=> $this->_password
+								'password'	=> $this->_password,
+								'new_link'	=> true
 							);
 		
 		$arrOptions		= array	(
@@ -68,7 +70,7 @@ class Model {
 			return false;
 		}
 		
-		$this->setFetchMode();
+		$this->setFetchMode('OBJECT');
 		
 		return true;
 	}
@@ -169,20 +171,23 @@ class Model {
 		if(is_string($mxdFetch))								$mxdFetch = strtoupper($mxdFetch);
 		
 		switch($mxdFetch) {
+			case 'MDB2_FETCHMODE_OBJECT':
 			case 'OBJ':
 			case 0:
-			default:
-				$this->objConn->setFetchMode(DB_FETCHMODE_OBJECT);
+				$this->objConn->setFetchMode(MDB2_FETCHMODE_OBJECT);
 			break;
 			
+			case 'MDB2_FETCHMODE_ORDERED ':
 			case 'ORDERED':
 			case 1:
-				$this->objConn->setFetchMode(DB_FETCHMODE_ORDERED);
+			default:
+				$this->objConn->setFetchMode(MDB2_FETCHMODE_ORDERED);
 			break;
 			
+			case 'MDB2_FETCHMODE_ASSOC':
 			case 'ASSOC':
 			case 2:
-				$this->objConn->setFetchMode(DB_FETCHMODE_ASSOC);
+				$this->objConn->setFetchMode(MDB2_FETCHMODE_ASSOC);
 			break;
 		}
 	}
@@ -221,9 +226,9 @@ class Model {
 					if(is_null($mxdColumnData) || strtoupper($mxdColumnData) == 'NULL') {
 						$mxdColumnData = 'NULL';
 					} elseif(is_string($mxdColumnData) && strtoupper($mxdColumnData) != 'NULL' && strpos($mxdColumnData,'"') !== 0 && strpos($mxdColumnData,"'") !== 0) {
-						$mxdColumnData = '"'.$mxdColumnData.'"';
+						$mxdColumnData = $this->objConn->quote($mxdColumnData);
 					} elseif($mxdColumnData === "") {
-						$mxdColumnData = '""';
+						$mxdColumnData = $this->objConn->quote('','text',true);
 					}
 				}
 			} else {
@@ -303,13 +308,30 @@ class Model {
 		if(!is_array($arrField) || count($arrField) == 0)								return false;
 		if(!is_bool($boolInsertMode) && $boolInsertMode !== 1 && $boolInsertMode !== 0)	return false;
 		
-		// Prepare row's syntax
-		$arrValue	= $this->prepareInsertRowSyntax($arrField);
-		
 		// Gets table attribute's name
 		$arrField	= array_keys(reset($arrField));
 		
-		return ($boolInsertMode ? 'INSERT' : 'REPLACE').' INTO '.$strTable.' ('.implode(',',$arrField).') VALUES '.implode(',',$arrValue);
+		if($boolInsertMode) {
+			// Prepare query using MDB2::autoPrepare
+			$objQuery	= $this->objConn->extended->autoPrepare($strTable,$arrField,MDB2_AUTOQUERY_INSERT);
+		} else {
+			// Prepare query using MDB2::prepare
+			$objQuery = $this->objConn->extended->buildManipSQL($strTable,$arrField,MDB2_AUTOQUERY_INSERT);
+			$objQuery = $this->objConn->prepare( str_replace('INSERT INTO','REPLACE INTO',$objQuery) );
+			
+			/*
+			// Prepare row's syntax
+			$arrValue	= $this->prepareInsertRowSyntax($arrField);
+			$objQuery = 'REPLACE INTO '.$strTable.' ('.implode(',',$arrField).') VALUES '.implode(',',$arrValue);
+			*/
+		}
+		
+		if(PEAR::isError($objQuery)) {
+			define('ERROR_MSG',$this->objConn->getMessage());
+			return false;
+		} else {
+			return $objQuery;
+		}
 	}
 	
 	/**
@@ -329,10 +351,14 @@ class Model {
 		if(!is_array($arrField) || count($arrField) == 0)	return false;
 		if(is_array($strWhere)) 							$strWhere 	= implode(' AND ',$strWhere);
 		
-		// Prepare row's syntax
-		$arrField	= $this->prepareUpdateRowSyntax($arrField);
-		
-		return 'UPDATE ' . $strTable . ' SET ' . implode(',',$arrField) . ' WHERE ' . $strWhere . ';';
+		// Prepare query using MDB2::autoPrepare
+		$objQuery	= $this->objConn->extended->autoPrepare($strTable,$arrField,MDB2_AUTOQUERY_UPDATE,$strWhere);
+		if(PEAR::isError($objQuery)) {
+			define('ERROR_MSG',$this->objConn->getMessage());
+			return false;
+		} else {
+			return $objQuery;
+		}
 	}
 	
 	/**
@@ -355,8 +381,7 @@ class Model {
 		if(!is_string($strWhere)		|| empty($strWhere))	return false;
 		if(!is_bool($boolReturnValue) 	&& $boolReturnValue !== 1 && $boolReturnValue !== 0)	return false;
 		
-		$objQuery	= $this->executeQuery('SELECT ' . $strField . ' FROM ' . $strTable . ' WHERE ' . $strWhere . ';');
-		$objQuery	= $objQuery->fetchRow();
+		$objQuery	= $this->select($strField,$strTable,'',$strWhere,'','',0,1,'Row');
 		
 		if(isset($objRS->$strField) && !is_null($objRS->$strField)) { return ($boolReturnValue ? $objRS->$strField : true); }
 		return false;
@@ -389,7 +414,9 @@ class Model {
 			}
 		} else {
 			$objQuery = $this->objConn->exec($strQuery);
-		
+			
+			$this->objConn->free();
+			
 			if($this->_boolDebug) { echo '<pre>'; var_dump($objQuery); echo '</pre>'; }
 			
 			if(PEAR::isError($objQuery)) {
@@ -442,14 +469,15 @@ class Model {
 		if(!is_string($strContent)	|| empty($strContent))	$strContent = '';
 		
 		// Executes query
-		$objQuery = $this->executeQuery('INSERT INTO sys_log (usr_data_id,sec_config_id,action,object,date,content) VALUES (' . Controller::escapeXSS($intUser) . ',' . Controller::escapeXSS($intSection) . ',' . Controller::escapeXSS($intAction) . ',' . Controller::escapeXSS($intObject) . ',NOW(),' . implode(',',$arrParam) . ');');
-		
-		// Returns boolean
-		if($objQuery) {
-			return true;
-		} else {
-			return false;
-		}
+		$arrField = array(
+						'usr_data_id' 	=> $intUser,
+						'sec_config_id' => $intSection,
+						'action' 		=> $intAction,
+						'object' 		=> $intObject,
+						'date' 			=> date('Y-m-d H:i:s'),
+						'content' 		=> $strContent	
+					);
+		return $this->insert('sys_log',array($arrField));
 	}
 	
 	/**
@@ -472,7 +500,12 @@ class Model {
 	 * 
 	**/
 	public function select($arrField,$arrTable,$arrJoin = array(),$arrWhere = array(),$arrOrderBy = array(),$arrGroupBy = array(),$intOffSet = 0,$intLimit = null,$strFetchMode = 'All') {
-		$arrFetch	= array('All' => 'getAll','One' => 'getOne');
+		$arrFetch	= array	(
+							'All' 		=> 'queryAll', 'One' 		=> 'queryOne', 'Row' 		=> 'queryRow', 'Col' 		=> 'queryCol',
+							'fetchAll' 	=> 'queryAll', 'fetchOne' 	=> 'queryOne', 'fetchRow' 	=> 'queryRow', 'fetchCol' 	=> 'queryCol',
+							'queryAll' 	=> 'queryAll', 'queryOne' 	=> 'queryOne', 'queryRow' 	=> 'queryRow', 'queryCol' 	=> 'queryCol',
+							'1' 		=> 'queryAll', '2' 			=> 'queryOne', '3' 			=> 'queryRow', '4' 			=> 'queryCol'
+							);
 		
 		if(!is_object($this->objConn))																					return false;
 		
@@ -499,7 +532,7 @@ class Model {
 		
 		if(!is_string($strFetchMode) || (is_string($strFetchMode) && !array_key_exists($strFetchMode,$arrFetch))) 		return $strFetchMode;
 		
-		// Monta a query
+		// Sets query syntax
 		$strQuery	= ' SELECT 
 							'.implode(',',$arrField).' 
 						FROM
@@ -507,10 +540,12 @@ class Model {
 						'.(count($arrJoin)	> 0 	? implode(' ',$arrJoin)							: '').'
 						'.(count($arrWhere) > 0 	? 'WHERE 	'.implode(' AND '	,$arrWhere)		: '').'
 						'.(count($arrGroupBy) > 0 	? 'GROUP BY	'.implode(' , '		,$arrGroupBy)	: '').'
-						'.(count($arrOrderBy) > 0 	? 'ORDER BY '.implode(' ,'		,$arrOrderBy) 	: '').'
-						'.(is_numeric($intLimit)	? 'LIMIT	'.$intOffSet.','.$intLimit			: '').';';
+						'.(count($arrOrderBy) > 0 	? 'ORDER BY '.implode(' ,'		,$arrOrderBy) 	: '');
 		
-		// Executa a acao no DB
+		// Sets LIMIT
+		$this->objConn->setLimit($intLimit,$intOffSet);
+		
+		// Executes query
 		$objQuery	= $this->objConn->$arrFetch[$strFetchMode]($strQuery);
 		
 		if($this->_boolDebug) { echo '<pre>'; var_dump($objQuery); echo '</pre>'; }
@@ -542,10 +577,21 @@ class Model {
 		if(!is_array($arrField)) 						$arrField 	= array($arrField);
 		
 		// Prepares and execute query
-		$strQuery = $this->prepareInsertQuery($strTable,$arrField);
-		$objQuery = $this->executeQuery($strQuery);
-		
-		return $objQuery;
+		$objQuery = $this->prepareInsertQuery($strTable,$arrField);
+		if($objQuery !== false) {
+			$objQuery = $this->objConn->extended->executeMultiple($objQuery,$arrField);
+			
+			$this->objConn->free();
+			
+			if(PEAR::isError($objQuery)) {
+				define('ERROR_MSG',$this->objConn->getMessage());
+				return false;
+			} else {
+				return $objQuery;
+			}
+		} else {
+			return false;
+		}
 	}
 	
 	/**
@@ -567,10 +613,21 @@ class Model {
 		if(!is_array($arrField)) 						$arrField 	= array($arrField);
 		
 		// Prepares and execute query
-		$strQuery = $this->prepareInsertQuery($strTable,$arrField,false);
-		$objQuery = $this->executeQuery($strQuery);
-		
-		return $objQuery;
+		$objQuery = $this->prepareInsertQuery($strTable,$arrField,false);
+		if($objQuery !== false) {
+			$objQuery = $this->objConn->extended->executeMultiple($objQuery,$arrField);
+			
+			$this->objConn->free();
+			
+			if(PEAR::isError($objQuery)) {
+				define('ERROR_MSG',$this->objConn->getMessage());
+				return false;
+			} else {
+				return $objQuery;
+			}
+		} else {
+			return false;
+		}
 	}
 	
 	/**
@@ -596,9 +653,20 @@ class Model {
 		
 		// Prepares and execute query
 		$strQuery = $this->prepareUpdateQuery($strTable,$arrField,$strWhere);
-		$objQuery = $this->executeQuery($strQuery);
-		
-		return $objQuery;
+		if($objQuery !== false) {
+			$objQuery = $this->objConn->execute($objQuery,$arrField);
+			
+			$this->objConn->free();
+			
+			if(PEAR::isError($objQuery)) {
+				define('ERROR_MSG',$this->objConn->getMessage());
+				return false;
+			} else {
+				return $objQuery;
+			}
+		} else {
+			return false;
+		}
 	}
 	
 	/**
@@ -619,7 +687,23 @@ class Model {
 		if(is_array($strWhere)) 							$strWhere 	= implode(' AND ',$strWhere);
 		if(!is_string($strWhere)	&& !empty($strWhere)) 	$strWhere 	= '1';
 		
-		return $this->objConn->delete($strTable,$strWhere);
+		// Prepares and execute query
+		$objQuery	= $this->objConn->extended->autoPrepare($strTable,null,MDB2_AUTOQUERY_DELETE,$strWhere);
+		if(PEAR::isError($objQuery)) {
+			define('ERROR_MSG',$this->objConn->getMessage());
+			return false;
+		} else {
+			$objQuery = $this->objConn->execute($objQuery,$arrField);
+		
+			$this->objConn->free();
+		
+			if(PEAR::isError($objQuery)) {
+				define('ERROR_MSG',$this->objConn->getMessage());
+				return false;
+			} else {
+				return $objQuery;
+			}
+		}
 	}
 	
 	/**

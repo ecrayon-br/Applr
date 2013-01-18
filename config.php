@@ -21,9 +21,25 @@ define('MAIN_LANGUAGE'	,1);
 /***												***/
 /*** 			PHP ENVIRONMENT CONFIG 				***/
 /***												***/
+
+	/*
+	 * ALLOWED DB TYPES
+	 * 
+		fbsql  -> FrontBase
+		ibase  -> InterBase / Firebird (requires PHP 5)
+		mssql  -> Microsoft SQL Server (NOT for Sybase. Compile PHP --with-mssql)
+		mysql  -> MySQL
+		mysqli -> MySQL (supports new authentication protocol) (requires PHP 5)
+		oci8   -> Oracle 7/8/9/10
+		pgsql  -> PostgreSQL
+		querysim -> QuerySim
+		sqlite -> SQLite 2
+	 *
+	 */
+
 define('MEMORY_LIMIT'	,'128M');
 define('TIMEZONE'		,'America/Sao_Paulo');
-define('DB_TYPE'		,'mysql');
+define('DB_TYPE'		,'mysqli');
 
 
 /******************************************************/

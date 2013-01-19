@@ -57,7 +57,7 @@ class Controller {
 		/**********				INCLUDE PATH			**********/
 		/**********										**********/
 		
-		set_include_path(get_include_path() . PATH_SEPARATOR . SYS_ROOT . PATH_SEPARATOR . SYS_ROOT . 'lib/PEAR/');
+		set_include_path(get_include_path() . PATH_SEPARATOR . SYS_ROOT . PATH_SEPARATOR . SYS_ROOT . 'lib/PEAR/' . PATH_SEPARATOR . SMARTY_DIR);
 		
 		include SYS_ROOT . 'config.php';
 

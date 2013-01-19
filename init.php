@@ -56,8 +56,9 @@ if(strpos($_SERVER["HTTP_HOST"],URI_DOMAIN_DEVELOP) !== false) {
 	define('DB_NAME'	,DB_PROD_DB);
 }
 
-define('SYS_DIR'	,(LOCAL_DIR != '' && LOCAL_DIR != '/' ? LOCAL_DIR : '/'));
-define('SYS_ROOT'	,$_SERVER['DOCUMENT_ROOT'] . SYS_DIR);
+define('SYS_DIR'	, (LOCAL_DIR != '' && LOCAL_DIR != '/' ? LOCAL_DIR : '/'));
+define('SYS_ROOT'	, $_SERVER['DOCUMENT_ROOT'] . SYS_DIR);
+define('SMARTY_DIR'	, SYS_ROOT . 'lib/smarty/');
 
 /**
  * Magic function: Autoload

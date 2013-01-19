@@ -1,7 +1,8 @@
 <?php
 include_once '../init.php';
 
-$objSmarty = new smarty_ApplrSmarty();
+$objSmarty = new PEAR_ApplrSendMail();
+var_dump($objSmarty);
 
 //$objAuth = new authUser_Controller();
 

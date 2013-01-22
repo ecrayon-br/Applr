@@ -5,6 +5,7 @@ class sendMail_Controller extends Controller {
 	public		$strSubject			= '';
 	public 		$strHTML			= '';
 	public 		$strEncoding		= 'UTF-8';
+	public		$objReport;
 	
 	private 	$strHost			= 'mail.ecrayon.com.br';
 	private		$boolHostAuth		= false;
@@ -321,10 +322,10 @@ class sendMail_Controller extends Controller {
 						$this->arrRecipient[$strMode][$strAddress]->name = utf8_encode($strName);
 					}
 				}
-				break;
+			break;
 		
 			default:
-				break;
+			break;
 		}
 		
 		// If !$this->boolHostAuth, send message using PHP::mail() function
@@ -336,13 +337,13 @@ class sendMail_Controller extends Controller {
 			$strHeader .= "Reply-To: ".$this->strSenderName.'<'.$this->strSenderMail.'>'."\n";
 			
 			// Sends 'To' messages
-			foreach($this->arrRecipient['To'] AS $strAddress => &$objData) {
-				$objData->status = mail($strAddress,$this->strSubject,$this->strHTML,$strHeader . "To: " . $objData->name . '<' . $objData->address . '>'."\n");
+			foreach($this->arrRecipient['To'] AS $strAddress => $objData) {
+				$this->objReport->To->$strAddress = mail($strAddress,$this->strSubject,$this->strHTML,$strHeader . "To: " . $objData->name . '<' . $objData->address . '>'."\n");
 			}
 			
 			// Sends 'Bcc' messages
-			foreach($this->arrRecipient['Bcc'] AS $strAddress => &$objData) {
-				$objData->status = mail($strAddress,$this->strSubject,$this->strHTML,$strHeader . "To: " . $objData->name . '<' . $objData->address . '>'."\n");
+			foreach($this->arrRecipient['Bcc'] AS $strAddress => $objData) {
+				$this->objReport->Bcc->$strAddress = mail($strAddress,$this->strSubject,$this->strHTML,$strHeader . "To: " . $objData->name . '<' . $objData->address . '>'."\n");
 			}
 		} else {
 			// Sends message through SMTP authentication server
@@ -364,18 +365,88 @@ class sendMail_Controller extends Controller {
 							);
 			$objSMTP = PEAR_ApplrSendMail::factory('smtp',$arrParams);
 			
-			// Sends 'To' messages
-			foreach($this->arrRecipient['To'] AS $strAddress => &$objData) {
-				$arrHeaders['To']	= $objData->name . '<' . $objData->address . '>';
-				$objData->status	= (PEAR::isError($objSMTP->send($strAddress, $arrHeaders, $this->strHTML)) ? false : true);
-			}
-			
-			// Sends 'Bcc' messages
-			foreach($this->arrRecipient['Bcc'] AS $strAddress => &$objData) {
-				$arrHeaders['To']	= $objData->name . '<' . $objData->address . '>';
-				$objData->status	= (PEAR::isError($objSMTP->send($strAddress, $arrHeaders, $this->strHTML)) ? false : true);
+			if(!PEAR::isError($objSMTP)) {
+				// Sends 'To' messages
+				foreach($this->arrRecipient['To'] AS $strAddress => $objData) {
+					$arrHeaders['To']					= $objData->name . '<' . $objData->address . '>';
+					$this->objReport->To->$strAddress	= (PEAR::isError($objSMTP->send($strAddress, $arrHeaders, $this->strHTML)) ? false : true);
+				}
+				
+				// Sends 'Bcc' messages
+				foreach($this->arrRecipient['Bcc'] AS $strAddress => $objData) {
+					$arrHeaders['To']					= $objData->name . '<' . $objData->address . '>';
+					$this->objReport->Bcc->$strAddress	= (PEAR::isError($objSMTP->send($strAddress, $arrHeaders, $this->strHTML)) ? false : true);
+				}
+			} else {
+				define('ERROR_MSG','Error on $this->sendMessage!');
+				return false;
 			}
 		}
+	}
+	
+	/**
+	 * Prints sending status report
+	 * 
+	 * @param	integer	$intType	Report type: 0 => 'All'; 1 => 'To' recipients; 2 => 'Bcc' recipients
+	 * @param	boolean	$boolPrint	Defines whether report is printed on screen or not 
+	 * 
+	 * @return 	string
+	 * 
+	 * @since	2013-01-22
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 * 
+	 */
+	public function getReport($intType = 0,$boolPrint = true) {
+		if($intType < 0 || $intType > 2) return false;
+		if(!is_bool($boolPrint)) return false;
+		
+		$strResult = '';
+		
+		// 'To' recipients
+		if($intType == 0 || $intType == 1) {
+			$strResult .= '<h1>"To" Recipients</h1>';
+			$strResult .= '<h2>Total messages: ' . count($this->objReport->To) . '<br />Sent messages: #SENT#<br />Unsent messages: #UNSENT#</h2>';
+			
+			$intSent	= 0;
+			$intUnsent	= 0;
+			foreach($this->objReport->To AS $strAddress => $boolStatus) {
+				if($boolStatus) {
+					$intSent++;
+					$strResult .= $strAddress . ' : OK';
+				} else {
+					$intUnsent++;
+					$strResult .= $strAddress . ' : Error';
+				}
+			}
+			
+			$strResult = str_replace(array('#SENT#','#UNSENT#'), array($intSent,$intUnsent), $strResult);
+		}
+		$strResult .= '<hr />';
+		
+		// 'Bcc' recipients
+		if($intType == 0 || $intType == 2) {
+			$strResult .= '<h1>"Bcc" Recipients</h1>';
+			$strResult .= '<h2>Total messages: ' . count($this->objReport->Bcc) . '<br />Sent messages: #SENT#<br />Unsent messages: #UNSENT#</h2>';
+		
+			$intSent	= 0;
+			$intUnsent	= 0;
+			foreach($this->objReport->Bcc AS $strAddress => $boolStatus) {
+				if($boolStatus) {
+					$intSent++;
+					$strResult .= $strAddress . ' : OK';
+				} else {
+					$intUnsent++;
+					$strResult .= $strAddress . ' : Error';
+				}
+			}
+		
+			$strResult = str_replace(array('#SENT#','#UNSENT#'), array($intSent,$intUnsent), $strResult);
+		}
+		$strResult .= '<hr />';
+		
+		if($boolPrint) echo $strResult;
+		
+		return $strResult;
 	}
 }
 ?>

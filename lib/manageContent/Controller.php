@@ -52,7 +52,7 @@ class manageContent_Controller extends Controller {
 	 * 
 	 * @param integer $intSection Main section value
 	 *
-	 * @return	void
+	 * @return	boolean
 	 *
 	 * @since 	2013-01-22
 	 * @author	Diego Flores <diego [at] gmail [dot] com>
@@ -62,12 +62,14 @@ class manageContent_Controller extends Controller {
 		if(!is_numeric($intSection) || empty($intSection)) return false;
 		
 		$this->intSection = $intSection;
+		
+		return true;
 	}
 	
 	/**
-	 * Get SECTION fields data
+	 * Get SECTION fields data and sets $this->objFields
 	 *
-	 * @return	MDB2_Data_Object
+	 * @return	boolean
 	 *
 	 * @since 	2013-01-22
 	 * @author	Diego Flores <diego [at] gmail [dot] com>
@@ -75,12 +77,14 @@ class manageContent_Controller extends Controller {
 	 */
 	public function getSectionFields() {
 		$this->objFields = $this->objModel->getSectionFields($this->intSection);
+		
+		if($this->objFields === false) return false; else return true;
 	}
 	
 	/**
 	 * Get RELATIONSHIP fields data
 	 *
-	 * @return	MDB2_Data_Object
+	 * @return	boolean
 	 *
 	 * @since 	2013-01-22
 	 * @author	Diego Flores <diego [at] gmail [dot] com>
@@ -88,6 +92,8 @@ class manageContent_Controller extends Controller {
 	 */
 	public function getRelSectionFields() {
 		$this->objRelFields = $this->objModel->getRelSectionFields($this->intSection);
+		
+		if($this->objRelFields === false) return false; else return true;
 	}
 	
 	
@@ -96,7 +102,7 @@ class manageContent_Controller extends Controller {
 	 * 
 	 * @param	mixed	$mxdData	POST / GET / other data object
 	 * 
-	 * @return	void
+	 * @return	boolean
 	 *
 	 * @since 	2013-01-22
 	 * @author	Diego Flores <diego [at] gmail [dot] com>
@@ -104,6 +110,7 @@ class manageContent_Controller extends Controller {
 	 */
 	private function setupFieldSufyx($mxdData) {
 		if(!is_array($mxdData)) return false;
+		if($this->objFields === false) return false;
 		
 		foreach($this->objFields AS $mxdKey => $strField) {
 			$this->objData->$strField = (is_array($mxdData) ? (!empty($mxdData[$strField]) ? $mxdData[$strField] : '') : (!empty($mxdData->$strField) ? $mxdData->$strField : ''));
@@ -168,6 +175,8 @@ class manageContent_Controller extends Controller {
 				break;
 			}
 		}
+		
+		return true;
 	}
 
 	/**
@@ -175,7 +184,7 @@ class manageContent_Controller extends Controller {
 	 * 
 	 * @param	mixed	$mxdData	POST / GET / other data object
 	 * 
-	 * @return	void
+	 * @return	boolean
 	 *
 	 * @since 	2013-01-22
 	 * @author	Diego Flores <diego [at] gmail [dot] com>
@@ -184,8 +193,14 @@ class manageContent_Controller extends Controller {
 	protected function insertMainContent($mxdData) {
 		if(!is_array($mxdData)) return false;
 		
-		$this->setupFieldSufyx($mxdData);
-		$this->intContent = $this->objModel->insert($this->objSection->table,(array) $this->objData,true);
+		if($this->setupFieldSufyx($mxdData)) {
+			$this->intContent = $this->objModel->insert($this->objSection->table,(array) $this->objData,true);
+		} else {
+			define('ERROR_MSG','$this->setupFieldSufyx error!');
+			$this->intContent = null;
+		}
+		
+		return true;
 	}
 	
 	/**
@@ -193,7 +208,7 @@ class manageContent_Controller extends Controller {
 	 * 
 	 * @param	mixed	$mxdData	POST / GET / other data object
 	 * 
-	 * @return	void
+	 * @return	boolean
 	 *
 	 * @since 	2013-01-22
 	 * @author	Diego Flores <diego [at] gmail [dot] com>
@@ -201,6 +216,7 @@ class manageContent_Controller extends Controller {
 	 */
 	protected function insertRelContent($mxdData) {
 		if(!is_array($mxdData)) return false;
+		if($this->objRelFields === false) return false;
 		
 		foreach($this->objRelFields AS $mxdKey => $objRel) {
 			// rel_ctn_PARENT_NAME_ctn_CHILD_NAME
@@ -217,14 +233,19 @@ class manageContent_Controller extends Controller {
 				$strChildField	= $strChildTable . '_id';
 			}
 			
-			$this->setupRelField($mxdData,$objRel->field);
-			
-			foreach($this->arrRelData[$objRel->field] AS $intRelID) {
-				if($this->objModel->insert($objRel->table, ($objRel->parent ? array($strParentField => $this->intContent, $strChildField => $intRelID) : array($strParentField => $intRelID, $strChildField => $this->intContent)) )) {
-					$this->arrRelContent[$objRel->field][] = $this->recordExists('name', ($objRel->parent ? $strParentTable : $strChildTable),'id = ' . $intRelID,true);
+			if($this->setupRelField($mxdData,$objRel->field)) {
+				foreach($this->arrRelData[$objRel->field] AS $intRelID) {
+					if($this->objModel->insert($objRel->table, ($objRel->parent ? array($strParentField => $this->intContent, $strChildField => $intRelID) : array($strParentField => $intRelID, $strChildField => $this->intContent)) )) {
+						$this->arrRelContent[$objRel->field][] = $this->recordExists('name', ($objRel->parent ? $strParentTable : $strChildTable),'id = ' . $intRelID,true);
+					}
 				}
+			} else {
+				define('ERROR_MSG','$this->setupRelField error on ' . $objRel->field . ' : ' . $objRel->table . '!');
+				$this->arrRelContent[$objRel->field] = null;
 			}
 		}
+		
+		return true;
 	}
 	
 	/**
@@ -233,7 +254,7 @@ class manageContent_Controller extends Controller {
 	 * @param	mixed	$mxdData		POST / GET / other data object
 	 * @param	string	$strRelField	DB::rel_sec_sec.field_name value
 	 * 
-	 * @return	void
+	 * @return	boolean
 	 *
 	 * @since 	2013-01-22
 	 * @author	Diego Flores <diego [at] gmail [dot] com>
@@ -256,6 +277,8 @@ class manageContent_Controller extends Controller {
 				}
 			}
 		}
+		
+		return true;
 	}
 
 	/**
@@ -263,7 +286,7 @@ class manageContent_Controller extends Controller {
 	 * 
 	 * @param	mixed	$mxdData		POST / GET / other data object
 	 * 
-	 * @return	void
+	 * @return	boolean
 	 *
 	 * @since 	2013-01-22
 	 * @author	Diego Flores <diego [at] gmail [dot] com>
@@ -272,8 +295,17 @@ class manageContent_Controller extends Controller {
 	public function insert($mxdData) {
 		if(!is_array($mxdData)) return false;
 		
-		$this->insertMainContent($mxdData);
-		$this->insertRelContent($mxdData);
+		if($this->insertMainContent($mxdData)) {
+			if($this->insertRelContent($mxdData)) {
+				return true;
+			} else {
+				define('ERROR_MSG','$this->insertRelContent error!');
+				return false;
+			}
+		} else {
+			define('ERROR_MSG','$this->insertMainContent error!');
+			return false;
+		}
 	}
 }
 ?>

@@ -28,7 +28,7 @@ class manageContent_Model extends Model {
 	public function getSectionFields($intSection) {
 		if(empty($intSection) || !is_numeric($intSection)) return false;
 		
-		return $this->objModel->select('field_name AS field','rel_sec_struct',array(),'sec_config_id = ' . $intSection);
+		return $this->select('field_name AS field','rel_sec_struct',array(),'sec_config_id = ' . $intSection);
 	}
 	
 	/**
@@ -45,6 +45,6 @@ class manageContent_Model extends Model {
 	public function getRelSectionFields($intSection) {
 		if(empty($intSection) || !is_numeric($intSection)) return false;
 		
-		return $this->objModel->select(array('field_name AS field','table','IF(parent_id = ' . $intSection . ',1,0) AS parent'),'rel_sec_sec',array(),'parent_id = ' . $intSection . ' OR child_id = ' . $intSection);
+		return $this->select(array('field_name AS field','table','IF(parent_id = ' . $intSection . ',1,0) AS parent'),'rel_sec_sec',array(),'parent_id = ' . $intSection . ' OR child_id = ' . $intSection);
 	}
 }

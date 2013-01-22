@@ -206,12 +206,21 @@ class sendMail_Controller extends Controller {
 	public function setHTML($strHTML, $arrVars = null, $boolGET = false, $boolPOST = false) {
 		if(!is_string($strHTML) || empty($strHTML))	return false;
 		
+		Controller::unsecureGlobals();
+		
 		// If $strHTML is a file path, get file's content
 		if(is_file($strHTML)) $strHTML = file_get_contents($strHTML);
 		
 		// Replaces array of variables
 		if(is_array($arrVars)) {
 			foreach($arrVars AS $intKey => $strVar) {
+				$strHTML 	= str_replace('#'.$intKey.'#',nl2br($strVar),$strHTML);
+			}
+		}
+		
+		// Replaces $_POST variables
+		if($boolPOST) {
+			foreach($_POST AS $intKey => $strVar) {
 				$strHTML 	= str_replace('#'.$intKey.'#',nl2br($strVar),$strHTML);
 			}
 		}
@@ -223,11 +232,10 @@ class sendMail_Controller extends Controller {
 			}
 		}
 		
-		// Replaces $_POST variables
-		if($boolPOST) {
-			foreach($_POST AS $intKey => $strVar) {
-				$strHTML 	= str_replace('#'.$intKey.'#',nl2br($strVar),$strHTML);
-			}
+		// Replaces CONSTANT variables
+		$arrData = get_defined_constants();
+		foreach($arrData AS $intKey => $strVar) {
+			$strHTML 	= str_replace('#'.$intKey.'#',nl2br($strVar),$strHTML);
 		}
 		
 		$this->strHTML		= $strHTML;

@@ -24,8 +24,6 @@ class sendMail_Controller extends Controller {
 	 * @since 		2013-01-18
 	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
 	 * 
-	 * @todo 		Define error treatment and error messages return
-	 * 
 	 */
 	public function __construct($strEncoding = 'UTF-8') {
 		if(!is_string($strEncoding) || empty($strEncoding))	return false;

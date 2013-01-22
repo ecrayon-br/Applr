@@ -9,5 +9,9 @@ class PEAR_ApplrDB extends MDB2 {
 	public function connect($dsn,$options) {
 		return parent::connect($dsn,$options);
 	}
+	
+	public function singleton($dsn,$options) {
+		return parent::singleton($dsn,$options);
+	}
 }
 ?>

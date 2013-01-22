@@ -23,6 +23,7 @@ class Model {
 	 * @author	Diego Flores <diegotf [at] gmail dot com>
 	 * 
 	 * @todo	Implement $this->getClientConnection
+	 * @todo	Treat UTF-8 and HTML SPECIAL CHAR values on $this->insert, $this->replace and $this->update
 	**/
 	public function __construct($intConnection = null) {
 		$this->boolConnStatus = $this->setConnection($intConnection);
@@ -61,7 +62,7 @@ class Model {
 								'seqcol_name'	=> 'id'
 								);
 		
-		$this->objConn 	=& PEAR_ApplrDB::connect($arrDSN,$arrOptions);
+		$this->objConn 	=& PEAR_ApplrDB::singleton($arrDSN,$arrOptions);
 		
 		if($this->_boolDebug) { echo '<pre>'; var_dump($this->objConn); echo '</pre>'; }
 		
@@ -561,8 +562,9 @@ class Model {
 	/**
 	 * Inserts data
 	 *
-	 * @param	string	$strTable	Table name
-	 * @param	array	$arrField	Associative array with field_name => field_value
+	 * @param	string	$strTable		Table name
+	 * @param	array	$arrField		Associative array with field_name => field_value
+	 * @param	boolean	$boolReturnId	Defines whether function returns MDB2_OK or last insert ID 
 	 *
 	 * @return	mixed
 	 *
@@ -570,7 +572,7 @@ class Model {
 	 * @author 	Diego Flores <diegotf [at] gmail dot com>
 	 * 
 	**/
-	public function insert($strTable,$arrField) {
+	public function insert($strTable,$arrField,$boolReturnId = false) {
 		if(is_array($strTable)) 						$strTable = reset($strTable);
 		if(!is_string($strTable) || empty($strTable))	return false;
 		if(empty($arrField)) 							return false;
@@ -587,7 +589,11 @@ class Model {
 				define('ERROR_MSG',$this->objConn->getMessage());
 				return false;
 			} else {
-				return $objQuery;
+				if(!$boolReturnId) {
+					return $objQuery;
+				} else {
+					return $this->getLastInsertID($strTable);
+				}
 			}
 		} else {
 			return false;

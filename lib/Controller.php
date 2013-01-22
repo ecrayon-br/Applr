@@ -1,7 +1,9 @@
 <?php
 class Controller {
 	
-	static 		$arrSpecialChar	= array('/','*',"'",'=','-','#',';','<','>','+','%','.',' ');
+	static 		$arrSpecialChar		= array('/','*',"'",'=','-','#',';','<','>','+','%','.',' ');
+	static		$arrOnlyNumberChar	= array(' ','+','-','_','.',':',',',';','?','(',')','[',']','{','}','/','\\','*','&','%','$','#','@','!','=','<','>','~','º','ª','¬','¢','£','³','²','¹','|','°','§','^');
+	static		$arrPermalinkChar	= array(' ','+','_','.',':',',',';','?','(',')','[',']','{','}','/','\\','*','&','%','$','#','@','!','=','<','>','~','º','ª','¬','¢','£','³','²','¹','|','°','§','^');
 	
 	public		$intError;
 	public		$objSmarty;
@@ -49,6 +51,15 @@ class Controller {
 		if($boolRenderView) $this->renderTemplate();
 	}
 	
+	/**
+	 * Sets APPLR INIT configs and vars
+	 * 
+	 * @return	void
+	 *
+	 * @since 	2013-01-22
+	 * @author	Diego Flores <diego [at] gmail [dot] com>
+	 *
+	 */
 	static function setInitVars() {
 		
 		/*********************************************************/
@@ -323,6 +334,21 @@ class Controller {
 		} else {
 			define('DEBUG',false);
 		}
+	}
+	
+	/**
+	 * Replaces any non-number character with an empty char
+	 * 
+	 * @param	string	$strTemp	Original string
+	 * 
+	 * @return	string
+	 *
+	 * @since 	2013-01-22
+	 * @author	Diego Flores <diego [at] gmail [dot] com>
+	 *
+	 */
+	static function onlyNumbers($strTemp) {
+		return str_replace(self::$arrOnlyNumberChar,'',$strTemp);
 	}
 	
 	public function permalinkSyntax() {
@@ -788,6 +814,32 @@ class Controller {
 	}
 	
 	/**
+	 * Executes $this->unreplaceQuoteAndSlash() for superglobal variables
+	 * 
+	 * @return		void
+	 * 
+	 * @since		2008-12-15
+	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
+	 * 
+	 */
+	public function unsecureGlobals() { 
+	    foreach ($_REQUEST 	AS $intKey => $strValue) {
+	        $_REQUEST[$intKey] 	= self::unreplaceQuoteAndSlash($strValue);
+	    }
+	    foreach ($_POST 	AS $intKey => $strValue) {
+	        $_POST[$intKey] 	= self::unreplaceQuoteAndSlash($strValue);
+	    }
+	    foreach ($_GET 		AS $intKey => $strValue) {
+	        $_GET[$intKey] 		= self::unreplaceQuoteAndSlash($strValue);
+	    }
+	    /*
+	    foreach ($_SESSION 	AS $intKey => $strValue) {
+	        $_SESSION[$intKey] 	= self::unreplaceQuoteAndSlash($strValue);
+	    }
+	    */
+	}
+	
+	/**
 	 * Escapes special characters against XSS attacks
 	 *
 	 * @param 		string $strData	String to escape
@@ -904,7 +956,6 @@ class Controller {
 		return true;
 	}
 
-	
 	/**
 	 * Checks if a specific record exists in database
 	 * 
@@ -931,7 +982,6 @@ class Controller {
 		
 		return $this->objModel->recordExists($strField,$strTable,$strWhere,$boolReturnValue);
 	}
-
 	
 	/**
 	 * Sets TPL paging variables according to $intTotal

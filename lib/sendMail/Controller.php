@@ -26,7 +26,7 @@ class sendMail_Controller extends Controller {
 	 * @todo 		Define error treatment and error messages return
 	 * 
 	 */
-	public function _construct($strEncoding = 'UTF-8') {
+	public function __construct($strEncoding = 'UTF-8') {
 		if(!is_string($strEncoding) || empty($strEncoding))	return false;
 
 		parent::__construct();

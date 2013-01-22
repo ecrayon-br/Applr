@@ -11,6 +11,7 @@ class Controller {
 	protected	$strClientName	= CLIENT;
 	protected	$strAction		= '';
 	protected	$objModel;
+	protected	$objSection;
 	
 	private		$strTemplate;
 	
@@ -97,13 +98,13 @@ class Controller {
 			$_SESSION[PROJECT]['SYS_ROOT'] 	= SYS_ROOT;
 		}
 		
-		$objModel = new Model();
-		if($objModel->boolConnStatus) {
-			$objConfig		= $objModel->select('config.*, project.*',array('config','project'),'','project.id = config.project_id AND config.project_id = ' . PROJECT_ID);
+		$this->objModel = new Model();
+		if($this->objModel->boolConnStatus) {
+			$objConfig		= $this->objModel->select('config.*, project.*',array('config','project'),'','project.id = config.project_id AND config.project_id = ' . PROJECT_ID);
 		
 			// Admin user
 			if(isset($_SESSION[PROJECT][VAR_USER]) && $_SESSION[PROJECT][VAR_USER] === false) {
-				$boolAdmin 	= $objModel->select('admin','usr_data','id = "' . $_SESSION[PROJECT][VAR_USER] . '"')->admin;
+				$boolAdmin 	= $this->objModel->select('admin','usr_data','id = "' . $_SESSION[PROJECT][VAR_USER] . '"')->admin;
 				if($boolAdmin == 1) {
 					define('ADM_USER',1);
 				} else {
@@ -199,12 +200,12 @@ class Controller {
 					$strTable = str_replace('-','_',$arrURL[1]);
 		
 					// Gets SECTION ID
-					$_REQUEST[VAR_SECTION] = $objModel->select('id','sec_config','','table = "' . $strTable . '"')->id;
+					$_REQUEST[VAR_SECTION] = $this->objModel->select('id','sec_config','','table = "' . $strTable . '"')->id;
 					if(DB::isError($_REQUEST[VAR_SECTION])) $_REQUEST[VAR_SECTION] = MAIN_SECTION;
 		
 					// Gets LANGUAGE ID
 					$mxdLanguage 	= (isset($arrURL[3]) ? $arrURL[3] : (isset($arrURL[2]) ? $arrURL[2] : 0) );
-					$tempLanguage = $objModel->select('id','sys_language','','(acronym = "' . $mxdLanguage . '" ' . (is_numeric($mxdLanguage) ? ' OR id = "' . $mxdLanguage . '"' : '') . ') AND status = 1')->id;
+					$tempLanguage = $this->objModel->select('id','sys_language','','(acronym = "' . $mxdLanguage . '" ' . (is_numeric($mxdLanguage) ? ' OR id = "' . $mxdLanguage . '"' : '') . ') AND status = 1')->id;
 		
 					if(DB::isError($tempLanguage) || empty($tempLanguage)) {
 						$tempLanguage = (isset($_SESSION[PROJECT][VAR_SECTION]) ? $_SESSION[PROJECT][VAR_SECTION] : MAIN_LANGUAGE);
@@ -214,24 +215,23 @@ class Controller {
 		
 					// Gets CONTENT ID
 					if(isset($arrURL[2])) {
-						$_REQUEST[VAR_CONTENT] = $objModel->select('id','ctn_' . $strTable,'','sys_permalink = "' . $arrURL[2] . '" AND ' . SYS_WHERE . $strLangWhere)->id;
+						$_REQUEST[VAR_CONTENT] = $this->objModel->select('id','ctn_' . $strTable,'','sys_permalink = "' . $arrURL[2] . '" AND ' . SYS_WHERE . $strLangWhere)->id;
 						if(DB::isError($_REQUEST[VAR_CONTENT])) unset($_REQUEST[VAR_CONTENT]);
 					}
 		
 					// If URL don't defines CONTENT ID, checks for HOME content
 					if(empty($_REQUEST[VAR_CONTENT])) {
-						$objSection = ( isset($_REQUEST[VAR_SECTION]) ? $objModel->getSectionConfig($_REQUEST[VAR_SECTION]) : $objModel->getSectionConfig(MAIN_SECTION) );
-						if(isset($objSection) && $objSection->home != 1 && empty($objSection->tpl_list)) {
-							$_REQUEST[VAR_CONTENT] = $objModel->select('main.id','ctn_' . $strTable . ' AS main','rel_sec_language','(main.title = LOWER("home") OR rel_sec_language.name = main.title) AND ' . SYS_WHERE  . str_replace(' AND ',' AND rel_sec_language.',$strLangWhere))->id;
+						$this->objSection = ( isset($_REQUEST[VAR_SECTION]) ? $this->objModel->getSectionConfig($_REQUEST[VAR_SECTION]) : $this->objModel->getSectionConfig(MAIN_SECTION) );
+						if(isset($this->objSection) && $this->objSection->home !=$this->objSection($this->objSection->tpl_list)) {
+							$_REQUEST[VAR_CONTENT] = $this->objModel->select('main.id','ctn_' . $strTable . ' AS main','rel_sec_language','(main.title = LOWER("home") OR rel_sec_language.name = main.title) AND ' . SYS_WHERE  . str_replace(' AND ',' AND rel_sec_language.',$strLangWhere))->id;
 							if(DB::isError($_REQUEST[VAR_CONTENT]) || empty($_REQUEST[VAR_CONTENT])) {
-								$_REQUEST[VAR_CONTENT] = $objModel->select('MAX(id)','ctn_' . $strTable,'',SYS_WHERE);
+								$_REQUEST[VAR_CONTENT] = $this->objModel->select('MAX(id)','ctn_' . $strTable,'',SYS_WHERE);
 							}
 						}
 					}
 		
 					define('SECTION'			, $arrURL[1]);
-					define('SECTION_CONFIG'		, $objSection);
-					define('SECTION_PERMALINK'	,self::permalinkSyntax(str_replace('ctn_','',$objSection->table)));
+					define('SECTION_PERMALINK'	,self::permalinkSyntax(str_replace('ctn_','',$this->objSection->table)));
 				}
 			} else {
 				if(isset($_REQUEST[VAR_SECTION])) {
@@ -239,9 +239,8 @@ class Controller {
 				} elseif(!isset($inSistema)) {
 					define('SECTION'		,MAIN_SECTION);
 				}
-				$objSection = $objModel->getSectionConfig(SECTION);
-				define('SECTION_CONFIG'		,$objSection);
-				define('SECTION_PERMALINK'	,self::permalinkSyntax(str_replace('ctn_','',$objSection->table)));
+				$this->objSection = $this->objModel->getSectionConfig(SECTION);
+				define('SECTION_PERMALINK'	,self::permalinkSyntax(str_replace('ctn_','',$this->objSection->table)));
 			}
 		
 			// Language
@@ -257,14 +256,14 @@ class Controller {
 			$_SESSION[PROJECT][VAR_LANGUAGE] = LANGUAGE;
 		
 			// Locale
-			$strLocale = $objModel->select('acronym','sys_language','','id = "' .LANGUAGE. '";')->acronym;
+			$strLocale = $this->objModel->select('acronym','sys_language','','id = "' .LANGUAGE. '";')->acronym;
 			setlocale(LC_ALL,$strLocale);
 			define('LOCALE',$strLocale);
 		
 			// Content
 			if(isset($_REQUEST[VAR_CONTENT])) {
 				// Checks if VAR_CONTENT and VAR_LANGUAGE values are a valid pair or if there is an equivalent pair for LANG_CONTENT
-				$intContent = $objModel->select('id',$objSection->table,'','rel_sec_language_id = "' . LANGUAGE . '" AND IF(rel_sec_language_id = 1 AND lang_content IS NOT NULL,lang_content = "'.$_REQUEST[VAR_CONTENT].'",id = "'.$_REQUEST[VAR_CONTENT].'")');
+				$intContent = $this->objModel->select('id',$this->objSection->table,'','rel_sec_language_id = "' . LANGUAGE . '" AND IF(rel_sec_language_id = 1 AND lang_content IS NOT NULL,lang_content = "'.$_REQUEST[VAR_CONTENT].'",id = "'.$_REQUEST[VAR_CONTENT].'")');
 				define('CONTENT',$intContent);
 			} else {
 				define('CONTENT',NULL);
@@ -285,8 +284,8 @@ class Controller {
 		// Home
 		if(isset($_REQUEST[VAR_HOME])) {
 			define('HOME',$_REQUEST[VAR_HOME]);
-		} elseif(defined('SECTION') && is_numeric(SECTION) && is_object($objSection)) {
-			define('HOME',$objSection->home);
+		} elseif(defined('SECTION') && is_numeric(SECTION) && is_object($this->objSection)) {
+			define('HOME',$this->objSection->home);
 		} else {
 			define('HOME',0);
 		}

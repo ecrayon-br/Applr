@@ -1,17 +1,17 @@
 <?php
 class manageContent_Controller extends Controller {
-	public $intSection;
-	public $objSection;
-	public $objFields;
-	public $objRelFields;
+	public		$intSection;
+	public		$objSection;
+	public		$objFields;
+	public		$objRelFields;
 	
-	public $objData;
-	public $arrRelData;
-	public $objPrintData;
-	public $intContent;
-	public $arrRelContent;
+	public		$objData;
+	public		$arrRelData;
+	public		$objPrintData;
+	public		$intContent;
+	public		$arrRelContent;
 	
-	protected $objModel;
+	protected	$objModel;
 	
 	/**
 	 * Class constructor, sets $this->intSection and instantiates $this->objConn
@@ -34,8 +34,13 @@ class manageContent_Controller extends Controller {
 		
 		parent::__construct();
 		
+		if($intSection != SECTION_ID) {
+			$this->objSection	= $this->objModel->getSectionConfig($intSection);
+		} else {
+			$this->objSection = parent::$objSection;
+		}
+		
 		$this->objModel 	= new manageContent_Model();
-		$this->objSection	= $this->objModel->getSectionConfig($intSection);
 		
 		$this->setSection($intSection);
 		$this->getSectionFields();

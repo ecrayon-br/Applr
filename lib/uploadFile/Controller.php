@@ -1,5 +1,5 @@
 <?php
-class Upload extends Controller {
+class uploadFile_Controller extends Controller {
 	
 	public		$intError;
 	

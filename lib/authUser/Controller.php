@@ -8,46 +8,73 @@ class authUser_Controller extends Controller {
 	/**
 	 * Class constructor
 	 * 
-	 * @return		void
+	 * @param	string	$strTemp	Client name
 	 * 
-	 * @since 		2010-04-20
+	 * @return	void
+	 * 
+	 * @since 	2013-01-22
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 * 
+	 */
+	public function __construct($strName = '') {
+		if(!is_string($strName)) return false;
+		
+		parent::__construct();
+		
+		if(!empty($strName)) $this->setClientName($strName); else $this->setClientName(PROJECT); 
+		
+		// Instantiates model class
+		$this->objModel	= new authUser_Model();
+	}
+	
+	/**
+	 * Sets $this->strClientName value
+	 * 
+	 * @param	string	$strTemp	Client name
+	 
+	 * @return boolean
+	 * 
+	 * @since 		2013-01-22
 	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
 	 * 
 	 */
-	public function __construct() {
-		// Instantiates model class
-		if(!is_object($this->objModel)) $this->objModel	= new authUser_Model();
+	public function setClientName($strTemp) {
+		if(!is_string($strTemp) || empty($strTemp)) return false;
 		
-		$this->secureGlobals();
+		$this->strClientName = $strTemp;
+		
+		return true;
 	}
 	
 	/**
 	 * Authenticates user
 	 *
-	 * @param 		string	$strLogin	Username
-	 * @param 		string	$strPwd		Password
-	 * @param		mixed	$userField	Specifies username field in DB::entity; if NULL, sets bt_login
+	 * @param 		string	$strLogin		Username
+	 * @param 		string	$strPwd			Password
+	 * @param		mixed	$strUserField	Specifies username field in DB::entity; if NULL, sets default field name
+	 * @param		boolean	$boolMD5		Defines wether password is MD5 encrypted or not
+	 * @param		boolean	$boolAuthCode	Defines wether user is identified by system's authCode or not
 	 * 
 	 * @return 		boolean
 	 * 
-	 * @since 		2010-04-20
+	 * @since 		2013-01-22
 	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
 	 * 
 	 */
-	private function authUser($strLogin,$strPwd,$userField = null) {
+	public function authUser($strLogin,$strPwd,$strUserField = null,$boolMD5 = false,$boolAuthCode = false) {
 		// Verify method attributes
 		if(	!is_string($strLogin)	|| empty($strLogin)	||
 			!is_string($strPwd)		|| empty($strPwd) 	){
 			return false;
 		}
 		
-		if(($objData = $this->objModel->authUser($strLogin,$strPwd,$userField)) !== false) {
+		if(($objData = $this->objModel->authUser($strLogin,$strPwd,$userField,$boolMD5,$boolAuthCode)) !== false) {
 			// Specialized variables 
 			$_SESSION[self::$strClientName]['id']				= $objData->id;
 			$_SESSION[self::$strClientName]['permalink']		= $objData->permalink;
 			$_SESSION[self::$strClientName]['name']				= $objData->name;
 			$_SESSION[self::$strClientName]['email']			= $objData->email;
-			$_SESSION['apacheCheckCode']						= $objData->bauthcode;
+			$_SESSION['apacheCheckCode']						= $objData->authcode;
 			
 			// Default variables to AuthUser Class - WARNING! DO NOT CHANGE ANY LINE BELOW
 			$_SESSION[self::$strClientName]['auth'] 			= true;
@@ -64,23 +91,6 @@ class authUser_Controller extends Controller {
 	}
 	
 	/**
-	 * Executes private authUser method, verifies if authentication is true and displays related interface
-	 * 
-	 * @param 		string	$strLogin	Username
-	 * @param 		string	$strPwd		Password
-	 * @param		mixed	$userField	Specifies username field in DB::entity; if NULL, sets bt_login
-	 * 
-	 * @return 		boolean
-	 * 
-	 * @since 		2010-04-20
-	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
-	 * 
-	 */
-	public function doLogin($strLogin,$strPwd,$userField = null) {
-		return $this->authUser($strLogin,$strPwd,$userField);
-	}
-	
-	/**
 	 * Destroys authenticated session
 	 * 
 	 * @return 		void
@@ -89,14 +99,14 @@ class authUser_Controller extends Controller {
 	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
 	 * 
 	 */
-	public function logoutUser() {
+	static public function logoutUser() {
 		unset($_SESSION[self::$strClientName]);
 		unset($_SESSION['apacheAuthCode']);
 		unset($_SESSION['apacheCheckCode']);
 	}
 	
 	/**
-	 * Checks if user is logged in
+	 * Checks if user is logged in and, if not, shows AUTH NEEDED interface
 	 * 
 	 * @return 		void
 	 * 
@@ -111,7 +121,7 @@ class authUser_Controller extends Controller {
 			// Sets TRANSLATION terms
 			languageTranslation_Controller::setTranslationVars($this->objSmarty);
 			
-			$this->objSmarty->assign('strMsg',$smarty->_tpl_vars['T_MSG_sem_permissao']);
+			$this->objSmarty->assign('strMsg',$this->objSmarty->_tpl_vars['SYS_MSG_authNeeded']);
 			
 			// Shows interface
 			$this->objSmarty->display($strTPL);

@@ -28,6 +28,8 @@ class sendMail_Controller extends Controller {
 	 */
 	public function _construct($strEncoding = 'UTF-8') {
 		if(!is_string($strEncoding) || empty($strEncoding))	return false;
+
+		parent::__construct();
 		
 		$this->setAuth(EMAIL_AUTH);
 		$this->setHost(EMAIL_AUTH_HOST);

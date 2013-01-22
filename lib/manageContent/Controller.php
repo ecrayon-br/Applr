@@ -11,7 +11,7 @@ class manageContent_Controller extends Controller {
 	public $intContent;
 	public $arrRelContent;
 	
-	private $objModel;
+	protected $objModel;
 	
 	/**
 	 * Class constructor, sets $this->intSection and instantiates $this->objConn
@@ -31,6 +31,8 @@ class manageContent_Controller extends Controller {
 	 */
 	public function __construct($intSection) {
 		if(!is_numeric($intSection) || empty($intSection)) return false;
+		
+		parent::__construct();
 		
 		$this->objModel 	= new manageContent_Model();
 		$this->objSection	= $this->objModel->getSectionConfig($intSection);

@@ -6,8 +6,7 @@ class authUser_Model extends Model {
 	 * 
 	 * @return		void
 	 * 
-	 * @subpackage 	authUser
-	 * @since 		2008-12-07
+	 * @since 		2013-01-22
 	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
 	 * 
 	 */
@@ -18,39 +17,50 @@ class authUser_Model extends Model {
 	/**
 	 * Verifies login/password in database and authenticates user. If TRUE, returns Data Object; if FALSE, returns boolean.
 	 *
-	 * @param 		string	$strLogin	Username
-	 * @param 		string	$strPwd		Password
-	 * @param		mixed	$userField	Specifies username field in DB::entity; if NULL, sets bt_login
-	 * @param		boolean	$boolMD5	Defines wether password is MD5 encrypted or not
-	 * @param		boolean	$authCode	Defines wether user is identified by system's authCode or not
+	 * @param 		string	$strLogin		Username
+	 * @param 		string	$strPwd			Password
+	 * @param		mixed	$strUserField	Specifies username field in DB::entity; if NULL, sets default field name
+	 * @param		boolean	$boolMD5		Defines wether password is MD5 encrypted or not
+	 * @param		boolean	$boolAuthCode	Defines wether user is identified by system's authCode or not
 	 * 
 	 * @return 		mixed
 	 * 
-	 * @subpackage 	authUser
-	 * @since 		2008-12-15
+	 * @since 		2013-01-22
 	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
 	 * 
 	 */
-	public function authUser($strLogin,$strPwd,$userField = null,$boolMD5 = false,$authCode = false) {
+	public function authUser($strLogin,$strPwd,$strUserField = null,$boolMD5 = false,$boolAuthCode = false) {
 		// Verify method attributes
 		if(	!is_string($strLogin)	|| empty($strLogin)	||
 			!is_string($strPwd)		|| empty($strPwd) 	){
 			return false;
 		}
-		if(!is_bool($boolMD5) 	&& $boolMD5 	!== 0 && $boolMD5 	!== 1)	$boolMD5 	= false;
-		if(!is_bool($authCode) 	&& $authCode 	!== 0 && $authCode 	!== 1)	$authCode 	= false;
+		if(!is_bool($boolMD5) 		&& $boolMD5 		!== 0 && $boolMD5 		!== 1)	$boolMD5 		= false;
+		if(!is_bool($boolAuthCode) 	&& $boolAuthCode 	!== 0 && $boolAuthCode 	!== 1)	$boolAuthCode 	= false;
 		
-		// Escapes password string
+		// Defines whether use MD5 algorithm
 		if($boolMD5) {
-			$strPwd = md5(authUser_Controller::replaceQuoteAndSlash($strPwd));
+			$strPwd = $this->objConn->quote(md5($strPwd));
 		} else {
-			$strPwd = authUser_Controller::replaceQuoteAndSlash($strPwd);
+			$strPwd = $this->objConn->quote($strPwd);
 		}
 		
-		$strQuery	= 'SELECT *, '.($authCode ? 'authcode' : 'NULL AS authcode').' FROM usr_data WHERE '.(!is_null($userField) ? $userField : 'username').' = "'.authUser_Controller::replaceQuoteAndSlash($strLogin).'" AND password = "'.$strPwd.'" '.($authCode ? 'AND authcode_true = 1' : '').';';
-		$objQuery	= $this->executeQuery($strQuery);
-		$objQuery	= $objQuery->fetchRow();
+		// Sets FIELDS and WHERE statement
+		$arrAuthData = array(
+						(!is_null($strUserField) ? $strUserField : 'username') . ' = ' . $this->objConn->quote($strLogin),
+						'password = ' . $strPwd
+						);
+		if($boolAuthCode) {
+			$arrFields		= array('*');
+			$arrAuthData[]	= 'authcode_true = 1';
+		} else {
+			$arrFields		= array('*','NULL AS authcode');
+		}
 		
+		// Queries DB
+		$objQuery = $this->select($arrFields,'usr_data',array(),$arrAuthData);
+		
+		// If record exists, returns data object 
 		if(isset($objQuery->id) && is_numeric($objQuery->id)) {
 			return $objQuery;
 		} else {

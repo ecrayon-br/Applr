@@ -22,7 +22,6 @@ class Model {
 	 * @since	2013-01-18
 	 * @author	Diego Flores <diegotf [at] gmail dot com>
 	 * 
-	 * @todo	Treat UTF-8 and HTML SPECIAL CHAR values on $this->insert, $this->replace and $this->update	<- 
 	**/
 	public function __construct($intConnection = null) {
 		$this->boolConnStatus = $this->setConnection($intConnection);
@@ -322,9 +321,9 @@ class Model {
 				foreach($arrRowData AS $intColumnKey => &$mxdColumnData) {
 					// Checks STRING syntax
 					if(is_null($mxdColumnData) || strtoupper($mxdColumnData) == 'NULL') {
-						$mxdColumnData = 'NULL';
-					} elseif(is_string($mxdColumnData) && strtoupper($mxdColumnData) != 'NULL' && strpos($mxdColumnData,'"') !== 0 && strpos($mxdColumnData,"'") !== 0) {
-						$mxdColumnData = $this->objConn->quote($mxdColumnData);
+						$mxdColumnData = null;
+					} elseif(is_string($mxdColumnData) && strpos($mxdColumnData,'"') !== 0 && strpos($mxdColumnData,"'") !== 0) {
+						$mxdColumnData = $this->objConn->quote(htmlentities($mxdColumnData,ENT_QUOTES,'UTF-8'));
 					} elseif($mxdColumnData === "") {
 						$mxdColumnData = $this->objConn->quote('','text',true);
 					}

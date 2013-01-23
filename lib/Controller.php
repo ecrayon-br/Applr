@@ -26,11 +26,9 @@ class Controller {
 	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
 	 * 
 	 * @todo 		Check PHP updates on referencial variables
-	 * 				Define charset on $this->multiArrayDecodeEntities()
-	 * 				Implement /cms/include-sistema/variaveis.php on $this->__construct()
+	 * 				Define charset on $this->multiArrayDecodeEntities()						<- 
+	 * 				Implement /cms/include-sistema/variaveis.php on $this->__construct()	<-
 	 * 				Implement template name automatically on $this->renderTemplate()
-	 * 				Implement internationalization
-	 * 
 	 * 
 	 */
 	public function __construct($boolRenderView = false) {

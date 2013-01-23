@@ -15,6 +15,7 @@ class uploadFile_Controller extends Controller {
 	 * 
 	 * @param		string	$strIndex		$_FILES index
 	 * @param 		string	$strDirectory	Directory path relative to DOCUMENT_ROOT
+	 * @param		string	$strFilter		File type filter
 	 * @param 		string	$strPrefix		New file's name prefix
 	 * @param 		integer	$intMaxSize		File's max size
 	 * @param		string	$strPath		System files path
@@ -25,7 +26,7 @@ class uploadFile_Controller extends Controller {
 	 * @author		Diego Flores <diegotf [at] gmail [dot] com>
 	 * 
 	 */
-	public function __construct($strIndex,$strDirectory,$strPrefix = null,$intMaxSize = 1000000000,$strPath = SYS_ROOT) {
+	public function __construct($strIndex,$strDirectory,$strFilter = '',$strPrefix = null,$intMaxSize = 1000000000,$strPath = SYS_ROOT) {
 		if(empty($strIndex) || !is_string($strIndex))						return false;
 		if(empty($strDirectory) || !is_string($strDirectory) || (!is_dir($strDirectory) && !is_dir($strPath . $strDirectory)))	return false;
 		if(empty($strPrefix) && !is_null($strIndex))						return false;
@@ -39,6 +40,7 @@ class uploadFile_Controller extends Controller {
 		$this->setPath($strPath);
 		$this->setDirectory($strPath . str_replace($strPath,'',$strDirectory),false);
 		$this->setPrefix($strPrefix);
+		$this->setFilter($strFilter);
 		
 		if(!empty($strIndex)) $this->setFile($strIndex);
 	}
@@ -92,7 +94,7 @@ class uploadFile_Controller extends Controller {
 	public function setFilter($strValue) {
 		if(!is_string($strValue) || empty($strValue))	$strValue = '';
 		
-		$this->strFilter		= $strValue;
+		$this->strFilter		= strtoupper($strValue);
 	}
 	
 	/**

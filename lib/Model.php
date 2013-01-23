@@ -22,8 +22,7 @@ class Model {
 	 * @since	2013-01-18
 	 * @author	Diego Flores <diegotf [at] gmail dot com>
 	 * 
-	 * @todo	Implement $this->getClientConnection
-	 * @todo	Treat UTF-8 and HTML SPECIAL CHAR values on $this->insert, $this->replace and $this->update
+	 * @todo	Treat UTF-8 and HTML SPECIAL CHAR values on $this->insert, $this->replace and $this->update	<- 
 	**/
 	public function __construct($intConnection = null) {
 		$this->boolConnStatus = $this->setConnection($intConnection);
@@ -292,6 +291,53 @@ class Model {
 	}
 	
 	/**
+	 * Treats UTF-8 and HTML SPECIAL CHARS
+	 *
+	 * @param 		array 	$arrData	Array data, where key is DB field and value is query value
+	 * @param		integer	$intColumn	Column number per row
+	 * 
+	 * @return		array
+	 * 
+	 * @since 		2013-01-23
+	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
+	 * 
+	 */
+	private function prepareDataSyntax(&$arrData,$intColumn = 0) {
+		if(!is_array($arrData) || count($arrData) == 0)	return false;
+		if(!is_numeric($intColumn) || $intColumn <= 0)	$intColumn = count(reset($arrData));
+		
+		foreach($arrData AS $intRowKey => &$arrRowData) {
+			$intRow	= count($arrRowData);
+			
+			if($intRow > 0) {
+				// Completes empty fields in rows array
+				if($intRow < $intColumn) {
+					// Defines difference between column quantity and $arrRowData elements
+					$intDiffColumn 	= $intColumn - $intRow;
+					
+					// Fills $arrRowData with empty values for missing elements
+					for($intI = 0; $intI < $intDiffColumn; $intI++) array_push($arrRowData,'');
+				}
+				
+				foreach($arrRowData AS $intColumnKey => &$mxdColumnData) {
+					// Checks STRING syntax
+					if(is_null($mxdColumnData) || strtoupper($mxdColumnData) == 'NULL') {
+						$mxdColumnData = 'NULL';
+					} elseif(is_string($mxdColumnData) && strtoupper($mxdColumnData) != 'NULL' && strpos($mxdColumnData,'"') !== 0 && strpos($mxdColumnData,"'") !== 0) {
+						$mxdColumnData = $this->objConn->quote($mxdColumnData);
+					} elseif($mxdColumnData === "") {
+						$mxdColumnData = $this->objConn->quote('','text',true);
+					}
+				}
+			} else {
+				unset($arrData[$intRowKey]);
+			}
+		}
+		
+		return $arrData;
+	}
+	
+	/**
 	 * Prepares INSERT query syntax
 	 *
 	 * @param 		string 	$strTable			Table name
@@ -309,8 +355,8 @@ class Model {
 		if(!is_array($arrField) || count($arrField) == 0)								return false;
 		if(!is_bool($boolInsertMode) && $boolInsertMode !== 1 && $boolInsertMode !== 0)	return false;
 		
-		// Gets table attribute's name
-		$arrField	= array_keys(reset($arrField));
+		// Treats UTF-8 and HTML SPECIAL CHARS
+		$this->prepareDataSyntax($arrField);
 		
 		if($boolInsertMode) {
 			// Prepare query using MDB2::autoPrepare
@@ -351,6 +397,9 @@ class Model {
 		if(!is_string($strTable)|| empty($strTable))		return false;
 		if(!is_array($arrField) || count($arrField) == 0)	return false;
 		if(is_array($strWhere)) 							$strWhere 	= implode(' AND ',$strWhere);
+		
+		// Treats UTF-8 and HTML SPECIAL CHARS
+		$this->prepareDataSyntax($arrField);
 		
 		// Prepare query using MDB2::autoPrepare
 		$objQuery	= $this->objConn->extended->autoPrepare($strTable,$arrField,MDB2_AUTOQUERY_UPDATE,$strWhere);

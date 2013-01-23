@@ -23,8 +23,8 @@ class manageContent_Controller extends Controller {
 	 * @since 	2013-01-22
 	 * @author	Diego Flores <diego [at] gmail [dot] com>
 	 * 
-	 * @todo	Implement UPLOAD field sufyx
-	 * @todo	Implement PUBLICA! field sufyxes
+	 * @todo	Implement UPLOAD field sufyx 		<- 
+	 * @todo	Implement PUBLICA! field sufyxes	<-
 	 * @todo	Define default content fields
 	 *
 	 */

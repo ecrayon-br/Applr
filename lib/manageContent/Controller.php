@@ -26,7 +26,6 @@ class manageContent_Controller extends Controller {
 	 * @todo	Implement UPLOAD field sufyx
 	 * @todo	Implement PUBLICA! field sufyxes
 	 * @todo	Define default content fields
-	 * @todo	Verify errors
 	 *
 	 */
 	public function __construct($intSection) {

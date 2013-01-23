@@ -4,12 +4,14 @@ class Controller {
 	static 		$arrSpecialChar		= array('/','*',"'",'=','-','#',';','<','>','+','%','.',' ');
 	static		$arrOnlyNumberChar	= array(' ','+','-','_','.',':',',',';','?','(',')','[',']','{','}','/','\\','*','&','%','$','#','@','!','=','<','>','~','º','ª','¬','¢','£','³','²','¹','|','°','§','^');
 	static		$arrPermalinkChar	= array(' ','+','_','.',':',',',';','?','(',')','[',']','{','}','/','\\','*','&','%','$','#','@','!','=','<','>','~','º','ª','¬','¢','£','³','²','¹','|','°','§','^');
+	static		$arrExtTPL			= array('htm','html','php','tpl');
 	
 	public		$intError;
 	public		$objSmarty;
+	public		$strCharSet			= 'UTF-8';
 	
-	protected	$strClientName	= CLIENT;
-	protected	$strAction		= '';
+	protected	$strClientName		= CLIENT;
+	protected	$strAction			= '';
 	protected	$objModel;
 	protected	$objSection;
 	
@@ -24,11 +26,6 @@ class Controller {
 	 * 
 	 * @since 		2010-04-20
 	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
-	 * 
-	 * @todo 		Check PHP updates on referencial variables
-	 * 				Define charset on $this->multiArrayDecodeEntities()						<- 
-	 * 				Implement /cms/include-sistema/variaveis.php on $this->__construct()	<-
-	 * 				Implement template name automatically on $this->renderTemplate()
 	 * 
 	 */
 	public function __construct($boolRenderView = false) {
@@ -421,7 +418,7 @@ class Controller {
 	 * 
 	 * @return		void	
 	 * 
-	 * @since		20010-04-20
+	 * @since		2010-04-20
 	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
 	 * 
 	 */
@@ -432,11 +429,28 @@ class Controller {
 	}
 	
 	/**
+	 * Sets strCharSet value
+	 *
+	 * @param 		string 	$strValue	strCharSet value
+	 * 
+	 * @return		void	
+	 * 
+	 * @since		2013-01-23
+	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
+	 * 
+	 */
+	public function setCharSet($strValue) {
+		if(!is_string($strValue) || empty($strValue))	return false;
+		
+		$this->strCharSet 	= $strValue;
+	}
+	
+	/**
 	 * Sets SMARTY object and configures TPL directories
 	 * 
 	 * @return		void	
 	 * 
-	 * @since		20010-04-20
+	 * @since		2010-04-20
 	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
 	 * 
 	 */
@@ -477,12 +491,25 @@ class Controller {
 	 * 
 	 * @return		string	
 	 * 
-	 * @since		20010-04-20
+	 * @since		2010-04-20
 	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
 	 * 
 	 */
 	public function getAction() {
 		return $this->strAction;
+	}
+	
+	/**
+	 * Gets strCharSet value
+	 * 
+	 * @return		string	
+	 * 
+	 * @since		2013-01-23
+	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
+	 * 
+	 */
+	public function getCharSet() {
+		return $this->strCharSet;
 	}
 	
 	/**
@@ -566,7 +593,7 @@ class Controller {
 		// Valida as variaveis de parametro
 		if(!is_bool($boolDisplay) && $boolDisplay !== 0 && $boolDisplay !== 1) 			$boolDisplay 	= false;
 		if(!is_string($strTemplate) || empty($strTemplate) || is_null($strTemplate))	$strTemplate 	= str_replace('_Controller','',get_class($this));
-		if(strpos($strTemplate,'.htm') === false) 										$strTemplate 	.= '.htm';
+		if(!in_array(end(explode('.',$strTemplate)),self::$arrExtTPL))					$strTemplate 	.= '.htm';
 		
 		$this->setTemplate($strTemplate);
 		
@@ -582,7 +609,6 @@ class Controller {
      * Decode HTML entities for $strValue on a given charset
      *
      * @param 		string	$strValue			Value to convert
-     * @param 		string	$strCharset			Charset used in convertion
 	 * 
 	 * @return		mixed	
 	 * 
@@ -590,18 +616,16 @@ class Controller {
 	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
 	 * 
 	 */
-    public function decodeEntities($strValue,$strCharset = 'UTF-8') {
-    	if(!is_string($strValue))							return false;
-    	if(!is_string($strCharset) 	|| empty($strCharset))	return false;
+    public function decodeEntities($strValue) {
+    	if(!is_string($strValue))	return false;
     	
-    	return html_entity_decode($strValue,ENT_QUOTES,$strCharset);
+    	return html_entity_decode($strValue,ENT_QUOTES,$this->strCharSet);
     }
     
     /**
      * Convert HTML entities for $strValue in a given charset
      *
      * @param 		string	$strValue			Value to convert
-     * @param 		string	$strCharset			Charset used in convertion
 	 * 
 	 * @return		mixed	
 	 * 
@@ -609,11 +633,10 @@ class Controller {
 	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
 	 * 
 	 */
-    public function encodeEntities($strValue,$strCharset = 'UTF-8') {
-    	if(!is_string($strValue))							return false;
-    	if(!is_string($strCharset) 	|| empty($strCharset))	return false;
+    public function encodeEntities($strValue) {
+    	if(!is_string($strValue))	return false;
     	
-    	return htmlentities($this->decodeEntities($strValue),ENT_QUOTES,$strCharset);
+    	return htmlentities($this->decodeEntities($strValue),ENT_QUOTES,$this->strCharSet);
     }
     
     /**

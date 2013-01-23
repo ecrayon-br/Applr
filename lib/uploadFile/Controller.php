@@ -24,8 +24,6 @@ class uploadFile_Controller extends Controller {
 	 * @since		2013-01-23
 	 * @author		Diego Flores <diegotf [at] gmail [dot] com>
 	 * 
-	 * @todo 		Validate method parameters
-	 * 
 	 */
 	public function __construct($strIndex,$strDirectory,$strPrefix = null,$intMaxSize = 1000000000,$strPath = SYS_ROOT) {
 		if(empty($strIndex) || !is_string($strIndex))						return false;

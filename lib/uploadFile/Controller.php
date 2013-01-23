@@ -28,10 +28,10 @@ class uploadFile_Controller extends Controller {
 	 */
 	public function __construct($strIndex,$strDirectory,$strFilter = '',$strPrefix = null,$intMaxSize = 1000000000,$strPath = SYS_ROOT) {
 		if(empty($strIndex) || !is_string($strIndex))						return false;
-		if(empty($strDirectory) || !is_string($strDirectory) || (!is_dir($strDirectory) && !is_dir($strPath . $strDirectory)))	return false;
-		if(empty($strPrefix) && !is_null($strIndex))						return false;
-		if(!is_numeric($intMaxSize) || $intMaxSize <= 0)					return false;
-		if(empty($strPath) || !is_string($strPath) || !is_dir($strPath))	return false;
+		if(empty($strDirectory) || !is_string($strDirectory) || (!is_dir($strDirectory) && !is_dir($strPath . $strDirectory)))	$strDirectory = ROOT_UPLOAD;
+		if(empty($strPrefix) && !is_null($strPrefix))						$strPrefix = date('YmdHis') . '_';
+		if(!is_numeric($intMaxSize) || $intMaxSize <= 0)					$intMaxSize = 1000000000;
+		if(empty($strPath) || !is_string($strPath) || !is_dir($strPath))	$strPath = SYS_ROOT;
 		
 		// Runs parent class constructor
 		parent::__construct();

@@ -27,6 +27,8 @@ class Controller {
 	 * @since 		2010-04-20
 	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
 	 * 
+	 * @todo		configContentLink() auto target and media link
+	 * 
 	 */
 	public function __construct($boolRenderView = false) {
 		if(!is_bool($boolRenderView) && $boolRenderView !== 1 && $boolRenderView !== 0)	$boolRenderView = false;
@@ -150,8 +152,8 @@ class Controller {
 			define('ROOT_IMAGE'		,SYS_ROOT.$objConfig->dir_image);
 			define('ROOT_VIDEO'		,SYS_ROOT.$objConfig->dir_video);
 			define('ROOT_TEMPLATE'	,SYS_ROOT.$objConfig->dir_template);
-			define('ROOT_ESTATICO'	,SYS_ROOT.$objConfig->dir_static);
-			define('ROOT_DINAMICO'	,SYS_ROOT.$objConfig->dir_dynamic);
+			define('ROOT_STATIC'	,SYS_ROOT.$objConfig->dir_static);
+			define('ROOT_DYNAMIC'	,SYS_ROOT.$objConfig->dir_dynamic);
 			define('ROOT_XML'		,SYS_ROOT.$objConfig->dir_xml);
 			define('ROOT_RSS'		,SYS_ROOT.$objConfig->dir_rss);
 		
@@ -160,8 +162,8 @@ class Controller {
 			define('IMAGE'			,SYS_DIR.$objConfig->dir_image);
 			define('VIDEO'			,SYS_DIR.$objConfig->dir_video);
 			define('TEMPLATE'		,SYS_DIR.$objConfig->dir_template);
-			define('ESTATICO'		,SYS_DIR.$objConfig->dir_static);
-			define('DINAMICO'		,SYS_DIR.$objConfig->dir_dynamic);
+			define('STATIC'			,SYS_DIR.$objConfig->dir_static);
+			define('DYNAMIC'		,SYS_DIR.$objConfig->dir_dynamic);
 			define('XML'			,SYS_DIR.$objConfig->dir_xml);
 			define('RSS'			,SYS_DIR.$objConfig->dir_rss);
 		
@@ -169,8 +171,8 @@ class Controller {
 			define('HTTP_UPLOAD'	,'http://'.URI_DOMAIN.SYS_DIR.$objConfig->dir_upload);
 			define('HTTP_IMAGE'		,'http://'.URI_DOMAIN.SYS_DIR.$objConfig->dir_image);
 			define('HTTP_VIDEO'		,'http://'.URI_DOMAIN.SYS_DIR.$objConfig->dir_video);
-			define('HTTP_ESTATICO'	,'http://'.URI_DOMAIN.SYS_DIR.$objConfig->dir_static);
-			define('HTTP_DINAMICO'	,'http://'.URI_DOMAIN.SYS_DIR.$objConfig->dir_dynamic);
+			define('HTTP_STATIC'	,'http://'.URI_DOMAIN.SYS_DIR.$objConfig->dir_static);
+			define('HTTP_DYNAMIC'	,'http://'.URI_DOMAIN.SYS_DIR.$objConfig->dir_dynamic);
 			define('HTTP_XML'		,'http://'.URI_DOMAIN.SYS_DIR.$objConfig->dir_xml);
 			define('HTTP_RSS'		,'http://'.URI_DOMAIN.SYS_DIR.$objConfig->dir_rss);
 		

@@ -12,6 +12,7 @@ class manageContent_Controller extends Controller {
 	public		$arrRelContent;
 	
 	protected	$objModel;
+	protected	$objRelParams;
 	
 	/**
 	 * Class constructor, sets $this->intSection and instantiates $this->objConn
@@ -407,12 +408,43 @@ class manageContent_Controller extends Controller {
 		
 		if($this->setupFieldSufyx($mxdData)) {
 			$this->intContent = $this->objModel->insert($this->objSection->table,(array) $this->objData,true);
+			return true;
 		} else {
 			define('ERROR_MSG','$this->setupFieldSufyx error!');
 			$this->intContent = null;
+			return false;
 		}
+	}
+
+	/**
+	 * Updates main content and sets $this->contentID as last insert ID value
+	 * 
+	 * @param	integer	$intContent	Content's ID on DB
+	 * @param	mixed	$mxdData	POST / GET / other data object
+	 * 
+	 * @return	boolean
+	 *
+	 * @since 	2013-01-22
+	 * @author	Diego Flores <diego [at] gmail [dot] com>
+	 * 
+	 */
+	protected function updateMainContent($intContent,$mxdData) {
+		if(!is_array($mxdData)) return false;
 		
-		return true;
+		if($this->setupFieldSufyx($mxdData)) {
+			if($this->objModel->update($this->objSection->table,(array) $this->objData,$this->objSection->table.'.id = ' . $intContent) !== false) {
+				$this->intContent = $intContent;
+				return true;
+			} else {
+				define('ERROR_MSG','$this->updateMainContent::update error!');
+				$this->intContent = null;
+				return false;
+			}
+		} else {
+			define('ERROR_MSG','$this->setupFieldSufyx error!');
+			$this->intContent = null;
+			return false;
+		}
 	}
 	
 	/**
@@ -431,32 +463,104 @@ class manageContent_Controller extends Controller {
 		if($this->objRelFields === false) return false;
 		
 		foreach($this->objRelFields AS $mxdKey => $objRel) {
-			// rel_ctn_PARENT_NAME_ctn_CHILD_NAME
-			$arrTmpTable	= explode('_ctn_',$objRel->table);
-			if($objRel->parent) {
-				$strParentTable = 'ctn_' . $arrTmpTable[1];
-				$strParentField	= $strParentTable . '_id';
-				$strChildTable	= 'ctn_' . $arrTmpTable[2];
-				$strChildField	= $strChildTable . '_id';
-			} else {
-				$strParentTable = 'ctn_' . $arrTmpTable[2];
-				$strParentField	= $strParentTable . '_id';
-				$strChildTable	= 'ctn_' . $arrTmpTable[1];
-				$strChildField	= $strChildTable . '_id';
-			}
-			
-			if($this->setupRelField($mxdData,$objRel->field)) {
-				foreach($this->arrRelData[$objRel->field] AS $intRelID) {
-					if($this->objModel->insert($objRel->table, ($objRel->parent ? array($strParentField => $this->intContent, $strChildField => $intRelID) : array($strParentField => $intRelID, $strChildField => $this->intContent)) )) {
-						$this->arrRelContent[$objRel->field][] = $this->recordExists('name', ($objRel->parent ? $strParentTable : $strChildTable),'id = ' . $intRelID,true);
+			// Sets relationship params
+			if($this->setRelParams($objRel)) {
+				// Setups rel fields
+				if($this->setupRelField($mxdData,$objRel->field)) {
+					foreach($this->arrRelData[$objRel->field] AS $intRelID) {
+						// Inserts new rel data
+						if($this->objModel->insert($objRel->table, ($objRel->parent ? array($objRelParams->strParentField => $this->intContent, $objRelParams->strChildField => $intRelID) : array($objRelParams->strParentField => $intRelID, $objRelParams->strChildField => $this->intContent)) )) {
+							$this->arrRelContent[$objRel->field][] = $this->recordExists('name', ($objRel->parent ? $objRelParams->strParentTable : $objRelParams->strChildTable),'id = ' . $intRelID,true);
+						} else {
+							define('ERROR_MSG','$this->updateRelContent::insert error on ' . $mxdKey . '!');
+							$this->arrRelContent[$objRel->field] = null;
+						}
 					}
+				} else {
+					define('ERROR_MSG','$this->setupRelField error on ' . $objRel->field . ' : ' . $objRel->table . '!');
+					$this->arrRelContent[$objRel->field] = null;
 				}
 			} else {
-				define('ERROR_MSG','$this->setupRelField error on ' . $objRel->field . ' : ' . $objRel->table . '!');
+				define('ERROR_MSG','$this->setRelParams error on ' . $mxdKey . '!');
 				$this->arrRelContent[$objRel->field] = null;
+				return false;
 			}
 		}
 		
+		return true;
+	}
+	
+	/**
+	 * Updates relationship contents and sets $this->arrRelContent with related NAME attr
+	 * 
+	 * @param	mixed	$mxdData	POST / GET / other data object
+	 * 
+	 * @return	boolean
+	 *
+	 * @since 	2013-01-22
+	 * @author	Diego Flores <diego [at] gmail [dot] com>
+	 * 
+	 */
+	protected function updateRelContent($mxdData) {
+		if(!is_array($mxdData)) return false;
+		if($this->objRelFields === false) return false;
+		
+		foreach($this->objRelFields AS $mxdKey => $objRel) {
+			// Sets relationship params
+			if($this->setRelParams($objRel)) {
+				// Deletes previous related content
+				if($this->objModel->delete($objRel->table,$objRelParams->strWhere) !== false) {
+					// Setups rel fields
+					if($this->setupRelField($mxdData,$objRel->field)) {
+						foreach($this->arrRelData[$objRel->field] AS $intRelID) {
+							// Inserts new rel data
+							if($this->objModel->insert($objRel->table, ($objRel->parent ? array($objRelParams->strParentField => $this->intContent, $objRelParams->strChildField => $intRelID) : array($objRelParams->strParentField => $intRelID, $objRelParams->strChildField => $this->intContent)) ) !== false) {
+								$this->arrRelContent[$objRel->field][] = $this->recordExists('name', ($objRel->parent ? $objRelParams->strParentTable : $objRelParams->strChildTable),'id = ' . $intRelID,true);
+							} else {
+								define('ERROR_MSG','$this->updateRelContent::insert error on ' . $mxdKey . '!');
+								$this->arrRelContent[$objRel->field] = null;
+							}
+						}
+					} else {
+						define('ERROR_MSG','$this->setupRelField error on ' . $objRel->field . ' : ' . $objRel->table . '!');
+						$this->arrRelContent[$objRel->field] = null;
+					}
+				} else {
+					define('ERROR_MSG','$this->updateRelContent::delete error!');
+					$this->arrRelContent[$objRel->field] = null;
+				}
+			} else {
+				define('ERROR_MSG','$this->setRelParams error on ' . $mxdKey . '!');
+				$this->arrRelContent[$objRel->field] = null;
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
+	private function setRelParams($objRel) {
+		if(!is_object($objRel) || !isset($objRel->table) || !isset($objRel->parent)) 	return false;
+		if(empty($objRel->table) || strpos($objRel->table,'rel_ctn_') !== 0) 			return false;
+		if(empty($objRel->parent) || ($objRel->parent != 0 && $objRel->parent != 1)) 	return false;
+		
+		// rel_ctn_PARENT_NAME_ctn_CHILD_NAME
+		$arrTmpTable	= explode('_ctn_',$objRel->table);
+		if($objRel->parent) {
+			$objRelParams->strParentTable 	= 'ctn_' . $arrTmpTable[1];
+			$objRelParams->strParentField	= $objRelParams->strParentTable . '_id';
+			$objRelParams->strChildTable	= 'ctn_' . $arrTmpTable[2];
+			$objRelParams->strChildField	= $objRelParams->strChildTable . '_id';
+			
+			$objRelParams->strWhere			= $objRelParams->strParentField . ' = ' . $this->intContent;
+		} else {
+			$objRelParams->strParentTable 	= 'ctn_' . $arrTmpTable[2];
+			$objRelParams->strParentField	= $objRelParams->strParentTable . '_id';
+			$objRelParams->strChildTable	= 'ctn_' . $arrTmpTable[1];
+			$objRelParams->strChildField	= $objRelParams->strChildTable . '_id';
+			
+			$objRelParams->strWhere			= $objRelParams->strChildField . ' = ' . $this->intContent;
+		}
 		return true;
 	}
 	
@@ -516,6 +620,33 @@ class manageContent_Controller extends Controller {
 			}
 		} else {
 			define('ERROR_MSG','$this->insertMainContent error!');
+			return false;
+		}
+	}
+
+	/**
+	 * Updates SECTION data
+	 * 
+	 * @param	mixed	$mxdData		POST / GET / other data object
+	 * 
+	 * @return	boolean
+	 *
+	 * @since 	2013-01-22
+	 * @author	Diego Flores <diego [at] gmail [dot] com>
+	 *
+	 */
+	public function update($mxdData) {
+		if(!is_array($mxdData)) return false;
+		
+		if($this->updateMainContent($mxdData)) {
+			if($this->updateRelContent($mxdData)) {
+				return true;
+			} else {
+				define('ERROR_MSG','$this->updateRelContent error!');
+				return false;
+			}
+		} else {
+			define('ERROR_MSG','$this->updateMainContent error!');
 			return false;
 		}
 	}

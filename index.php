@@ -9,7 +9,7 @@ $strURL = str_replace(array('site/','//'),array('','/'),$strURL);
 
 if(ACTION == 'cms') {
 	
-	header("Location: " . HTTP . 'cms');
+	header("Location: " . HTTP . 'cms/index.php?APPLR_friendlyURL=1');
 	exit();
 	
 } elseif(ACTION == 'FB-share') {

@@ -11,5 +11,7 @@ class smarty_ApplrSmarty extends Smarty{
 		$this->setCacheDir(SMARTY_DIR . 'cache/');
 		
 		$this->debugging = false;
+		
+		//$this->clear_all_cache();
 	}
 } 

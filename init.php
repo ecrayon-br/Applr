@@ -71,6 +71,9 @@ define('SMARTY_DIR'	, SYS_ROOT . 'lib/smarty/');
  *
  */
 function APPLR_autoload($strPackage) {
+	/**
+	 * APPLR LIB files
+	 */
 	// Creates Package's Name array
 	$arrFolder	= explode('_',$strPackage); # array_reverse(explode('_',$strPackage));
 	
@@ -82,10 +85,32 @@ function APPLR_autoload($strPackage) {
 	$strFile	= $arrFolder[0] . '.php';
 	$strPath	= (is_file(SYS_ROOT . 'lib/' . $strFile) ? SYS_ROOT . 'lib/' . $strFile : SYS_ROOT . 'lib/' . implode('/',$arrFolder) . '.php');
 	
-	// Includes File
-	include_once $strPath;
+	if(is_file($strPath)) {
+		// Includes File
+		include_once $strPath;
+	} else {
+		/**
+		 * APPLR common files
+		 */
+		// Creates Package's Name array
+		$arrFolder	= array_reverse(explode('_',$strPackage));
+		
+		// Checks if $strPackage is a Main Library class or a Application class
+		// If $strPackage is a single word and is directory and class' name are identical, it's a Main Library class; otherwise, it's an Application class
+		if(count($arrFolder) == 1) $arrFolder[] = $arrFolder[0];
+		
+		// Defines APPLR dir
+		$strApplrDir = reset(explode('/',str_replace(array(SYS_DIR),'',$_SERVER['REQUEST_URI']))) . '/';
+		
+		// Defines Package's File Path
+		$strPath	= SYS_ROOT . $strApplrDir . implode('/',$arrFolder) . '.php';
+		
+		// Includes File
+		include_once $strPath;
+	}
 }
 spl_autoload_register('APPLR_autoload');
 
-Controller::setInitVars();
+$objController = new Controller();
+#Controller::setInitVars();
 ?>

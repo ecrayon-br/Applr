@@ -58,7 +58,7 @@ class Controller {
 	 * @author	Diego Flores <diego [at] gmail [dot] com>
 	 *
 	 */
-	static function setInitVars() {
+	public function setInitVars() {
 		
 		/*********************************************************/
 		/*********************************************************/
@@ -166,15 +166,18 @@ class Controller {
 			define('DYNAMIC'		,SYS_DIR.$objConfig->dir_dynamic);
 			define('XML'			,SYS_DIR.$objConfig->dir_xml);
 			define('RSS'			,SYS_DIR.$objConfig->dir_rss);
-		
-			define('HTTP_WEB_UPLOAD','http://'.URI_DOMAIN.SYS_DIR.$strWebUpload);
-			define('HTTP_UPLOAD'	,'http://'.URI_DOMAIN.SYS_DIR.$objConfig->dir_upload);
-			define('HTTP_IMAGE'		,'http://'.URI_DOMAIN.SYS_DIR.$objConfig->dir_image);
-			define('HTTP_VIDEO'		,'http://'.URI_DOMAIN.SYS_DIR.$objConfig->dir_video);
-			define('HTTP_STATIC'	,'http://'.URI_DOMAIN.SYS_DIR.$objConfig->dir_static);
-			define('HTTP_DYNAMIC'	,'http://'.URI_DOMAIN.SYS_DIR.$objConfig->dir_dynamic);
-			define('HTTP_XML'		,'http://'.URI_DOMAIN.SYS_DIR.$objConfig->dir_xml);
-			define('HTTP_RSS'		,'http://'.URI_DOMAIN.SYS_DIR.$objConfig->dir_rss);
+			
+			define('HTTP'			,'http://'.URI_DOMAIN.SYS_DIR);
+			define('HTTP_SITE'		,HTTP . 'site/');
+			define('HTTP_CMS'		,HTTP . 'cms/');
+			define('HTTP_WEB_UPLOAD',HTTP . $strWebUpload);
+			define('HTTP_UPLOAD'	,HTTP . $objConfig->dir_upload);
+			define('HTTP_IMAGE'		,HTTP . $objConfig->dir_image);
+			define('HTTP_VIDEO'		,HTTP . $objConfig->dir_video);
+			define('HTTP_STATIC'	,HTTP . $objConfig->dir_static);
+			define('HTTP_DYNAMIC'	,HTTP . $objConfig->dir_dynamic);
+			define('HTTP_XML'		,HTTP . $objConfig->dir_xml);
+			define('HTTP_RSS'		,HTTP . $objConfig->dir_rss);
 		
 		
 			/*********************************************************/
@@ -186,7 +189,7 @@ class Controller {
 			// Checks for friendly URL
 			if(isset($_REQUEST[PROJECT.'_friendlyURL']) && $_REQUEST[PROJECT.'_friendlyURL'] == 1) {
 				$_REQUEST[VAR_ACTION] = self::getURISegment();
-		
+				
 				if(is_null($_REQUEST[VAR_ACTION])) {
 					// Sets alternative names to main sessions
 					switch($arrURL[1]) {
@@ -353,8 +356,8 @@ class Controller {
 	
 	static function getURISegment() {
 		$strURL = str_replace(array(URI_DOMAIN,LOCAL_DIR,'site/','conteudo/') ,'',$_SERVER['REQUEST_URI']);
-		
 		if(strpos($strURL,'/') !== 0) $strURL = '/' . $strURL;
+		
 		$arrURL = explode('/', $strURL );
 		$_SESSION[PROJECT]['URI_SEGMENT'] = $arrURL;
 		
@@ -367,7 +370,7 @@ class Controller {
 			case 'cms':
 			case 'admin':
 			case 'applr-admin':
-				return 'cms';
+				return (!empty($arrURL[2]) && $arrURL[2] != '?APPLR_friendlyURL=1' ? $arrURL[2] : 'login');
 			break;
 	
 			case 'siteMap':
@@ -457,17 +460,7 @@ class Controller {
 	 * 
 	 */
 	private function setSmarty() {
-		//$this->objSmarty = null;
-		/*
-		// Creates SMARTY object
-		$this->objSmarty 				= new Smarty();
-		$this->objSmarty->template_dir 	= ROOT_TPL;
-		$this->objSmarty->config_dir	= ROOT_TPL . 'configs/';
-		$this->objSmarty->compile_dir	= ROOT_TPL . 'templates_c/';
-		$this->objSmarty->cache_dir		= ROOT_TPL . 'cache/';
-		$this->objSmarty->caching 		= false;
-		$this->objSmarty->clear_all_cache();
-		*/
+		$this->objSmarty = new smarty_ApplrSmarty();
 	}
 	
 	/**
@@ -594,8 +587,8 @@ class Controller {
 	public function renderTemplate($boolDisplay = true, $strTemplate = '') {
 		// Valida as variaveis de parametro
 		if(!is_bool($boolDisplay) && $boolDisplay !== 0 && $boolDisplay !== 1) 			$boolDisplay 	= false;
-		if(!is_string($strTemplate) || empty($strTemplate) || is_null($strTemplate))	$strTemplate 	= str_replace('_Controller','',get_class($this));
-		if(!in_array(end(explode('.',$strTemplate)),self::$arrExtTPL))					$strTemplate 	.= '.htm';
+		if(!is_string($strTemplate) || empty($strTemplate) || is_null($strTemplate))	$strTemplate 	= str_replace(array('_Controller','_controller'),'',get_class($this));
+		if(!in_array(end(explode('.',$strTemplate)),self::$arrExtTPL))					$strTemplate 	.= '.html';
 		
 		$this->setTemplate($strTemplate);
 		

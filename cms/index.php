@@ -1,17 +1,18 @@
 <?php
 include_once '../init.php';
 
-$objSmarty = new PEAR_ApplrSendMail();
-var_dump($objSmarty);
+if($_REQUEST['debug']) { echo '<pre>'; print_r($_SESSION[PROJECT]['URI_SEGMENT']); die(); }
 
-//$objAuth = new authUser_Controller();
+// Gets URI controller and action params
+$strController	= ucfirst(ACTION) . '_controller';
+$strAction		= (!empty($_SESSION[PROJECT]['URI_SEGMENT'][3]) ? $_SESSION[PROJECT]['URI_SEGMENT'][3] : '');
 
-/*
-if($objAuth->isLoggedIn(false,null)) {
-	echo 'Hello World!';
+if(empty($strAction)) {
+	// If action is empty, initializes controller and renders default view
+	$objClass = new $strController();
 } else {
-	echo 'You must log in!';
+	// If action is set, initializes controller and executes action method
+	$objClass = new $strController(false);
+	$objClass->$strAction();
 }
-*/
 ?>
-Hello World!

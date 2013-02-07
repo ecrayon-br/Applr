@@ -10,17 +10,19 @@ class Controller {
 	public		$objSmarty;
 	public		$strCharSet			= 'UTF-8';
 	
-	protected	$strClientName		= CLIENT;
 	protected	$strAction			= '';
 	protected	$objModel;
 	protected	$objSection;
 	
 	private		$strTemplate;
 	
+	static		$strClientName		= CLIENT;
+	
 	/**
 	 * Class constructor
 	 *
 	 * @param 		boolean	$boolRenderView	Defines if View's template is renderized on $this->__construct() or heir method call
+	 * @param		string	$strTemplateDir	Sets SMARTY template dir path
 	 *
 	 * @return		void
 	 * 
@@ -30,7 +32,7 @@ class Controller {
 	 * @todo		configContentLink() auto target and media link
 	 * 
 	 */
-	public function __construct($boolRenderView = false) {
+	public function __construct($boolRenderView = false,$strTemplateDir = ROOT_TEMPLATE) {
 		if(!is_bool($boolRenderView) && $boolRenderView !== 1 && $boolRenderView !== 0)	$boolRenderView = false;
 		
 		@session_start();
@@ -43,7 +45,7 @@ class Controller {
 		if(!defined('SYS_WHERE')) self::setInitVars();
 		
 		// Instantiates SMARTY object
-		$this->setSmarty();
+		$this->setSmarty($strTemplateDir);
 		
 		// Renderize View's template
 		if($boolRenderView) $this->renderTemplate();
@@ -453,14 +455,16 @@ class Controller {
 	/**
 	 * Sets SMARTY object and configures TPL directories
 	 * 
+	 * @param		string	$strTemplateDir	Sets SMARTY template dir path
+	 * 
 	 * @return		void	
 	 * 
 	 * @since		2010-04-20
 	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
 	 * 
 	 */
-	private function setSmarty() {
-		$this->objSmarty = new smarty_ApplrSmarty();
+	private function setSmarty($strTemplateDir = ROOT_TEMPLATE) {
+		$this->objSmarty = new smarty_ApplrSmarty($strTemplateDir);
 	}
 	
 	/**
@@ -534,23 +538,6 @@ class Controller {
 			$objAuth = new authUser_Controller();
 			$objAuth->renderTemplate();
 			exit();
-		}
-	}
-	
-	/**
-	 * Checks if SESSION belongs to authenticated user or if it's been hijacked by comparing REMOTE_ADDR & FINGERPRINT MD5 hash
-	 * 
-	 * @return		boolean
-	 * 
-	 * @since 		2009-02-20
-	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
-	 * 
-	 */
-	protected function checkSessionAuth() {
-		if(!isset($_SESSION[$this->strClientName]['remoteAddrAuth']) || !isset($_SESSION[$this->strClientName]['fingerprintAuth']) || !isset($_SESSION[$this->strClientName]['serverNameAuth']) || $_SESSION[$this->strClientName]['serverNameAuth'] !== $_SERVER['SERVER_NAME'] || (md5($_SERVER['REMOTE_ADDR']) !== $_SESSION[$this->strClientName]['remoteAddrAuth'] || md5($this->strClientName.'_AUTHSYS_'.$_SESSION[$this->strClientName]['user']) !== $_SESSION[$this->strClientName]['fingerprintAuth'])) {
-			return false;
-		} else {
-			return true;
 		}
 	}
 	

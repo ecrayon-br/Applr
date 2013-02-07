@@ -9,8 +9,8 @@
 {if isset($ERROR_MSG)}<h1>{$ERROR_MSG}</h1>{/if}
 
 <form name="formLogin" id="formLogin" method="post" action="{$smarty.const.HTTP_CMS}login/auth">
-Username: <input type="text" maxlength="80" value="" size="20" name="usr_data.username" id="usr_data.username" /><br />
-Password: <input type="text" maxlength="80" value="" size="20" name="usr_data.password" id="usr_data.password" /><br />
+Username: <input type="text" maxlength="80" value="" size="20" name="username" id="username" /><br />
+Password: <input type="text" maxlength="80" value="" size="20" name="password" id="password" /><br />
 <input type="submit" name="Send" />
 </form>
 

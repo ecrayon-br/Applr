@@ -8,7 +8,7 @@ class languageTranslation_Controller extends Controller {
 		$this->objModel = new languageTranslator_Model();
 	}
 	
-	public function setTranslationVars($objData) {
+	static public function setTranslationVars($objData) {
 		
 	}
 }

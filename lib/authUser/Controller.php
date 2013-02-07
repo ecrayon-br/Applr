@@ -1,8 +1,6 @@
 <?php
 class authUser_Controller extends Controller {
 	
-	static 		$strClientName	= PROJECT;
-	
 	protected 	$objModel;
 	
 	/**
@@ -68,7 +66,7 @@ class authUser_Controller extends Controller {
 			return false;
 		}
 		
-		if(($objData = $this->objModel->authUser($strLogin,$strPwd,$userField,$boolMD5,$boolAuthCode)) !== false) {
+		if(($objData = $this->objModel->authUser($strLogin,$strPwd,$strUserField,$boolMD5,$boolAuthCode)) !== false) {
 			// Specialized variables 
 			$_SESSION[self::$strClientName]['id']				= $objData->id;
 			$_SESSION[self::$strClientName]['permalink']		= $objData->permalink;
@@ -117,14 +115,16 @@ class authUser_Controller extends Controller {
 	static public function isLoggedIn($displayTPL = false,$strTPL = 'sys/authNeeded.html') {
 		if(!$displayTPL) {
 			return authUser_Controller::checkSessionAuth();
-		} elseif(!authUser_Controller::checkSessionAuth()) {			
+		} elseif(!authUser_Controller::checkSessionAuth()) {	
+			$objSmarty = new smarty_ApplrSmarty(SYS_ROOT . 'cms/views/');
+					
 			// Sets TRANSLATION terms
-			languageTranslation_Controller::setTranslationVars($this->objSmarty);
+			languageTranslation_Controller::setTranslationVars($objSmarty);
 			
-			$this->objSmarty->assign('strMsg',$this->objSmarty->_tpl_vars['SYS_MSG_authNeeded']);
+			$objSmarty->assign('ERROR_MSG','You must be logged in to access Applr`s Admin!');
 			
 			// Shows interface
-			$this->objSmarty->display($strTPL);
+			$objSmarty->display($strTPL);
 			
 			exit();
 		} else {
@@ -142,7 +142,7 @@ class authUser_Controller extends Controller {
 	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
 	 * 
 	 */
-	public function checkSessionAuth() {
+	static public function checkSessionAuth() {
 		if(
 			!isset($_SESSION[self::$strClientName]['remoteAddrAuth']) 										|| 
 			!isset($_SESSION[self::$strClientName]['fingerprintAuth']) 										|| 

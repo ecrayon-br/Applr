@@ -10,7 +10,7 @@ class Config_controller extends Main_controller {
 	}
 	
 	public function update() {
-		echo 'UPDATE!';
+		echo 'UPDATE';
 	}
 }
 ?>

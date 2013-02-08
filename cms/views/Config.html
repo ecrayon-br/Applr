@@ -53,7 +53,7 @@
 		<td>Creates grouped RSS</td>
 		<td>
 			<input type="radio" name="config.rss_group" value=1 {if $objData->rss_group == 1 || !isset($objData->rss_group)}checked{/if} /> Yes<br />
-			<input type="radio" name="config.rss_group" value=0 {if $objData->rss_group == 0}checked{/if} /> No
+			<input type="radio" name="config.rss_group" value=0 {if $objData->rss_group === 0}checked{/if} /> No
 		</td>
 	</tr>
 	<tr>
@@ -124,7 +124,7 @@
 		<td>Needs SMTP authentication?</td>
 		<td>
 			<input type="radio" name="config.mail_auth" value=1 {if $objData->mail_auth == 1 || !isset($objData->mail_auth)}checked{/if} /> Yes<br />
-			<input type="radio" name="config.mail_auth" value=0 {if $objData->mail_auth ==0}checked{/if} /> No
+			<input type="radio" name="config.mail_auth" value=0 {if $objData->mail_auth === 0}checked{/if} /> No
 		</td>
 	</tr>
 	<tr>

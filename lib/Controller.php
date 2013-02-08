@@ -44,6 +44,9 @@ class Controller {
 		// Defines init configs and vars
 		if(!defined('SYS_WHERE')) self::setInitVars();
 		
+		// Sets MODEL var
+		$this->objModel = new Model();
+		
 		// Instantiates SMARTY object
 		$this->setSmarty($strTemplateDir);
 		

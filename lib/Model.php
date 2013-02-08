@@ -65,7 +65,7 @@ class Model {
 		if($this->_boolDebug) { echo '<pre>'; var_dump($this->objConn); echo '</pre>'; }
 		
 		if (PEAR::isError($this->objConn)) {
-			define('ERROR_MSG',$this->objConn->getMessage());
+			define('ERROR_MSG','Error on Model::setConnection()');
 			return false;
 		}
 		
@@ -303,11 +303,11 @@ class Model {
 	 */
 	private function prepareDataSyntax(&$arrData,$intColumn = 0) {
 		if(!is_array($arrData) || count($arrData) == 0)	return false;
-		if(!is_numeric($intColumn) || $intColumn <= 0)	$intColumn = count(reset($arrData));
+		if(!is_numeric($intColumn) || $intColumn <= 0)	$intColumn = count($arrData);
 		
+		/*
 		foreach($arrData AS $intRowKey => &$arrRowData) {
 			$intRow	= count($arrRowData);
-			
 			if($intRow > 0) {
 				// Completes empty fields in rows array
 				if($intRow < $intColumn) {
@@ -317,22 +317,23 @@ class Model {
 					// Fills $arrRowData with empty values for missing elements
 					for($intI = 0; $intI < $intDiffColumn; $intI++) array_push($arrRowData,'');
 				}
-				
-				foreach($arrRowData AS $intColumnKey => &$mxdColumnData) {
+		*/
+				foreach($arrData AS $mxdColumnKey => &$mxdColumnData) {
 					// Checks STRING syntax
 					if(is_null($mxdColumnData) || strtoupper($mxdColumnData) == 'NULL') {
 						$mxdColumnData = null;
 					} elseif(is_string($mxdColumnData) && strpos($mxdColumnData,'"') !== 0 && strpos($mxdColumnData,"'") !== 0) {
-						$mxdColumnData = $this->objConn->quote(htmlentities($mxdColumnData,ENT_QUOTES,'UTF-8'));
+						$mxdColumnData = htmlentities($mxdColumnData,ENT_QUOTES,'UTF-8'); //$this->objConn->quote(htmlentities($mxdColumnData,ENT_QUOTES,'UTF-8'));
 					} elseif($mxdColumnData === "") {
-						$mxdColumnData = $this->objConn->quote('','text',true);
+						$mxdColumnData = ''; //$this->objConn->quote('','text',true);
 					}
 				}
+		/*
 			} else {
 				unset($arrData[$intRowKey]);
 			}
 		}
-		
+		*/
 		return $arrData;
 	}
 	
@@ -373,7 +374,7 @@ class Model {
 		}
 		
 		if(PEAR::isError($objQuery)) {
-			define('ERROR_MSG',$this->objConn->getMessage());
+			define('ERROR_MSG','Error on Model::prepareInsertQuery()');
 			return false;
 		} else {
 			return $objQuery;
@@ -392,6 +393,7 @@ class Model {
 	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
 	 * 
 	 */
+	/*
 	protected function prepareUpdateQuery($strTable,$arrField,$strWhere = '1') {
 		if(!is_string($strTable)|| empty($strTable))		return false;
 		if(!is_array($arrField) || count($arrField) == 0)	return false;
@@ -401,14 +403,15 @@ class Model {
 		$this->prepareDataSyntax($arrField);
 		
 		// Prepare query using MDB2::autoPrepare
-		$objQuery	= $this->objConn->extended->autoPrepare($strTable,$arrField,MDB2_AUTOQUERY_UPDATE,$strWhere);
+		$objQuery	= $this->objConn->extended->autoPrepare($strTable,array_keys($arrField),MDB2_AUTOQUERY_UPDATE,$strWhere);
 		if(PEAR::isError($objQuery)) {
-			define('ERROR_MSG',$this->objConn->getMessage());
+			define('ERROR_MSG','Error on Model::prepareUpdateQuery()');
 			return false;
 		} else {
 			return $objQuery;
 		}
 	}
+	*/
 	
 	/**
 	 * Checks if a specific record exists in database
@@ -457,7 +460,7 @@ class Model {
 			if($this->_boolDebug) { echo '<pre>'; var_dump($objQuery); echo '</pre>'; }
 			
 			if(PEAR::isError($objQuery)) {
-				define('ERROR_MSG',$this->objConn->getMessage());
+				define('ERROR_MSG','Error on Model::executeQuery->query()');
 				return false;
 			} else {
 				return $objQuery;
@@ -470,7 +473,7 @@ class Model {
 			if($this->_boolDebug) { echo '<pre>'; var_dump($objQuery); echo '</pre>'; }
 			
 			if(PEAR::isError($objQuery)) {
-				define('ERROR_MSG',$this->objConn->getMessage());
+				define('ERROR_MSG','Error on Model::executeQuery->exec()');
 				return false;
 			} else {
 				return $objQuery;
@@ -601,7 +604,7 @@ class Model {
 		if($this->_boolDebug) { echo '<pre>'; var_dump($objQuery); echo '</pre>'; }
 		
 		if(PEAR::isError($objQuery)) {
-			define('ERROR_MSG',$this->objConn->getMessage());
+			define('ERROR_MSG',"Error on Model::select->$arrFetch[$strFetchMode]()");
 			return false;
 		} else {
 			return $objQuery;
@@ -635,7 +638,7 @@ class Model {
 			$this->objConn->free();
 			
 			if(PEAR::isError($objQuery)) {
-				define('ERROR_MSG',$this->objConn->getMessage());
+				define('ERROR_MSG','Error on Model::insert->executeMultiple()');
 				return false;
 			} else {
 				if(!$boolReturnId) {
@@ -675,7 +678,7 @@ class Model {
 			$this->objConn->free();
 			
 			if(PEAR::isError($objQuery)) {
-				define('ERROR_MSG',$this->objConn->getMessage());
+				define('ERROR_MSG','Error on Model::replace->executeMultiple()');
 				return false;
 			} else {
 				return $objQuery;
@@ -702,25 +705,22 @@ class Model {
 		if(is_array($strTable)) 							$strTable = reset($strTable);
 		if(!is_string($strTable) || empty($strTable))		return false;
 		if(empty($arrField)) 								return false;
+		if(is_object($arrField)) 							$arrField 	= (array) $arrField;
 		if(!is_array($arrField)) 							$arrField 	= array($arrField);
 		if(is_array($strWhere)) 							$strWhere 	= implode(' AND ',$strWhere);
 		if(!is_string($strWhere)	&& !empty($strWhere)) 	$strWhere 	= '1';
 		
+		// Treats UTF-8 and HTML SPECIAL CHARS
+		$this->prepareDataSyntax($arrField);
+		
 		// Prepares and execute query
-		$strQuery = $this->prepareUpdateQuery($strTable,$arrField,$strWhere);
-		if($objQuery !== false) {
-			$objQuery = $this->objConn->execute($objQuery,$arrField);
-			
-			$this->objConn->free();
-			
-			if(PEAR::isError($objQuery)) {
-				define('ERROR_MSG',$this->objConn->getMessage());
-				return false;
-			} else {
-				return $objQuery;
-			}
-		} else {
+		$objQuery = $this->objConn->extended->autoExecute($strTable,$arrField,MDB2_AUTOQUERY_UPDATE,$strWhere);
+		
+		if(PEAR::isError($objQuery)) {
+			define('ERROR_MSG','Error on Model::update->execute()');
 			return false;
+		} else {
+			return $objQuery;
 		}
 	}
 	
@@ -745,7 +745,7 @@ class Model {
 		// Prepares and execute query
 		$objQuery	= $this->objConn->extended->autoPrepare($strTable,null,MDB2_AUTOQUERY_DELETE,$strWhere);
 		if(PEAR::isError($objQuery)) {
-			define('ERROR_MSG',$this->objConn->getMessage());
+			define('ERROR_MSG','Error on Model::delete->autoPrepare()');
 			return false;
 		} else {
 			$objQuery = $this->objConn->execute($objQuery,$arrField);
@@ -753,7 +753,7 @@ class Model {
 			$this->objConn->free();
 		
 			if(PEAR::isError($objQuery)) {
-				define('ERROR_MSG',$this->objConn->getMessage());
+				define('ERROR_MSG','Error on Model::delete->execute()');
 				return false;
 			} else {
 				return $objQuery;

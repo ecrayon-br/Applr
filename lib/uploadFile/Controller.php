@@ -2,13 +2,13 @@
 class uploadFile_Controller extends Controller {
 	
 	public		$intError;
+	public		$strPath;
 	
 	private		$arrFile;
 	private		$strFilter;
 	private		$intMaxSize;
 	private		$strDirectory;
 	private		$strPrefix;
-	private		$strPath;
     
 	/**
 	 * Class constructor. Instantiates class object; sets $intMaxSize, $strDirectory and $strPrefix values.

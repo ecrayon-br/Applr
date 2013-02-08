@@ -1,0 +1,5 @@
+.DS_Store
+classe_gerasecao.php
+formulario.php
+lib/smarty/templates_c/*
+lib/smarty/cache/*

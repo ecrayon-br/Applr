@@ -34,22 +34,24 @@ class manageContent_Controller extends Controller {
 	 * @todo	Sets $this->configContentLink MEDIA GALLERY link
 	 *
 	 */
-	public function __construct($intSection) {
-		if(!is_numeric($intSection) || empty($intSection)) return false;
+	public function __construct($intSection = null) {
+		if(!is_numeric($intSection) && !is_null($intSection)) return false;
 		
 		parent::__construct();
 		
-		if($intSection != SECTION_ID) {
-			$this->objSection	= $this->objModel->getSectionConfig($intSection);
-		} else {
-			$this->objSection = parent::$objSection;
-		}
-		
 		$this->objModel 	= new manageContent_Model();
 		
-		$this->setSection($intSection);
-		$this->getSectionFields();
-		$this->getRelSectionFields();
+		if(!is_null($objSection)) {
+			if($intSection != SECTION_ID) {
+				$this->objSection	= $this->objModel->getSectionConfig($intSection);
+			} else {
+				$this->objSection = parent::$objSection;
+			}
+		
+			$this->setSection($intSection);
+			$this->getSectionFields();
+			$this->getRelSectionFields();
+		}
 	}
 	
 	/**
@@ -145,7 +147,9 @@ class manageContent_Controller extends Controller {
 	/**
 	 * Checks field's sufyx and sets $arrData and $arrPrintData values
 	 * 
-	 * @param	mixed	$mxdData	POST / GET / other data object
+	 * @param	mixed	$mxdData		POST / GET / other data object
+	 * @param	mixed	$objFields		Array where key => DB fields and value => DB field's value OR null to get Applr SECTION defaults
+	 * @param	integer	$intReturnMode	0 => boolean; 1 => $this->objData values; 2 => $this->objPrintData values. If 1 or 2, resets $this->objData ans $this->objPrintData values to NULL on return 
 	 * 
 	 * @return	boolean
 	 *
@@ -153,9 +157,13 @@ class manageContent_Controller extends Controller {
 	 * @author	Diego Flores <diego [at] gmail [dot] com>
 	 *
 	 */
-	private function setupFieldSufyx($mxdData) {
-		if(!is_array($mxdData)) return false;
-		if($this->objFields === false) return false;
+	public function setupFieldSufyx(&$mxdData,$objFields = null,$intReturnMode = 0) {
+		if(!is_array($mxdData) && !is_object($mxdData)) return false;
+		#if($this->objFields === false) return false;
+		if(!is_numeric($intReturnMode) || $intReturnMode < 0 || $intReturnMode > 2) return false;
+		
+		// Forces $this->objFields to assume method's $objFields value
+		if(!is_null($objFields)) $this->objFields = $objFields;
 		
 		foreach($this->objFields AS $mxdKey => $strField) {
 			$this->objData->$strField = (is_array($mxdData) ? (!empty($mxdData[$strField]) ? $mxdData[$strField] : '') : (!empty($mxdData->$strField) ? $mxdData->$strField : ''));
@@ -203,6 +211,12 @@ class manageContent_Controller extends Controller {
 				break;
 				
 				case 'date':
+				case 'Day':
+				case 'Month':
+				case 'Year':
+					unset($this->objData->$strField);
+					$strField	= str_replace(array('_Day','_Month','_Year'),'',$strField);
+					
 					$intDay		= $strField . '_Day';
 					$intDay		= (is_array($mxdData) ? (!empty($mxdData[$intDay]) 		? $mxdData[$intDay]		: '00') 	: (!empty($mxdData->$intDay) 	? $mxdData->$intDay		: '00') );
 					$intMonth	= $strField . '_Month';
@@ -227,6 +241,9 @@ class manageContent_Controller extends Controller {
 				break;
 				
 				case 'hour':
+					unset($this->objData->$strField);
+					$strField	= str_replace(array('_Hour','_Minute','_Second'),'',$strField);
+					
 					$intSecond	= $strField . '_Hour';
 					$intSecond	= (is_array($mxdData) ? (!empty($mxdData[$intSecond]) 		? $mxdData[$intSecond]		: '00') 	: (!empty($mxdData->$intSecond) 	? $mxdData->$intSecond		: '00') );
 					$intMinute	= $strField . '_Minute';
@@ -277,8 +294,12 @@ class manageContent_Controller extends Controller {
 				break;
 				
 				case 'upload':
-					$objUpload = new uploadFile_Controller($strField,ROOT_UPLOAD . Controller::permalinkSyntax($this->objSection->table));
-					$this->objData->$strField = $this->objPrintData->$strField = $objUpload->uploadFile();
+					if(isset($_FILES[$strField])) {
+						$objUpload = new uploadFile_Controller($strField,ROOT_UPLOAD . Controller::permalinkSyntax($this->objSection->table));
+						$this->objData->$strField = $this->objPrintData->$strField = $objUpload->uploadFile();
+					} else {
+						$this->objData->$strField = $this->objPrintData->$strField = $mxdData[$strField];
+					}
 				break;
 				
 				case 'check':
@@ -306,55 +327,64 @@ class manageContent_Controller extends Controller {
 				break;
 				
 				case 'img':
-					// Uploads file
-					$objUpload = new uploadFile_Controller($strField,ROOT_IMAGE . Controller::permalinkSyntax($this->objSection->table));
-					$this->objData->$strField['file'] = $objUpload->uploadFile();
-					
-					// Inserts DB registry
-					$arrData = array(
-									'media_gallery_id'		=> null,
-									'usr_data_id'			=> $_SESSION[PROJECT]['id'],
-									'type'					=> true,
-									'name'					=> $this->objData->$strField['name'],
-									'author'				=> $this->objData->$strField['author'],
-									'label'					=> $this->objData->$strField['label'],
-									'filepath'				=> $this->objData->$strField['file'],
-									'filepath_thumbnail'	=> $this->objData->$strField['file'],
-									'filepath_streaming'	=> null
-								);
-					$objInsert = $this->objModel->insert('media_data',$arrData,true);
-					
-					// Sets sys vars
-					$this->objPrintData->$strField->id		= $objInsert;
-					$this->objPrintData->$strField->file	= $this->objData->$strField['file'];
-					$this->objPrintData->$strField->path	= $objUpload->strPath;
-					$this->objPrintData->$strField->info	= $arrData;
+				case 'image':
+					if(isset($_FILES[$strField])) {
+						// Uploads file
+						$objUpload = new uploadFile_Controller($strField,ROOT_IMAGE . Controller::permalinkSyntax($this->objSection->table));
+						$this->objData->$strField['file'] = $objUpload->uploadFile();
+						
+						// Inserts DB registry
+						$arrData = array(
+										'media_gallery_id'		=> null,
+										'usr_data_id'			=> $_SESSION[PROJECT]['id'],
+										'type'					=> true,
+										'name'					=> $this->objData->$strField['name'],
+										'author'				=> $this->objData->$strField['author'],
+										'label'					=> $this->objData->$strField['label'],
+										'filepath'				=> $this->objData->$strField['file'],
+										'filepath_thumbnail'	=> $this->objData->$strField['file'],
+										'filepath_streaming'	=> null
+									);
+						$objInsert = $this->objModel->insert('media_data',$arrData,true);
+						
+						// Sets sys vars
+						$this->objPrintData->$strField->id		= $objInsert;
+						$this->objPrintData->$strField->file	= $this->objData->$strField['file'];
+						$this->objPrintData->$strField->path	= $objUpload->strPath;
+						$this->objPrintData->$strField->info	= $arrData;
+					} else {
+						$this->objData->$strField = $this->objPrintData->$strField = $mxdData[$strField];
+					}
 				break;
 				
 				case 'video':
-					// Uploads file
-					$objUpload = new uploadFile_Controller($strField,ROOT_VIDEO . Controller::permalinkSyntax($this->objSection->table));
-					$this->objData->$strField['file'] = $objUpload->uploadFile();
-					
-					// Inserts DB registry
-					$arrData = array(
-									'media_gallery_id'		=> null,
-									'usr_data_id'			=> $_SESSION[PROJECT]['id'],
-									'type'					=> false,
-									'name'					=> $this->objData->$strField['name'],
-									'author'				=> $this->objData->$strField['author'],
-									'label'					=> $this->objData->$strField['label'],
-									'filepath'				=> $this->objData->$strField['file'],
-									'filepath_thumbnail'	=> null,
-									'filepath_streaming'	=> $this->objData->$strField['file']
-								);
-					$objInsert = $this->objModel->insert('media_data',$arrData,true);
-					
-					// Sets sys vars
-					$this->objPrintData->$strField->id		= $objInsert;
-					$this->objPrintData->$strField->file	= $this->objData->$strField['file'];
-					$this->objPrintData->$strField->path	= $objUpload->strPath;
-					$this->objPrintData->$strField->info	= $arrData;
+					if(isset($_FILES[$strField])) {
+						// Uploads file
+						$objUpload = new uploadFile_Controller($strField,ROOT_VIDEO . Controller::permalinkSyntax($this->objSection->table));
+						$this->objData->$strField['file'] = $objUpload->uploadFile();
+						
+						// Inserts DB registry
+						$arrData = array(
+										'media_gallery_id'		=> null,
+										'usr_data_id'			=> $_SESSION[PROJECT]['id'],
+										'type'					=> false,
+										'name'					=> $this->objData->$strField['name'],
+										'author'				=> $this->objData->$strField['author'],
+										'label'					=> $this->objData->$strField['label'],
+										'filepath'				=> $this->objData->$strField['file'],
+										'filepath_thumbnail'	=> null,
+										'filepath_streaming'	=> $this->objData->$strField['file']
+									);
+						$objInsert = $this->objModel->insert('media_data',$arrData,true);
+						
+						// Sets sys vars
+						$this->objPrintData->$strField->id		= $objInsert;
+						$this->objPrintData->$strField->file	= $this->objData->$strField['file'];
+						$this->objPrintData->$strField->path	= $objUpload->strPath;
+						$this->objPrintData->$strField->info	= $arrData;
+					} else {
+						$this->objData->$strField = $this->objPrintData->$strField = $mxdData[$strField];
+					}
 				break;
 				
 				default:
@@ -389,7 +419,26 @@ class manageContent_Controller extends Controller {
 			}
 		}
 		
-		return true;
+		switch($intReturnMode) {
+			case 0:
+			default:
+				return true;
+			break;
+			
+			case 1:
+				$objReturn 			= clone $this->objData;
+				$this->objData		= null;
+				
+				return $objReturn;
+			break;
+			
+			case 2:
+				$objReturn 			= clone $this->objPrintData;
+				$this->objPrintData	= null;
+				
+				return $objReturn;
+			break;
+		}
 	}
 
 	/**

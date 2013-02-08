@@ -32,7 +32,7 @@ define('DB_HOMOLOG_PWD',	'sys24ecrayon11');
 define('URI_DOMAIN_DEVELOP','127.0.0.1');
 define('DIR_DEVELOP',		'applr');
 define('DB_DEVELOP_HOST',	'localhost');
-define('DB_DEVELOP_DB',		'ecrayon_applr');
+define('DB_DEVELOP_DB',		'applr');
 define('DB_DEVELOP_USER',	'root');
 define('DB_DEVELOP_PWD',	'');
 ?>

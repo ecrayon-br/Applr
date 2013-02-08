@@ -15,7 +15,7 @@ define('CLIENT_EMAIL'	,'contato@ecrayon.com.br');
 define('MAIN_SECTION'	,21);
 define('MAIN_LANGUAGE'	,1);
 
-define('DEBUG'			,true);
+define('DEBUG'			,false);
 
 
 /******************************************************/

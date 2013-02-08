@@ -31,7 +31,13 @@ class Login_controller extends Main_controller {
 	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
 	 *
 	 */
-	public function auth($strLogin,$strPwd) {
+	public function auth($strLogin = '',$strPwd = '') {
+		// Verify method attributes
+		if(!is_string($strLogin) 	|| empty($strLogin)) $strLogin 	= $_REQUEST['username'];
+		if(!is_string($strPwd)		|| empty($strPwd))	 $strPwd	= $_REQUEST['password'];
+		if(!is_string($strLogin) 	|| empty($strLogin)) return false;
+		if(!is_string($strPwd)		|| empty($strPwd))	 return false;
+		
 		if($this->objAuth->authUser($strLogin,$strPwd)) {
 			header("Location: " . HTTP_CMS . "config");
 			exit();

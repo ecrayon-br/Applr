@@ -59,6 +59,7 @@ class authUser_Model extends Model {
 		
 		// Queries DB
 		$objQuery = $this->select($arrFields,'usr_data',array(),$arrAuthData);
+		if($objQuery !== false) $objQuery = reset($objQuery);
 		
 		// If record exists, returns data object 
 		if(isset($objQuery->id) && is_numeric($objQuery->id)) {

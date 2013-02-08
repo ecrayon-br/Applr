@@ -1,0 +1,112 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>APPLR</title>
+</head>
+<body>
+
+{if isset($ERROR_MSG)}<h1>{$ERROR_MSG}</h1>{/if}
+{if isset($ALERT_MSG)}<h1>{$ALERT_MSG}</h1>{/if}
+
+
+<form name="formConfig" id="formConfig" method="post" action="{$smarty.const.HTTP_CMS}struct/add">
+<input type="hidden" name="id" id="id" value="{$objData->id}" />
+<table border=1>
+	<caption>APPLR STRUCT FIELDS</caption>
+	<tr>
+		<th colspan=2>FIELD INFO</th>
+	</tr>
+	<tr>
+		<td>Name</td>
+		<td>
+			<input type="text" maxlength="80" value="{$objData->name}" size="40" name="name" id="name" />
+		</td>
+	</tr>
+	<tr>
+		<td>HTML</td>
+		<td>
+			<textarea cols="45" rows="7" name="html" id="html">{$objData->html}</textarea>
+		</td>
+	</tr>
+	<tr>
+		<td>Suffix</td>
+		<td>
+			<input type="text" maxlength="80" value="{$objData->suffix}" size="20" name="suffix" id="suffix" />
+		</td>
+	</tr>
+	<tr>
+		<td>Status</td>
+		<td>
+			<input type="radio" name="status" value=1 {if $objData->status == 1 || !isset($objData->status)}checked{/if} /> Active<br />
+			<input type="radio" name="status" value=0 {if $objData->status === 0}checked{/if} /> Inactive
+		</td>
+	</tr>
+	<tr>
+		<th colspan=2>DATABASE CONFIG</th>
+	</tr>
+	<tr>
+		<td>Field Type</td>
+		<td>
+			<select name="fieldtype" id="fieldtype">
+				<option value="text"		{if $objData->fieldtype == 'text'}selected{/if}>		TEXT</option>
+				<option value="varchar"		{if $objData->fieldtype == 'varchar'}selected{/if}>		VARCHAR</option>
+				<option value="char"		{if $objData->fieldtype == 'char'}selected{/if}>		CHAR</option>
+				<option value="enum"		{if $objData->fieldtype == 'enum'}selected{/if}>		ENUM</option>
+				<option value="blob"		{if $objData->fieldtype == 'blob'}selected{/if}>		BLOB</option>
+				<option value="boolean"		{if $objData->fieldtype == 'boolean'}selected{/if}>		BOOLEAN</option>
+				<option value="integer"		{if $objData->fieldtype == 'integer'}selected{/if}>		INT</option>
+				<option value="tinyint"		{if $objData->fieldtype == 'tinyint'}selected{/if}>		TINYINT</option>
+				<option value="bigint"		{if $objData->fieldtype == 'bigint'}selected{/if}>		BIGINT</option>
+				<option value="decimal"		{if $objData->fieldtype == 'decimal'}selected{/if}>		DECIMAL</option>
+				<option value="float"		{if $objData->fieldtype == 'float'}selected{/if}>		FLOAT</option>
+				<option value="double"		{if $objData->fieldtype == 'double'}selected{/if}>		DOUBLE</option>
+				<option value="timestamp"	{if $objData->fieldtype == 'timestamp'}selected{/if}>	TIMESTAMP</option>
+				<option value="datetime"	{if $objData->fieldtype == 'datetime'}selected{/if}>	DATETIME</option>
+				<option value="time"		{if $objData->fieldtype == 'time'}selected{/if}>		TIME</option>
+				<option value="date"		{if $objData->fieldtype == 'date'}selected{/if}>		DATE</option>
+				<option value="year"		{if $objData->fieldtype == 'year'}selected{/if}>		YEAR</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td>Length</td>
+		<td>
+			<select name="length" id="length">
+				<option value="0" {if !isset($objData->length) || empty($objData->length)}selected{/if}>N/R</option>
+				{section name="countLimit" loop=256 start=1}
+				<option value="{$smarty.section.countLimit.iteration}" {if $smarty.section.countLimit.iteration == $objData->length}selected{/if}>{$smarty.section.countLimit.iteration}</option>
+				{/section}
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td>Unsigned</td>
+		<td>
+			<input type="radio" name="is_unsigned" value=1 {if $objData->is_unsigned == 1 || !isset($objData->is_unsigned)}checked{/if} /> Yes<br />
+			<input type="radio" name="is_unsigned" value=0 {if $objData->is_unsigned === 0}checked{/if} /> No
+		</td>
+	</tr>
+	<tr>
+		<td>Null</td>
+		<td>
+			<input type="radio" name="notnull" value=0 {if $objData->notnull === 0}checked{/if} /> Yes<br />
+			<input type="radio" name="notnull" value=1 {if $objData->notnull == 1 || !isset($objData->notnull)}checked{/if} /> No
+		</td>
+	</tr>
+	<tr>
+		<td>Default value</td>
+		<td>
+			<input type="text" maxlength="255" value="{$objData->default_value}" size="40" name="default_value" id="default_value" />
+		</td>
+	</tr>
+	<tr>
+		<td colspan=2 align=right>
+			<input type="submit" value="Send" />
+		</td>
+	</tr>
+</table>
+</form>
+
+</body>
+</html>

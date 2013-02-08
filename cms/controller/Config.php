@@ -30,6 +30,15 @@ class Config_controller extends Main_controller {
 		}
 	}
 	
+	/**
+	 * Updates CONFIG and PROJECT data and prints resulting interface
+	 *
+	 * @return	void
+	 *
+	 * @since 	2013-02-08
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 *
+	 */
 	public function update() {
 		// Setups main data objects
 		$objData->project 	= array();

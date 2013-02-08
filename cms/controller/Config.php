@@ -53,6 +53,7 @@ class Config_controller extends Main_controller {
 				$objData->config[str_replace($tmpPrefix . '_','',$strKey)]	= $mxdValue;
 			}
 		}
+		$arrOrgData	= array_merge($objData->project,$objData->config);
 		
 		// Setups field's data
 		$objManager			= new manageContent_Controller();
@@ -62,13 +63,15 @@ class Config_controller extends Main_controller {
 		// Updates PROJECT
 		if($this->objModel->update('project',$objData->project,'id = ' . $this->intProjectID) !== false) {
 			if($this->objModel->update('config',$objData->config,'project_id = ' . $this->intProjectID) !== false) {
-				$this->objSmarty->assign('ALERT_MSG','Data successfully updated!');
+				$this->objSmarty->assign('ALERT_MSG','Data updated successfully!');
 				$this->objData	= $this->objModel->getData($this->intProjectID);
 			} else {
 				$this->objSmarty->assign('ERROR_MSG','There was an error while trying to update data! Please try again!');
+				$this->objData	= (object) $arrOrgData;
 			}
 		} else {
 			$this->objSmarty->assign('ERROR_MSG','There was an error while trying to update data! Please try again!');
+			$this->objData	= (object) $arrOrgData;
 		}
 		
 		$this->objSmarty->assign('objData',$this->objData);

@@ -289,11 +289,38 @@ class Model {
 		return $arrData;
 	}
 	
+	
+	/**
+	 * Sets INSERT/REPLACE/UPDATE data syntax
+	 *
+	 * @param 		array 	$arrData			Array data, where key is DB field and value is query value
+	 * @param		boolean	$boolPreserveKeys	Defines whether result array must preserve original keys or get ordered indexes
+	 *
+	 * @return		array
+	 *
+	 * @since 		2013-02-08
+	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
+	 *
+	 */
+	private function setDataSyntax(&$arrData,$boolPreserveKeys = true) {
+		foreach($arrData AS $mxdColumnKey => &$mxdColumnData) {
+			// Checks STRING syntax
+			if(is_null($mxdColumnData) || strtoupper($mxdColumnData) == 'NULL') {
+				$mxdColumnData = null;
+			} elseif(is_string($mxdColumnData) && strpos($mxdColumnData,'"') !== 0 && strpos($mxdColumnData,"'") !== 0) {
+				$mxdColumnData = htmlentities($mxdColumnData,ENT_QUOTES,'UTF-8'); //$this->objConn->quote(htmlentities($mxdColumnData,ENT_QUOTES,'UTF-8'));
+			} elseif($mxdColumnData === "") {
+				$mxdColumnData = ''; //$this->objConn->quote('','text',true);
+			}
+		}
+		if(!$boolPreserveKeys) $arrData = array_values($arrData);
+	}
+	
 	/**
 	 * Treats UTF-8 and HTML SPECIAL CHARS
 	 *
-	 * @param 		array 	$arrData	Array data, where key is DB field and value is query value
-	 * @param		integer	$intColumn	Column number per row
+	 * @param 		array 	$arrData			Array data, where key is DB field and value is query value
+	 * @param		boolean	$boolPreserveKeys	Defines whether result array must preserve original keys or get ordered indexes
 	 * 
 	 * @return		array
 	 * 
@@ -301,10 +328,22 @@ class Model {
 	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
 	 * 
 	 */
-	private function prepareDataSyntax(&$arrData,$intColumn = 0) {
+	private function prepareDataSyntax(&$arrData,$boolPreserveKeys = true) {
 		if(!is_array($arrData) || count($arrData) == 0)	return false;
-		if(!is_numeric($intColumn) || $intColumn <= 0)	$intColumn = count($arrData);
 		
+		if(is_array(reset($arrData))) {
+			$intColumn = count($arrData[0]);
+			
+			foreach($arrData AS $mxdColumnKey => &$mxdColumnData) {
+				$this->setDataSyntax($mxdColumnData,$boolPreserveKeys);
+			}
+		} else {
+			$intColumn = count($arrData);
+						
+			$this->setDataSyntax($arrData,$boolPreserveKeys);
+		}
+		
+		return $arrData;
 		/*
 		foreach($arrData AS $intRowKey => &$arrRowData) {
 			$intRow	= count($arrRowData);
@@ -318,23 +357,13 @@ class Model {
 					for($intI = 0; $intI < $intDiffColumn; $intI++) array_push($arrRowData,'');
 				}
 		*/
-				foreach($arrData AS $mxdColumnKey => &$mxdColumnData) {
-					// Checks STRING syntax
-					if(is_null($mxdColumnData) || strtoupper($mxdColumnData) == 'NULL') {
-						$mxdColumnData = null;
-					} elseif(is_string($mxdColumnData) && strpos($mxdColumnData,'"') !== 0 && strpos($mxdColumnData,"'") !== 0) {
-						$mxdColumnData = htmlentities($mxdColumnData,ENT_QUOTES,'UTF-8'); //$this->objConn->quote(htmlentities($mxdColumnData,ENT_QUOTES,'UTF-8'));
-					} elseif($mxdColumnData === "") {
-						$mxdColumnData = ''; //$this->objConn->quote('','text',true);
-					}
-				}
+		
 		/*
 			} else {
 				unset($arrData[$intRowKey]);
 			}
 		}
 		*/
-		return $arrData;
 	}
 	
 	/**
@@ -355,8 +384,8 @@ class Model {
 		if(!is_array($arrField) || count($arrField) == 0)								return false;
 		if(!is_bool($boolInsertMode) && $boolInsertMode !== 1 && $boolInsertMode !== 0)	return false;
 		
-		// Treats UTF-8 and HTML SPECIAL CHARS
-		$this->prepareDataSyntax($arrField);
+		// Gets array with DB::entity field name values 
+		$arrField = array_keys($arrField[0]);
 		
 		if($boolInsertMode) {
 			// Prepare query using MDB2::autoPrepare
@@ -616,7 +645,7 @@ class Model {
 	 *
 	 * @param	string	$strTable		Table name
 	 * @param	array	$arrField		Associative array with field_name => field_value
-	 * @param	boolean	$boolReturnId	Defines whether function returns MDB2_OK or last insert ID 
+	 * @param	boolean	$boolReturnId	Defines whether function returns MDB2_OK or MDB2::getLastInsertID()
 	 *
 	 * @return	mixed
 	 *
@@ -628,11 +657,14 @@ class Model {
 		if(is_array($strTable)) 						$strTable = reset($strTable);
 		if(!is_string($strTable) || empty($strTable))	return false;
 		if(empty($arrField)) 							return false;
-		if(!is_array($arrField)) 						$arrField 	= array($arrField);
+		if(!is_array($arrField[0])) 					$arrField 	= array($arrField);
 		
 		// Prepares and execute query
 		$objQuery = $this->prepareInsertQuery($strTable,$arrField);
 		if($objQuery !== false) {
+			// Treats UTF-8 and HTML SPECIAL CHARS
+			$this->prepareDataSyntax($arrField,0,false);
+			
 			$objQuery = $this->objConn->extended->executeMultiple($objQuery,$arrField);
 			
 			$this->objConn->free();
@@ -641,11 +673,7 @@ class Model {
 				define('ERROR_MSG','Error on Model::insert->executeMultiple(): ' . $objQuery->getMessage());
 				return false;
 			} else {
-				if(!$boolReturnId) {
-					return $objQuery;
-				} else {
-					return $this->getLastInsertID($strTable);
-				}
+				return ($boolReturnId ? $this->getLastInsertID($strTable) : $objQuery);
 			}
 		} else {
 			return false;
@@ -656,7 +684,8 @@ class Model {
 	 * Replaces data
 	 *
 	 * @param	string	$strTable	Table name
-	 * @param	array	$arrField	Associative array with field_name => field_value
+	 * @param	array	$arrField	Multi-dimension associative array with [n] => ([field_name] => field_value)
+	 * @param	boolean	$boolReturnId	Defines whether function returns MDB2_OK OR MDB2::getLastInsertID()
 	 *
 	 * @return	mixed
 	 *
@@ -664,24 +693,27 @@ class Model {
 	 * @author 	Diego Flores <diegotf [at] gmail dot com>
 	 * 
 	**/
-	public function replace($strTable,$arrField) {
+	public function replace($strTable,$arrField,$boolReturnId = true) {
 		if(is_array($strTable)) 						$strTable = reset($strTable);
 		if(!is_string($strTable) || empty($strTable))	return false;
 		if(empty($arrField)) 							return false;
-		if(!is_array($arrField)) 						$arrField 	= array($arrField);
+		if(!is_array($arrField[0])) 					$arrField 	= array($arrField);
 		
 		// Prepares and execute query
 		$objQuery = $this->prepareInsertQuery($strTable,$arrField,false);
+		
 		if($objQuery !== false) {
-			$objQuery = $this->objConn->extended->executeMultiple($objQuery,$arrField);
+			// Treats UTF-8 and HTML SPECIAL CHARS
+			$this->prepareDataSyntax($arrField,0,false);
 			
-			$this->objConn->free();
+			$objQuery = $this->objConn->extended->executeMultiple($objQuery,$arrField);
+			//$this->objConn->free();
 			
 			if(PEAR::isError($objQuery)) {
 				define('ERROR_MSG','Error on Model::replace->executeMultiple(): ' . $objQuery->getMessage());
 				return false;
 			} else {
-				return $objQuery;
+				return ($boolReturnId ? $this->getLastInsertID($strTable) : $objQuery);
 			}
 		} else {
 			return false;
@@ -711,7 +743,7 @@ class Model {
 		if(!is_string($strWhere)	&& !empty($strWhere)) 	$strWhere 	= '1';
 		
 		// Treats UTF-8 and HTML SPECIAL CHARS
-		$this->prepareDataSyntax($arrField);
+		$this->prepareDataSyntax($arrField,0,true);
 		
 		// Prepares and execute query
 		$objQuery = $this->objConn->extended->autoExecute($strTable,$arrField,MDB2_AUTOQUERY_UPDATE,$strWhere);

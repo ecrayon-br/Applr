@@ -65,7 +65,7 @@ class Model {
 		if($this->_boolDebug) { echo '<pre>'; var_dump($this->objConn); echo '</pre>'; }
 		
 		if (PEAR::isError($this->objConn)) {
-			define('ERROR_MSG','Error on Model::setConnection()');
+			define('ERROR_MSG','Error on Model::setConnection(): ' . $this->objConn->getMessage());
 			return false;
 		}
 		
@@ -374,7 +374,7 @@ class Model {
 		}
 		
 		if(PEAR::isError($objQuery)) {
-			define('ERROR_MSG','Error on Model::prepareInsertQuery()');
+			define('ERROR_MSG','Error on Model::prepareInsertQuery(): ' . $objQuery->getMessage());
 			return false;
 		} else {
 			return $objQuery;
@@ -405,7 +405,7 @@ class Model {
 		// Prepare query using MDB2::autoPrepare
 		$objQuery	= $this->objConn->extended->autoPrepare($strTable,array_keys($arrField),MDB2_AUTOQUERY_UPDATE,$strWhere);
 		if(PEAR::isError($objQuery)) {
-			define('ERROR_MSG','Error on Model::prepareUpdateQuery()');
+			define('ERROR_MSG','Error on Model::prepareUpdateQuery(): ' . $objQuery->getMessage());
 			return false;
 		} else {
 			return $objQuery;
@@ -460,7 +460,7 @@ class Model {
 			if($this->_boolDebug) { echo '<pre>'; var_dump($objQuery); echo '</pre>'; }
 			
 			if(PEAR::isError($objQuery)) {
-				define('ERROR_MSG','Error on Model::executeQuery->query()');
+				define('ERROR_MSG','Error on Model::executeQuery->query(): ' . $objQuery->getMessage());
 				return false;
 			} else {
 				return $objQuery;
@@ -473,7 +473,7 @@ class Model {
 			if($this->_boolDebug) { echo '<pre>'; var_dump($objQuery); echo '</pre>'; }
 			
 			if(PEAR::isError($objQuery)) {
-				define('ERROR_MSG','Error on Model::executeQuery->exec()');
+				define('ERROR_MSG','Error on Model::executeQuery->exec(): ' . $objQuery->getMessage());
 				return false;
 			} else {
 				return $objQuery;
@@ -604,7 +604,7 @@ class Model {
 		if($this->_boolDebug) { echo '<pre>'; var_dump($objQuery); echo '</pre>'; }
 		
 		if(PEAR::isError($objQuery)) {
-			define('ERROR_MSG',"Error on Model::select->$arrFetch[$strFetchMode]()");
+			define('ERROR_MSG',"Error on Model::select->$arrFetch[$strFetchMode](): " . $objQuery->getMessage());
 			return false;
 		} else {
 			return $objQuery;
@@ -638,7 +638,7 @@ class Model {
 			$this->objConn->free();
 			
 			if(PEAR::isError($objQuery)) {
-				define('ERROR_MSG','Error on Model::insert->executeMultiple()');
+				define('ERROR_MSG','Error on Model::insert->executeMultiple(): ' . $objQuery->getMessage());
 				return false;
 			} else {
 				if(!$boolReturnId) {
@@ -678,7 +678,7 @@ class Model {
 			$this->objConn->free();
 			
 			if(PEAR::isError($objQuery)) {
-				define('ERROR_MSG','Error on Model::replace->executeMultiple()');
+				define('ERROR_MSG','Error on Model::replace->executeMultiple(): ' . $objQuery->getMessage());
 				return false;
 			} else {
 				return $objQuery;
@@ -717,7 +717,7 @@ class Model {
 		$objQuery = $this->objConn->extended->autoExecute($strTable,$arrField,MDB2_AUTOQUERY_UPDATE,$strWhere);
 		
 		if(PEAR::isError($objQuery)) {
-			define('ERROR_MSG','Error on Model::update->execute()');
+			define('ERROR_MSG','Error on Model::update->execute(): ' . $objQuery->getMessage());
 			return false;
 		} else {
 			return $objQuery;
@@ -745,7 +745,7 @@ class Model {
 		// Prepares and execute query
 		$objQuery	= $this->objConn->extended->autoPrepare($strTable,null,MDB2_AUTOQUERY_DELETE,$strWhere);
 		if(PEAR::isError($objQuery)) {
-			define('ERROR_MSG','Error on Model::delete->autoPrepare()');
+			define('ERROR_MSG','Error on Model::delete->autoPrepare(): ' . $objQuery->getMessage());
 			return false;
 		} else {
 			$objQuery = $this->objConn->execute($objQuery,$arrField);
@@ -753,7 +753,7 @@ class Model {
 			$this->objConn->free();
 		
 			if(PEAR::isError($objQuery)) {
-				define('ERROR_MSG','Error on Model::delete->execute()');
+				define('ERROR_MSG','Error on Model::delete->execute(): ' . $objQuery->getMessage());
 				return false;
 			} else {
 				return $objQuery;

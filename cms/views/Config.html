@@ -6,6 +6,9 @@
 </head>
 <body>
 
+{if isset($ERROR_MSG)}<h1>{$ERROR_MSG}</h1>{/if}
+{if isset($ALERT_MSG)}<h1>{$ALERT_MSG}</h1>{/if}
+
 <form name="formConfig" id="formConfig" method="post" action="{$smarty.const.HTTP_CMS}config/update">
 <table border=1>
 	<caption>APPLR CONFIG</caption>
@@ -15,13 +18,13 @@
 	<tr>
 		<td>Project Title</td>
 		<td>
-			<input type="text" maxlength="80" value="" size="40" name="project.name" id="project-name" />
+			<input type="text" maxlength="80" value="{$objData->name}" size="40" name="project.name" id="project-name" />
 		</td>
 	</tr>
 	<tr>
 		<td>Project Description</td>
 		<td>
-			<textarea cols="45" rows="7" name="project.description" id="project-description"></textarea>
+			<textarea cols="45" rows="7" name="project.description" id="project-description">{$objData->description}</textarea>
 		</td>
 	</tr>
 	<tr>
@@ -33,7 +36,7 @@
 	<tr>
 		<td>Release Date</td>
 		<td>
-			{html_select_date prefix="project.start_date_" time=null start_year="+0" end_year="+4" day_value_format="%02d" month_value_format="%02m" field_order="DMY" year_empty="YEAR" month_empty="MONTH" day_empty="DAY"}
+			{html_select_date prefix="project.start_date_" time=$objData->start_date start_year="+0" end_year="+4" day_value_format="%02d" month_value_format="%m" field_order="DMY" year_empty="YEAR" month_empty="MONTH" day_empty="DAY"}
 		</td>
 	</tr>
 	<tr>
@@ -41,7 +44,7 @@
 		<td>
 			<select name="config.paging_limit" id="config-paging_limit">
 				{section name="countLimit" loop=999 start=1}
-				<option value="{$smarty.section.countLimit.iteration}">{$smarty.section.countLimit.iteration}</option>
+				<option value="{$smarty.section.countLimit.iteration}" {if $smarty.section.countLimit.iteration == $objData->paging_limit}selected{/if}>{$smarty.section.countLimit.iteration}</option>
 				{/section}
 			</select>
 		</td>
@@ -49,8 +52,8 @@
 	<tr>
 		<td>Creates grouped RSS</td>
 		<td>
-			<input type="radio" name="config.rss_group" value=1 checked /> Yes<br />
-			<input type="radio" name="config.rss_group" value=0 /> No
+			<input type="radio" name="config.rss_group" value=1 {if $objData->rss_group == 1 || !isset($objData->rss_group)}checked{/if} /> Yes<br />
+			<input type="radio" name="config.rss_group" value=0 {if $objData->rss_group == 0}checked{/if} /> No
 		</td>
 	</tr>
 	<tr>
@@ -58,7 +61,7 @@
 		<td>
 			<select name="config.rss_limit" id="config-rss_limit">
 				{section name="countLimit" loop=999 start=1}
-				<option value="{$smarty.section.countLimit.iteration}">{$smarty.section.countLimit.iteration}</option>
+				<option value="{$smarty.section.countLimit.iteration}" {if $smarty.section.countLimit.iteration == $objData->rss_limit}selected{/if}>{$smarty.section.countLimit.iteration}</option>
 				{/section}
 			</select>
 		</td>
@@ -69,49 +72,49 @@
 	<tr>
 		<td>UPLOAD Files Directory Path</td>
 		<td>
-			<input type="text" maxlength="255" value="" size="40" name="config.dir_upload" id="config-dir_upload" />
+			<input type="text" maxlength="255" value="{$objData->dir_upload}" size="40" name="config.dir_upload" id="config-dir_upload" />
 		</td>
 	</tr>
 	<tr>
 		<td>IMAGE Files Directory Path</td>
 		<td>
-			<input type="text" maxlength="255" value="" size="40" name="config.dir_image" id="config-dir_image" />
+			<input type="text" maxlength="255" value="{$objData->dir_image}" size="40" name="config.dir_image" id="config-dir_image" />
 		</td>
 	</tr>
 	<tr>
 		<td>VIDEO Files Directory Path</td>
 		<td>
-			<input type="text" maxlength="255" value="" size="40" name="config.dir_video" id="config-dir_video" />
+			<input type="text" maxlength="255" value="{$objData->dir_video}" size="40" name="config.dir_video" id="config-dir_video" />
 		</td>
 	</tr>
 	<tr>
 		<td>TEMPLATE Files Directory Path</td>
 		<td>
-			<input type="text" maxlength="255" value="" size="40" name="config.dir_template" id="config-dir_template" />
+			<input type="text" maxlength="255" value="{$objData->dir_template}" size="40" name="config.dir_template" id="config-dir_template" />
 		</td>
 	</tr>
 	<tr>
 		<td>STATIC Files Directory Path</td>
 		<td>
-			<input type="text" maxlength="255" value="" size="40" name="config.dir_static" id="config-dir_static" />
+			<input type="text" maxlength="255" value="{$objData->dir_static}" size="40" name="config.dir_static" id="config-dir_static" />
 		</td>
 	</tr>
 	<tr>
 		<td>DYNAMIC Files Directory Path</td>
 		<td>
-			<input type="text" maxlength="255" value="" size="40" name="config.dir_dynamic" id="config-dir_dynamic" />
+			<input type="text" maxlength="255" value="{$objData->dir_dynamic}" size="40" name="config.dir_dynamic" id="config-dir_dynamic" />
 		</td>
 	</tr>
 	<tr>
 		<td>XML Files Directory Path</td>
 		<td>
-			<input type="text" maxlength="255" value="" size="40" name="config.dir_xml" id="config-dir_xml" />
+			<input type="text" maxlength="255" value="{$objData->dir_xml}" size="40" name="config.dir_xml" id="config-dir_xml" />
 		</td>
 	</tr>
 	<tr>
 		<td>RSS Files Directory Path</td>
 		<td>
-			<input type="text" maxlength="255" value="" size="40" name="config.dir_rss" id="config-dir_rss" />
+			<input type="text" maxlength="255" value="{$objData->dir_rss}" size="40" name="config.dir_rss" id="config-dir_rss" />
 		</td>
 	</tr>
 	<tr>
@@ -120,26 +123,26 @@
 	<tr>
 		<td>Needs SMTP authentication?</td>
 		<td>
-			<input type="radio" name="config.mail_auth" value=1 checked/> Yes<br />
-			<input type="radio" name="config.mail_auth" value=0 /> No
+			<input type="radio" name="config.mail_auth" value=1 {if $objData->mail_auth == 1 || !isset($objData->mail_auth)}checked{/if} /> Yes<br />
+			<input type="radio" name="config.mail_auth" value=0 {if $objData->mail_auth ==0}checked{/if} /> No
 		</td>
 	</tr>
 	<tr>
 		<td>AUTHMAIL Host</td>
 		<td>
-			<input type="text" maxlength="80" value="" size="40" name="config.mail_auth_host" id="config-mail_auth_host" />
+			<input type="text" maxlength="80" value="{$objData->mail_auth_host}" size="40" name="config.mail_auth_host" id="config-mail_auth_host" />
 		</td>
 	</tr>
 	<tr>
 		<td>AUTHMAIL Username</td>
 		<td>
-			<input type="text" maxlength="80" value="" size="40" name="config.mail_auth_user" id="config-mail_auth_user" />
+			<input type="text" maxlength="80" value="{$objData->mail_auth_user}" size="40" name="config.mail_auth_user" id="config-mail_auth_user" />
 		</td>
 	</tr>
 	<tr>
 		<td>AUTHMAIL Password</td>
 		<td>
-			<input type="text" maxlength="80" value="" size="40" name="config.mail_auth_password" id="config-mail_auth_password" />
+			<input type="text" maxlength="80" value="{$objData->mail_auth_password}" size="40" name="config.mail_auth_password" id="config-mail_auth_password" />
 		</td>
 	</tr>
 	<tr>
@@ -148,25 +151,25 @@
 	<tr>
 		<td>"System" Address</td>
 		<td>
-			<input type="text" maxlength="80" value="" size="40" name="config.mail_sys" id="config-mail_sys" />
+			<input type="text" maxlength="80" value="{$objData->mail_sys}" size="40" name="config.mail_sys" id="config-mail_sys" />
 		</td>
 	</tr>
 	<tr>
 		<td>"Public" Address</td>
 		<td>
-			<input type="text" maxlength="80" value="" size="40" name="config.mail_public" id="config-mail_public" />
+			<input type="text" maxlength="80" value="{$objData->mail_public}" size="40" name="config.mail_public" id="config-mail_public" />
 		</td>
 	</tr>
 	<tr>
 		<td>"Contact Us" Address</td>
 		<td>
-			<input type="text" maxlength="80" value="" size="40" name="config.mail_contact" id="config-mail_contact" />
+			<input type="text" maxlength="80" value="{$objData->mail_contact}" size="40" name="config.mail_contact" id="config-mail_contact" />
 		</td>
 	</tr>
 	<tr>
 		<td>"User Interaction" Address</td>
 		<td>
-			<input type="text" maxlength="80" value="" size="40" name="config.mail_user" id="config-mail_user" />
+			<input type="text" maxlength="80" value="{$objData->mail_user}" size="40" name="config.mail_user" id="config-mail_user" />
 		</td>
 	</tr>
 	<tr>

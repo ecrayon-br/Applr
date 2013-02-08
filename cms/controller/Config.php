@@ -1,5 +1,8 @@
 <?php
 class Config_controller extends Main_controller {
+	protected 	$objModel;
+	
+	public		$objData;
 	
 	/**
 	 * Class constructor
@@ -17,7 +20,14 @@ class Config_controller extends Main_controller {
 		
 		if(!DEBUG) authUser_Controller::isLoggedIn(true,'Login.html');
 		
-		if($boolRenderTemplate) $this->renderTemplate();
+		$this->objModel	= new Config_model();
+		
+		$this->objData	= $this->objModel->getData($this->intProjectID);
+		
+		if($boolRenderTemplate) {
+			$this->objSmarty->assign('objData',$this->objData);
+			$this->renderTemplate();
+		}
 	}
 	
 	public function update() {
@@ -41,16 +51,18 @@ class Config_controller extends Main_controller {
 		$objData->config	= $objManager->setupFieldSufyx($objData->config,array_keys($objData->config),1);
 		
 		// Updates PROJECT
-		if($this->objModel->update('project',$objData->project,'id = 1') !== false) {
-			if($this->objModel->update('config',$objData->config,'id = 1') !== false) {
-				die('Success!');
+		if($this->objModel->update('project',$objData->project,'id = ' . $this->intProjectID) !== false) {
+			if($this->objModel->update('config',$objData->config,'project_id = ' . $this->intProjectID) !== false) {
+				$this->objSmarty->assign('ALERT_MSG','Data successfully updated!');
+				$this->objData	= $this->objModel->getData($this->intProjectID);
 			} else {
-				die(ERROR_MSG);
+				$this->objSmarty->assign('ERROR_MSG','There was an error while trying to update data! Please try again!');
 			}
 		} else {
-			die(ERROR_MSG);
+			$this->objSmarty->assign('ERROR_MSG','There was an error while trying to update data! Please try again!');
 		}
 		
+		$this->objSmarty->assign('objData',$this->objData);
 		$this->renderTemplate();
 	}
 }

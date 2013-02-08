@@ -13,10 +13,12 @@ class Controller {
 	protected	$strAction			= '';
 	protected	$objModel;
 	protected	$objSection;
+	protected	$intProjectID 		= 1;
 	
 	private		$strTemplate;
 	
 	static		$strClientName		= CLIENT;
+	
 	
 	/**
 	 * Class constructor
@@ -49,6 +51,11 @@ class Controller {
 		
 		// Instantiates SMARTY object
 		$this->setSmarty($strTemplateDir);
+		
+		// Defines logged user ID
+		if(isset($_SESSION[self::$strClientName]['id'])) {
+			$this->intProjectID = $_SESSION[self::$strClientName]['id'];
+		}
 		
 		// Renderize View's template
 		if($boolRenderView) $this->renderTemplate();

@@ -767,13 +767,9 @@ class Controller {
 	public function replaceQuoteAndSlash($strValue) { 
 	    $strValue = trim($strValue);
 	    
-	    $strValue = str_replace("\\",'\\\\'	,$strValue);
-		$strValue = str_replace("'","\'"	,$strValue);
-		$strValue = str_replace('"','\"'	,$strValue);
-		$strValue = str_replace('\"','\\"'	,$strValue);
-		$strValue = str_replace("\'","\\'"	,$strValue);
+	    $strValue = str_replace(array("\\",'\"',"\'","'",'"'),array('\\\\','\\\"',"\\\'","\'",'\"'),$strValue);
 	    
-		return $strValue;
+	    return $strValue;
 	}
 	
 	/**
@@ -790,11 +786,7 @@ class Controller {
 	public function unreplaceQuoteAndSlash($strValue) { 
 	    $strValue = trim($strValue);
 	    
-	    $strValue = str_replace('\\\\',"\\"	,$strValue);
-		$strValue = str_replace("\'","'"	,$strValue);
-		$strValue = str_replace('\"','"'	,$strValue);
-		$strValue = str_replace('\\"','\"'	,$strValue);
-		$strValue = str_replace("\\'","\'"	,$strValue);
+	    $strValue = str_replace(array('\\\\','\\\"',"\\\'","\'",'\"'),array("\\",'\"',"\'","'",'"'),$strValue);
 	    
 		return $strValue;
 	}
@@ -898,7 +890,7 @@ class Controller {
 	 * @param		array	$arrDataType		Array of data type definition, where fieldName => dataType
 	 * @param		boolean	$boolKeepOtherData	Defines if not-defined $arrValues keys must be preserved
 	 * 
-	 * @return		boolean
+	 * @return		mixed
 	 * 
 	 * @since 		2009-02-20
 	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
@@ -910,7 +902,7 @@ class Controller {
 		
 		// Validates $arrParams data
 		foreach($arrDataType AS $strKey => $strDataType) {
-			if(!array_key_exists($strKey,$arrValues)) 										return $strKey;
+			if(!array_key_exists($strKey,$arrValues)) 										$arrValues[$strKey] = null;
 			
 			switch(strtolower($strDataType)) {
 				case 'numeric':

@@ -1,22 +1,10 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>APPLR</title>
-</head>
-<body>
-
-{if isset($ERROR_MSG)}<h1>{$ERROR_MSG}</h1>{/if}
-{if isset($ALERT_MSG)}<h1>{$ALERT_MSG}</h1>{/if}
-
+{include file="struct/header.html"}
 
 <form name="formConfig" id="formConfig" method="post" action="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/add">
 <input type="hidden" name="id" id="id" value="{$objData->id}" />
 <table border=1 width=650>
 	<caption>APPLR FOLDER</caption>
-	<tr>
-		<td colspan=3 align="right"><input type="button" value="List" onclick="window.location.href = '{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/list';" /><input type="button" value="Insert" onclick="window.location.href = '{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/insert';" /></td>
-	</tr>
+	{include file="struct/menu-top.html"}
 	<tr>
 		<th colspan=2>FIELD INFO</th>
 	</tr>
@@ -53,5 +41,4 @@
 </table>
 </form>
 
-</body>
-</html>
+{include file="struct/footer.html"}

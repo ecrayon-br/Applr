@@ -44,10 +44,10 @@ class Controller {
 		
 		// Aplies security for superglobal variables
 		$this->secureGlobals();
-#echo '<pre>'; var_dump($_SESSION); die();
+		
 		// Defines init configs and vars
 		if(!defined('SYS_WHERE')) $this->setInitVars();
-#echo '<pre>'; var_dump($_SESSION); die();
+		
 		// Sets MODEL var
 		$this->objModel = new Model();
 		
@@ -58,7 +58,7 @@ class Controller {
 		if($_SESSION[self::$strProjectName]['auth'] && isset($_SESSION[self::$strProjectName]['id'])) {
 			$this->intUserID = $_SESSION[self::$strProjectName]['id'];
 		}
-#echo '<pre>'; var_dump($_SESSION); die();		
+			
 		// Renderize View's template
 		if($boolRenderView) $this->renderTemplate();
 	}
@@ -90,11 +90,7 @@ class Controller {
 		/**********										**********/
 		/**********			  PROJECT CONFIG			**********/
 		/**********										**********/
-		/*
-		$this->strClientName	= CLIENT;
-		$this->strProjectName	= PROJECT;
-		$this->intProjectID		= PROJECT_ID;
-		*/
+		
 		define('SYS_WHERE'	,'delete = 0 AND active = 1 AND date_publish <= NOW() AND (date_expire  >= NOW() OR date_expire = "0000-00-00 00:00:00" OR date_expire IS NULL)');
 		define('HTTP'		,'http://'. URI_DOMAIN . SYS_DIR);
 		

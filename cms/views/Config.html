@@ -9,8 +9,8 @@
 {if isset($ERROR_MSG)}<h1>{$ERROR_MSG}</h1>{/if}
 {if isset($ALERT_MSG)}<h1>{$ALERT_MSG}</h1>{/if}
 
-<form name="formConfig" id="formConfig" method="post" action="{$smarty.const.HTTP_CMS}config/update">
-<table border=1>
+<form name="formConfig" id="formConfig" method="post" action="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/add">
+<table border=1 width=650>
 	<caption>APPLR CONFIG</caption>
 	<tr>
 		<th colspan=2>PROJECT DATA</th>

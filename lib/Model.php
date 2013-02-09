@@ -661,9 +661,10 @@ class Model {
 		
 		// Prepares and execute query
 		$objQuery = $this->prepareInsertQuery($strTable,$arrField);
+		
 		if($objQuery !== false) {
 			// Treats UTF-8 and HTML SPECIAL CHARS
-			$this->prepareDataSyntax($arrField,0,false);
+			$this->prepareDataSyntax($arrField,false);
 			
 			$objQuery = $this->objConn->extended->executeMultiple($objQuery,$arrField);
 			
@@ -704,7 +705,7 @@ class Model {
 		
 		if($objQuery !== false) {
 			// Treats UTF-8 and HTML SPECIAL CHARS
-			$this->prepareDataSyntax($arrField,0,false);
+			$this->prepareDataSyntax($arrField,false);
 			
 			$objQuery = $this->objConn->extended->executeMultiple($objQuery,$arrField);
 			//$this->objConn->free();
@@ -743,7 +744,7 @@ class Model {
 		if(!is_string($strWhere)	&& !empty($strWhere)) 	$strWhere 	= '1';
 		
 		// Treats UTF-8 and HTML SPECIAL CHARS
-		$this->prepareDataSyntax($arrField,0,true);
+		$this->prepareDataSyntax($arrField,true);
 		
 		// Prepares and execute query
 		$objQuery = $this->objConn->extended->autoExecute($strTable,$arrField,MDB2_AUTOQUERY_UPDATE,$strWhere);
@@ -768,7 +769,7 @@ class Model {
 	 * @author 	Diego Flores <diegotf [at] gmail dot com>
 	 * 
 	**/
-	public function delete($strTable,$arrWhere = array()) {
+	public function delete($strTable,$strWhere = array()) {
 		if(is_array($strTable)) 							$strTable = reset($strTable);
 		if(!is_string($strTable) || empty($strTable))		return false;
 		if(is_array($strWhere)) 							$strWhere 	= implode(' AND ',$strWhere);
@@ -780,9 +781,9 @@ class Model {
 			define('ERROR_MSG','Error on Model::delete->autoPrepare(): ' . $objQuery->getMessage());
 			return false;
 		} else {
-			$objQuery = $this->objConn->execute($objQuery,$arrField);
-		
-			$this->objConn->free();
+			$objQuery = $objQuery->execute();
+			
+			#$this->objConn->free();
 		
 			if(PEAR::isError($objQuery)) {
 				define('ERROR_MSG','Error on Model::delete->execute(): ' . $objQuery->getMessage());

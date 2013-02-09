@@ -39,12 +39,26 @@ class Login_controller extends Main_controller {
 		if(!is_string($strPwd)		|| empty($strPwd))	 return false;
 		
 		if($this->objAuth->authUser($strLogin,$strPwd)) {
-			header("Location: " . HTTP_CMS . "config");
+			header("Location: " . HTTP_CMS . "main");
 			exit();
 		} else {
 			$this->objSmarty->assign('ERROR_MSG','There was an error in authentication! Please try again!');
 			$this->renderTemplate();
 		}
+	}
+	
+	/**
+	 * Exits Applr system
+	 *
+	 * @return 		void
+	 *
+	 * @since 		2013-02-09
+	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
+	 *
+	 */
+	public function out() {
+		authUser_Controller::logoutUser();
+		parent::__construct(true);
 	}
 }
 ?>

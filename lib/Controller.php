@@ -801,18 +801,34 @@ class Controller {
 	 * 
 	 */
 	public function secureGlobals() { 
-	    foreach ($_REQUEST 	AS $intKey => $strValue) {
-	        $_REQUEST[$intKey] 	= self::replaceQuoteAndSlash($strValue);
+	    foreach ($_REQUEST 	AS $intKey => &$strValue) {
+	    	if(!is_array($strValue)) {
+	        	$_REQUEST[$intKey] 	= self::replaceQuoteAndSlash($strValue);
+	    	} else {
+	    		$this->multiArrayWalk($strValue, 'replaceQuoteAndSlash');
+	    	}
 	    }
-	    foreach ($_POST 	AS $intKey => $strValue) {
-	        $_POST[$intKey] 	= self::replaceQuoteAndSlash($strValue);
+	    foreach ($_POST 	AS $intKey => &$strValue) {
+	    	if(!is_array($strValue)) {
+	        	$_POST[$intKey] 	= self::replaceQuoteAndSlash($strValue);
+	    	} else {
+	    		$this->multiArrayWalk($strValue, 'replaceQuoteAndSlash');
+	    	}
 	    }
-	    foreach ($_GET 		AS $intKey => $strValue) {
-	        $_GET[$intKey] 		= self::replaceQuoteAndSlash($strValue);
+	    foreach ($_GET 		AS $intKey => &$strValue) {
+	    	if(!is_array($strValue)) {
+	        	$_GET[$intKey] 		= self::replaceQuoteAndSlash($strValue);
+	    	} else {
+	    		$this->multiArrayWalk($strValue, 'replaceQuoteAndSlash');
+	    	}
 	    }
 	    /*
 	    foreach ($_SESSION 	AS $intKey => $strValue) {
-	        $_SESSION[$intKey] 	= self::replaceQuoteAndSlash($strValue);
+	    	if(!is_array($strValue)) {
+	        	$_SESSION[$intKey] 	= self::replaceQuoteAndSlash($strValue);
+	    	} else {
+	    		$this->multiArrayWalk($strValue, 'replaceQuoteAndSlash');
+	    	}
 	    }
 	    */
 	}
@@ -828,17 +844,33 @@ class Controller {
 	 */
 	public function unsecureGlobals() { 
 	    foreach ($_REQUEST 	AS $intKey => $strValue) {
-	        $_REQUEST[$intKey] 	= self::unreplaceQuoteAndSlash($strValue);
+	    	if(!is_array($strValue)) {
+	        	$_REQUEST[$intKey] 	= self::unreplaceQuoteAndSlash($strValue);
+	    	} else {
+	    		$this->multiArrayWalk($strValue, 'unreplaceQuoteAndSlash');
+	    	}
 	    }
 	    foreach ($_POST 	AS $intKey => $strValue) {
-	        $_POST[$intKey] 	= self::unreplaceQuoteAndSlash($strValue);
+	    	if(!is_array($strValue)) {
+	        	$_POST[$intKey] 	= self::unreplaceQuoteAndSlash($strValue);
+	    	} else {
+	    		$this->multiArrayWalk($strValue, 'unreplaceQuoteAndSlash');
+	    	}
 	    }
 	    foreach ($_GET 		AS $intKey => $strValue) {
-	        $_GET[$intKey] 		= self::unreplaceQuoteAndSlash($strValue);
+	    	if(!is_array($strValue)) {
+	        	$_GET[$intKey] 		= self::unreplaceQuoteAndSlash($strValue);
+	    	} else {
+	    		$this->multiArrayWalk($strValue, 'unreplaceQuoteAndSlash');
+	    	}
 	    }
 	    /*
 	    foreach ($_SESSION 	AS $intKey => $strValue) {
-	        $_SESSION[$intKey] 	= self::unreplaceQuoteAndSlash($strValue);
+	    	if(!is_array($strValue)) {
+	        	$_SESSION[$intKey] 	= self::unreplaceQuoteAndSlash($strValue);
+	    	} else {
+	    		$this->multiArrayWalk($strValue, 'unreplaceQuoteAndSlash');
+	    	}
 	    }
 	    */
 	}
@@ -931,10 +963,14 @@ class Controller {
 				break;
 				
 				case 'date':
-					if(!checkdate(date('m',strtotime($arrValues[$strKey])),date('d',strtotime($arrValues[$strKey])),date('Y',strtotime($arrValues[$strKey])))) return false;
+					if(!checkdate(date('m',strtotime($arrValues[$strKey])),date('d',strtotime($arrValues[$strKey])),date('Y',strtotime($arrValues[$strKey])))) return $strKey;
 				break;
 				
 				case 'email':
+					if(empty($arrValues[$strKey]) || !$this->checkEmailSyntax($arrValues[$strKey])) return $strKey;
+				break;
+				
+				case 'email_notempty':
 					if(!$this->checkEmailSyntax($arrValues[$strKey]))						return $strKey;
 				break;
 				

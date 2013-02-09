@@ -71,7 +71,7 @@ class CRUD_Controller extends Main_controller {
 	 */
 	public function update($intID = 0) {
 		if(!is_numeric($intID) || $intID <= 0) { 
-			$intID = intval($_SESSION['APPLR']['URI_SEGMENT'][4]); 
+			$intID = intval($_SESSION[self::$strProjectName]['URI_SEGMENT'][4]); 
 		}
 		if(!is_numeric($intID) || $intID <= 0) {
 			$this->objSmarty->assign('ALERT_MSG','You must choose an item to update!');
@@ -155,6 +155,8 @@ class CRUD_Controller extends Main_controller {
 	 *
 	 */
 	protected function _update($arrData) {
+		if(isset($arrData['usr_data_id'])) $arrData['usr_data_id'] = $this->intUserID;
+		
 		if($this->validateParamsArray($arrData,$this->arrFieldType,false)) {
 			if(($intID = $this->objModelCRUD->replace($this->strTable,$arrData)) !== false) {
 				$arrData['id']	= $intID;

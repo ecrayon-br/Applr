@@ -4,7 +4,9 @@ include_once '../init.php';
 if($_REQUEST['debug']) { echo '<pre>'; print_r($_SESSION[PROJECT]['URI_SEGMENT']); die(); }
 
 // Gets URI controller and action params
-if(ACTION == '') {
+if((ACTION == '' || ACTION == 'login') && !authUser_Controller::isLoggedIn()) {
+	$strController	= 'Login_controller';
+} elseif((ACTION == '' || ACTION == 'login') && authUser_Controller::isLoggedIn() && $_SESSION[PROJECT]['URI_SEGMENT'][3] !== 'out') {
 	$strController	= 'Main_controller';
 } else {
 	$strController	= ucfirst(ACTION) . '_controller';

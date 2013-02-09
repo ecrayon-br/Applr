@@ -336,7 +336,7 @@ class manageContent_Controller extends Controller {
 						// Inserts DB registry
 						$arrData = array(
 										'media_gallery_id'		=> null,
-										'usr_data_id'			=> $_SESSION[PROJECT]['id'],
+										'usr_data_id'			=> $this->intUserID,
 										'type'					=> true,
 										'name'					=> $this->objData->$strField['name'],
 										'author'				=> $this->objData->$strField['author'],
@@ -366,7 +366,7 @@ class manageContent_Controller extends Controller {
 						// Inserts DB registry
 						$arrData = array(
 										'media_gallery_id'		=> null,
-										'usr_data_id'			=> $_SESSION[PROJECT]['id'],
+										'usr_data_id'			=> $this->intUserID,
 										'type'					=> false,
 										'name'					=> $this->objData->$strField['name'],
 										'author'				=> $this->objData->$strField['author'],

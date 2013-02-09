@@ -2,8 +2,8 @@
 class Controller {
 	
 	static 		$arrSpecialChar		= array('/','*',"'",'=','-','#',';','<','>','+','%','.',' ');
-	static		$arrOnlyNumberChar	= array(' ','+','-','_','.',':',',',';','?','(',')','[',']','{','}','/','\\','*','&','%','$','#','@','!','=','<','>','~','º','ª','¬','¢','£','³','²','¹','|','°','§','^');
-	static		$arrPermalinkChar	= array(' ','+','_','.',':',',',';','?','(',')','[',']','{','}','/','\\','*','&','%','$','#','@','!','=','<','>','~','º','ª','¬','¢','£','³','²','¹','|','°','§','^');
+	static		$arrOnlyNumberChar	= array(' ','+','-','_','.',':',',',';','?','(',')','[',']','{','}','/','\\','*','&','%','$','#','@','!','=','<','>','~','ï¿½','ï¿½','ï¿½','ï¿½','ï¿½','ï¿½','ï¿½','ï¿½','|','ï¿½','ï¿½','^');
+	static		$arrPermalinkChar	= array(' ','+','_','.',':',',',';','?','(',')','[',']','{','}','/','\\','*','&','%','$','#','@','!','=','<','>','~','ï¿½','ï¿½','ï¿½','ï¿½','ï¿½','ï¿½','ï¿½','ï¿½','|','ï¿½','ï¿½','^');
 	static		$arrExtTPL			= array('htm','html','php','tpl');
 	
 	public		$intError;
@@ -13,11 +13,13 @@ class Controller {
 	protected	$strAction			= '';
 	protected	$objModel;
 	protected	$objSection;
-	protected	$intProjectID 		= 1;
+	protected	$intUserID			= 0;
 	
 	private		$strTemplate;
 	
 	static		$strClientName		= CLIENT;
+	static		$strProjectName		= PROJECT;
+	public		$intProjectID		= PROJECT_ID;
 	
 	
 	/**
@@ -42,10 +44,10 @@ class Controller {
 		
 		// Aplies security for superglobal variables
 		$this->secureGlobals();
-		
+#echo '<pre>'; var_dump($_SESSION); die();
 		// Defines init configs and vars
-		if(!defined('SYS_WHERE')) self::setInitVars();
-		
+		if(!defined('SYS_WHERE')) $this->setInitVars();
+#echo '<pre>'; var_dump($_SESSION); die();
 		// Sets MODEL var
 		$this->objModel = new Model();
 		
@@ -53,10 +55,10 @@ class Controller {
 		$this->setSmarty($strTemplateDir);
 		
 		// Defines logged user ID
-		if(isset($_SESSION[self::$strClientName]['id'])) {
-			$this->intProjectID = $_SESSION[self::$strClientName]['id'];
+		if($_SESSION[self::$strProjectName]['auth'] && isset($_SESSION[self::$strProjectName]['id'])) {
+			$this->intUserID = $_SESSION[self::$strProjectName]['id'];
 		}
-		
+#echo '<pre>'; var_dump($_SESSION); die();		
 		// Renderize View's template
 		if($boolRenderView) $this->renderTemplate();
 	}
@@ -71,16 +73,6 @@ class Controller {
 	 *
 	 */
 	public function setInitVars() {
-		
-		/*********************************************************/
-		/*********************************************************/
-		/**********										**********/
-		/**********				INCLUDE PATH			**********/
-		/**********										**********/
-		
-		set_include_path(get_include_path() . PATH_SEPARATOR . SYS_ROOT . PATH_SEPARATOR . SYS_ROOT . 'lib/PEAR/' . PATH_SEPARATOR . SMARTY_DIR);
-		
-		include SYS_ROOT . 'config.php';
 
 		/*********************************************************/
 		/*********************************************************/
@@ -98,13 +90,17 @@ class Controller {
 		/**********										**********/
 		/**********			  PROJECT CONFIG			**********/
 		/**********										**********/
-		
+		/*
+		$this->strClientName	= CLIENT;
+		$this->strProjectName	= PROJECT;
+		$this->intProjectID		= PROJECT_ID;
+		*/
 		define('SYS_WHERE'	,'delete = 0 AND active = 1 AND date_publish <= NOW() AND (date_expire  >= NOW() OR date_expire = "0000-00-00 00:00:00" OR date_expire IS NULL)');
 		define('HTTP'		,'http://'. URI_DOMAIN . SYS_DIR);
 		
-		if(!isset($_SESSION[PROJECT])) {
-			$_SESSION[PROJECT] 				= array();
-			$_SESSION[PROJECT]['SYS_ROOT'] 	= SYS_ROOT;
+		if(!isset($_SESSION[self::$strProjectName])) {
+			$_SESSION[self::$strProjectName] 				= array();
+			$_SESSION[self::$strProjectName]['SYS_ROOT'] 	= SYS_ROOT;
 		}
 		
 		$this->objModel = new Model();
@@ -112,8 +108,8 @@ class Controller {
 			$objConfig		= $this->objModel->select('config.*, project.*',array('config','project'),'','project.id = config.project_id AND config.project_id = ' . PROJECT_ID);
 		
 			// Admin user
-			if(isset($_SESSION[PROJECT][VAR_USER]) && $_SESSION[PROJECT][VAR_USER] === false) {
-				$boolAdmin 	= $this->objModel->select('admin','usr_data','id = "' . $_SESSION[PROJECT][VAR_USER] . '"')->admin;
+			if(isset($_SESSION[self::$strProjectName][VAR_USER]) && $_SESSION[self::$strProjectName][VAR_USER] === false) {
+				$boolAdmin 	= $this->objModel->select('admin','usr_data','id = "' . $_SESSION[self::$strProjectName][VAR_USER] . '"')->admin;
 				if($boolAdmin == 1) {
 					define('ADM_USER',1);
 				} else {
@@ -220,9 +216,9 @@ class Controller {
 					$tempLanguage = $this->objModel->select('id','sys_language','','(acronym = "' . $mxdLanguage . '" ' . (is_numeric($mxdLanguage) ? ' OR id = "' . $mxdLanguage . '"' : '') . ') AND status = 1')->id;
 		
 					if(DB::isError($tempLanguage) || empty($tempLanguage)) {
-						$tempLanguage = (isset($_SESSION[PROJECT][VAR_SECTION]) ? $_SESSION[PROJECT][VAR_SECTION] : MAIN_LANGUAGE);
+						$tempLanguage = (isset($_SESSION[self::$strProjectName][VAR_SECTION]) ? $_SESSION[self::$strProjectName][VAR_SECTION] : MAIN_LANGUAGE);
 					}
-					$_SESSION[PROJECT][VAR_SECTION] = $tempLanguage;
+					$_SESSION[self::$strProjectName][VAR_SECTION] = $tempLanguage;
 					$strLangWhere = ' AND sys_language_id = ' . $tempLanguage;
 		
 					// Gets CONTENT ID
@@ -260,12 +256,12 @@ class Controller {
 				define('LANGUAGE',$tempLanguage);
 			} elseif(isset($_REQUEST[VAR_LANGUAGE])) {
 				define('LANGUAGE',$_REQUEST[VAR_LANGUAGE]);
-			} elseif(isset($_SESSION[PROJECT][VAR_LANGUAGE])) {
-				define('LANGUAGE',$_SESSION[PROJECT][VAR_LANGUAGE]);
+			} elseif(isset($_SESSION[self::$strProjectName][VAR_LANGUAGE])) {
+				define('LANGUAGE',$_SESSION[self::$strProjectName][VAR_LANGUAGE]);
 			} else {
 				define('LANGUAGE',MAIN_LANGUAGE);
 			}
-			$_SESSION[PROJECT][VAR_LANGUAGE] = LANGUAGE;
+			$_SESSION[self::$strProjectName][VAR_LANGUAGE] = LANGUAGE;
 		
 			// Locale
 			$strLocale = $this->objModel->select('acronym','sys_language','','id = "' .LANGUAGE. '";')->acronym;
@@ -348,6 +344,44 @@ class Controller {
 	}
 	
 	/**
+	 * Sets $this->strProjectName value
+	 * 
+	 * @param	string	$strTemp	Client name
+	 
+	 * @return boolean
+	 * 
+	 * @since 		2013-01-22
+	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
+	 * 
+	 */
+	public function setProjectName($strTemp) {
+		if(!is_string($strTemp) || empty($strTemp)) return false;
+		
+		$this->strProjectName = $strTemp;
+		
+		return true;
+	}
+	
+	/**
+	 * Sets $this->strClientName value
+	 * 
+	 * @param	string	$strTemp	Client name
+	 
+	 * @return boolean
+	 * 
+	 * @since 		2013-01-22
+	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
+	 * 
+	 */
+	public function setClientName($strTemp) {
+		if(!is_string($strTemp) || empty($strTemp)) return false;
+		
+		$this->strClientName = $strTemp;
+		
+		return true;
+	}
+	
+	/**
 	 * Replaces any non-number character with an empty char
 	 * 
 	 * @param	string	$strTemp	Original string
@@ -371,7 +405,7 @@ class Controller {
 		if(strpos($strURL,'/') !== 0) $strURL = '/' . $strURL;
 		
 		$arrURL = explode('/', $strURL );
-		$_SESSION[PROJECT]['URI_SEGMENT'] = $arrURL;
+		$_SESSION[self::$strProjectName]['URI_SEGMENT'] = $arrURL;
 		
 		switch($arrURL[1]) {
 			case 'site':

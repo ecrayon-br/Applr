@@ -60,6 +60,17 @@ define('SYS_DIR'	, (LOCAL_DIR != '' && LOCAL_DIR != '/' ? LOCAL_DIR : '/'));
 define('SYS_ROOT'	, $_SERVER['DOCUMENT_ROOT'] . SYS_DIR);
 define('SMARTY_DIR'	, SYS_ROOT . 'lib/smarty/');
 
+
+/*********************************************************/
+/*********************************************************/
+/**********										**********/
+/**********				INCLUDE PATH			**********/
+/**********										**********/
+
+set_include_path(get_include_path() . PATH_SEPARATOR . SYS_ROOT . PATH_SEPARATOR . SYS_ROOT . 'lib/PEAR/' . PATH_SEPARATOR . SMARTY_DIR);
+
+include SYS_ROOT . 'config.php';
+
 /**
  * Magic function: Autoload
  *
@@ -110,6 +121,7 @@ function APPLR_autoload($strPackage) {
 	}
 }
 spl_autoload_register('APPLR_autoload');
+
 
 $objController = new Controller();
 #Controller::setInitVars();

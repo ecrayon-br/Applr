@@ -702,7 +702,6 @@ class Model {
 		
 		// Prepares and execute query
 		$objQuery = $this->prepareInsertQuery($strTable,$arrField,false);
-		
 		if($objQuery !== false) {
 			// Treats UTF-8 and HTML SPECIAL CHARS
 			$this->prepareDataSyntax($arrField,false);

@@ -2,9 +2,14 @@
 class Controller {
 	
 	static 		$arrSpecialChar		= array('/','*',"'",'=','-','#',';','<','>','+','%','.',' ');
-	static		$arrOnlyNumberChar	= array(' ','+','-','_','.',':',',',';','?','(',')','[',']','{','}','/','\\','*','&','%','$','#','@','!','=','<','>','~','�','�','�','�','�','�','�','�','|','�','�','^');
-	static		$arrPermalinkChar	= array(' ','+','_','.',':',',',';','?','(',')','[',']','{','}','/','\\','*','&','%','$','#','@','!','=','<','>','~','�','�','�','�','�','�','�','�','|','�','�','^');
+	static		$arrOnlyNumberChar	= array(' ','+','-','_','.',':',',',';','?','(',')','[',']','{','}','/','\\','*','&','%','$','#','@','!','=','<','>','~','º','ª','¬','¢','£','³','²','¹','|','°','§','^');
+	static		$arrPermalinkChar	= array(' ','+','_','.',':',',',';','?','(',')','[',']','{','}','/','\\','*','&','%','$','#','@','!','=','<','>','~','º','ª','¬','¢','£','³','²','¹','|','°','§','^');
 	static		$arrExtTPL			= array('htm','html','php','tpl');
+	static		$arrSpecialChar 	= array('&aacute;', '&agrave;', '&acirc;', '&atilde;', '&auml;', '&eacute;', '&egrave;', '&ecirc;', '&euml;', '&iacute;', '&igrave;', '&icirc;', '&iuml;', '&oacute;', '&ograve;', '&ocirc;', '&otilde;', '&ouml', '&uacute;', '&ugrave;', '&ucirc;', '&uuml;', '&ccedil;',
+											'&Aacute;', '&Agrave;', '&Acirc;', '&Atilde;', '&Auml;', '&Eacute;', '&Egrave;', '&Ecirc;', '&Euml;', '&Iacute;', '&Igrave;', '&Icirc;', '&Iuml;', '&Oacute;', '&Ograve;', '&Ocirc;', '&Otilde;', '&Ouml', '&Uacute;', '&Ugrave;', '&Ucirc;', '&Uuml;', '&Ccedil;');
+	static		$arrVoels  			= array('a', 'a', 'a', 'a', 'a', 'e', 'e', 'e', 'e', 'i', 'i', 'i', 'i', 'o', 'o', 'o', 'o', 'o', 'u', 'u', 'u', 'u', 'c',
+											'A', 'A', 'A', 'A', 'A', 'E', 'E', 'E', 'E', 'I', 'I', 'I', 'I', 'O', 'O', 'O', 'O', 'O', 'U', 'U', 'U', 'U', 'C');
+	
 	
 	public		$intError;
 	public		$objSmarty;
@@ -392,7 +397,26 @@ class Controller {
 		return str_replace(self::$arrOnlyNumberChar,'',$strTemp);
 	}
 	
+	/**
+	 * Sets PERMALINK syntax for a given value
+	 * 
+	 * @param	string	$strValue	Value to synthesize
+	 * @param	integer	$intMode	0 => regular syntax; 1 => DB::COUNT() permalink radical analisys
+	 */
 	public function permalinkSyntax($strValue,$intMode = 0) {
+		if(!is_string($strValue) || empty($strValue)) return '';
+		if(!is_numeric($intMode) || $intMode < 0 || $intMode > 1) $intMode = 0;
+		
+		$str = str_replace( self::$arrPermalinkChar ,'-', strtolower( $this->replaceSpecialChars($strValue) ) );
+	
+		$j = substr_count($strValue,'--');
+		for($i = 0; $i < $j; $i++) {
+			$strValue = str_replace('--','-',$strValue);
+		}
+	
+		$intPos = strrpos($strValue,'-');
+		if($intPos == (strlen($strValue)-1)) $strValue = substr_replace($strValue,'',$intPos);
+	
 		return $strValue;
 	}
 	
@@ -772,15 +796,7 @@ class Controller {
 	public function replaceSpecialChars($strValue) {
     	if(!is_string($strValue) || empty($strValue))	return false;
     	
-		// Special Characters array
-		$arrSpecialChar = array('&aacute;', '&agrave;', '&acirc;', '&atilde;', '&auml;', '&eacute;', '&egrave;', '&ecirc;', '&euml;', '&iacute;', '&igrave;', '&icirc;', '&iuml;', '&oacute;', '&ograve;', '&ocirc;', '&otilde;', '&ouml', '&uacute;', '&ugrave;', '&ucirc;', '&uuml;', '&ccedil;',
-								'&Aacute;', '&Agrave;', '&Acirc;', '&Atilde;', '&Auml;', '&Eacute;', '&Egrave;', '&Ecirc;', '&Euml;', '&Iacute;', '&Igrave;', '&Icirc;', '&Iuml;', '&Oacute;', '&Ograve;', '&Ocirc;', '&Otilde;', '&Ouml', '&Uacute;', '&Ugrave;', '&Ucirc;', '&Uuml;', '&Ccedil;');
-							
-		// Special Characters respective voels array
-		$arrVoels  		= array('a', 'a', 'a', 'a', 'a', 'e', 'e', 'e', 'e', 'i', 'i', 'i', 'i', 'o', 'o', 'o', 'o', 'o', 'u', 'u', 'u', 'u', 'c',
-								'A', 'A', 'A', 'A', 'A', 'E', 'E', 'E', 'E', 'I', 'I', 'I', 'I', 'O', 'O', 'O', 'O', 'O', 'U', 'U', 'U', 'U', 'C');
-		
-		return str_replace($arrSpecialChar,$arrVoels,$this->encodeEntities($strValue));
+		return str_replace(self::$arrSpecialChar,self::$arrVoels,$this->encodeEntities($strValue));
 	}
 	
 	/**

@@ -101,8 +101,8 @@ class Controller {
 		
 		$this->objModel = new Model();
 		if($this->objModel->boolConnStatus) {
-			$objConfig		= $this->objModel->select('config.*, project.*',array('config','project'),'','project.id = config.project_id AND config.project_id = ' . PROJECT_ID);
-		
+			$objConfig		= reset($this->objModel->select('config.*, project.*',array('config','project'),array(),'project.id = config.project_id AND config.project_id = ' . PROJECT_ID));
+			
 			// Admin user
 			if(isset($_SESSION[self::$strProjectName][VAR_USER]) && $_SESSION[self::$strProjectName][VAR_USER] === false) {
 				$boolAdmin 	= $this->objModel->select('admin','usr_data','id = "' . $_SESSION[self::$strProjectName][VAR_USER] . '"')->admin;
@@ -392,8 +392,8 @@ class Controller {
 		return str_replace(self::$arrOnlyNumberChar,'',$strTemp);
 	}
 	
-	public function permalinkSyntax() {
-		
+	public function permalinkSyntax($strValue,$intMode = 0) {
+		return $strValue;
 	}
 	
 	static function getURISegment() {

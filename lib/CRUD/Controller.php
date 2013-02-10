@@ -119,7 +119,7 @@ class CRUD_Controller extends Main_controller {
 	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
 	 *
 	 */
-	protected function _create($intID) {
+	protected function _create($intID = 0) {
 		if($intID > 0) {
 			$this->objData = $this->objModelCRUD->getData($intID);
 			$this->objSmarty->assign('objData',$this->objData);
@@ -155,9 +155,9 @@ class CRUD_Controller extends Main_controller {
 	 *
 	 */
 	protected function _update($arrData) {
-		if(isset($arrData['usr_data_id'])) $arrData['usr_data_id'] = $this->intUserID;
+		if(isset($this->arrFieldType['usr_data_id'])) $arrData['usr_data_id'] = $this->intUserID;
 		
-		if($this->validateParamsArray($arrData,$this->arrFieldType,false)) {
+		if(($strField = $this->validateParamsArray($arrData,$this->arrFieldType,false)) === true) {
 			if(($intID = $this->objModelCRUD->replace($this->strTable,$arrData)) !== false) {
 				$arrData['id']	= $intID;
 				$this->objSmarty->assign('ALERT_MSG','Data added successfully!');
@@ -165,13 +165,14 @@ class CRUD_Controller extends Main_controller {
 				$this->objSmarty->assign('ERROR_MSG','There was an error while trying to add data! Please try again!');
 			}
 		} else {
-			$this->objSmarty->assign('ERROR_MSG','There was an error while validating sent data! Please try again!');
+			$this->objSmarty->assign('ERROR_MSG','There was an error while validating "' . $strField . '" data! Please try again!');
 		}
 		
-		$this->objData	= (object) $arrData;
+		$this->objData	= (object) array_merge((array) $this->objData,$arrData);
+		
 		$this->objSmarty->assign('objData',$this->objData);
 		
-		$this->renderTemplate(true,$this->strModule . '_form.html');
+		$this->_create($intID);
 	}
 	
 	/**

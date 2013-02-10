@@ -126,7 +126,7 @@ class manageContent_Controller extends Controller {
 						if($objSection->home == 1) {
 							$strValue = HTTP_STATIC . $objSection->static_filename . '.htm';
 						} else {
-							$strValue = HTTP_STATIC . self::permalinkSyntax($objSection->table) . '/' . $objSection->static_filename . '_' . $arrLink[1] . '.htm';
+							$strValue = HTTP_STATIC . Controller::permalinkSyntax($objSection->table) . '/' . $objSection->static_filename . '_' . $arrLink[1] . '.htm';
 						}
 						break;
 	

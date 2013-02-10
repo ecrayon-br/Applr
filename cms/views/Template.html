@@ -1,0 +1,31 @@
+{include file="struct/header.html"}
+
+<form name="formList" id="formList" method="post" action="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/delete/">
+<table border=1 width=650>
+	<caption>APPLR TEMPLATE</caption>
+	{include file="struct/menu-top.html"}
+	<tr>
+		<th>Name</th>
+		<th>Edit</th>
+		<th>Delete</th>
+	</tr>
+	{if count($objData) == 0}
+	<tr>
+		<td colspan=3 align="center">No records found!</td>
+	</tr>
+	{else}
+	{foreach from=$objData name="listData" item="objTmp"}
+	<tr>
+		<td><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{$objTmp->id}">{$objTmp->name}</a></td>
+		<td align="center"><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{$objTmp->id}">[ edit ]</a></td>
+		<td align="center"><input type="checkbox" name="delete[]" id="delete_{$objTmp->id}" value="{$objTmp->id}" /></td>
+	</tr>
+	{/foreach}
+	<tr>
+		<td colspan=3 align="right"><input type="submit" value="Delete" /></td>
+	</tr>
+	{/if}
+</table>
+</form>
+
+{include file="struct/footer.html"}

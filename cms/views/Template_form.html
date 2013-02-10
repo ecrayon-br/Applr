@@ -1,0 +1,51 @@
+{include file="struct/header.html"}
+
+<form name="formConfig" id="formConfig" method="post" action="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/add">
+<input type="hidden" name="id" id="id" value="{$objData->id}" />
+<table border=1 width=650>
+	<caption>APPLR TEMPLATE</caption>
+	{include file="struct/menu-top.html"}
+	<tr>
+		<th colspan=2>FIELD INFO</th>
+	</tr>
+	<tr>
+		<td>Name</td>
+		<td>
+			<input type="text" maxlength="80" value="{$objData->name}" size="40" name="name" id="name" />
+		</td>
+	</tr>
+	<tr>
+		<td>Associate File</td>
+		<td>
+			<select name="path" id="path" size="{if count($arrFile) < 5}1{else}5{/if}">
+				<option value=""></option>
+				{if !in_array($arrFile.path,$objData->path) && !empty($objData->path)}<option value="{$objData->path}" selected>{$objData->path}</option>{/if}
+				{foreach from=$arrFile name="listFile" item="strFileName"}
+				<option value="{$strFileName}" {if $objData->path == $strFileName}selected{/if}>{$strFileName}</option>
+				{/foreach}
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td>HTML</td>
+		<td>
+			<textarea cols="65" rows="15" name="html" id="html">{$objData->html}</textarea>
+			<input type="hidden" name="filename" id="filename" value="{$objData->filename}" />
+		</td>
+	</tr>
+	<tr>
+		<td>Status</td>
+		<td>
+			<input type="radio" name="status" value=1 {if $objData->status == 1 || !isset($objData->status)}checked{/if} /> Active<br />
+			<input type="radio" name="status" value=0 {if $objData->status === 0}checked{/if} /> Inactive
+		</td>
+	</tr>
+	<tr>
+		<td colspan=2 align=right>
+			<input type="submit" value="Send" />
+		</td>
+	</tr>
+</table>
+</form>
+
+{include file="struct/footer.html"}

@@ -5,7 +5,7 @@ class Controller {
 	static		$arrOnlyNumberChar	= array(' ','+','-','_','.',':',',',';','?','(',')','[',']','{','}','/','\\','*','&','%','$','#','@','!','=','<','>','~','º','ª','¬','¢','£','³','²','¹','|','°','§','^');
 	static		$arrPermalinkChar	= array(' ','+','_','.',':',',',';','?','(',')','[',']','{','}','/','\\','*','&','%','$','#','@','!','=','<','>','~','º','ª','¬','¢','£','³','²','¹','|','°','§','^');
 	static		$arrExtTPL			= array('htm','html','php','tpl');
-	static		$arrSpecialChar 	= array('&aacute;', '&agrave;', '&acirc;', '&atilde;', '&auml;', '&eacute;', '&egrave;', '&ecirc;', '&euml;', '&iacute;', '&igrave;', '&icirc;', '&iuml;', '&oacute;', '&ograve;', '&ocirc;', '&otilde;', '&ouml', '&uacute;', '&ugrave;', '&ucirc;', '&uuml;', '&ccedil;',
+	static		$arrVoelsSpecialChar= array('&aacute;', '&agrave;', '&acirc;', '&atilde;', '&auml;', '&eacute;', '&egrave;', '&ecirc;', '&euml;', '&iacute;', '&igrave;', '&icirc;', '&iuml;', '&oacute;', '&ograve;', '&ocirc;', '&otilde;', '&ouml', '&uacute;', '&ugrave;', '&ucirc;', '&uuml;', '&ccedil;',
 											'&Aacute;', '&Agrave;', '&Acirc;', '&Atilde;', '&Auml;', '&Eacute;', '&Egrave;', '&Ecirc;', '&Euml;', '&Iacute;', '&Igrave;', '&Icirc;', '&Iuml;', '&Oacute;', '&Ograve;', '&Ocirc;', '&Otilde;', '&Ouml', '&Uacute;', '&Ugrave;', '&Ucirc;', '&Uuml;', '&Ccedil;');
 	static		$arrVoels  			= array('a', 'a', 'a', 'a', 'a', 'e', 'e', 'e', 'e', 'i', 'i', 'i', 'i', 'o', 'o', 'o', 'o', 'o', 'u', 'u', 'u', 'u', 'c',
 											'A', 'A', 'A', 'A', 'A', 'E', 'E', 'E', 'E', 'I', 'I', 'I', 'I', 'O', 'O', 'O', 'O', 'O', 'U', 'U', 'U', 'U', 'C');
@@ -811,7 +811,7 @@ class Controller {
 	public function replaceSpecialChars($strValue) {
     	if(!is_string($strValue) || empty($strValue))	return false;
     	
-		return str_replace(self::$arrSpecialChar,self::$arrVoels,$this->encodeEntities($strValue));
+		return str_replace(self::$arrVoelsSpecialChar,self::$arrVoels,$this->encodeEntities($strValue));
 	}
 	
 	/**

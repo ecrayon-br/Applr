@@ -402,6 +402,12 @@ class Controller {
 	 * 
 	 * @param	string	$strValue	Value to synthesize
 	 * @param	integer	$intMode	0 => regular syntax; 1 => DB::COUNT() permalink radical analisys
+	 * 
+	 * @return	string
+	 *
+	 * @since 	2013-01-22
+	 * @author	Diego Flores <diego [at] gmail [dot] com>
+	 *
 	 */
 	public function permalinkSyntax($strValue,$intMode = 0) {
 		if(!is_string($strValue) || empty($strValue)) return '';
@@ -420,6 +426,15 @@ class Controller {
 		return $strValue;
 	}
 	
+	/**
+	 * Returns ACTION name based on URI SEGMENT 
+	 * 
+	 * @return	string
+	 *
+	 * @since 	2013-01-22
+	 * @author	Diego Flores <diego [at] gmail [dot] com>
+	 *
+	 */
 	static function getURISegment() {
 		$strURL = str_replace(array(URI_DOMAIN,LOCAL_DIR,'site/','conteudo/') ,'',$_SERVER['REQUEST_URI']);
 		if(strpos($strURL,'/') !== 0) $strURL = '/' . $strURL;

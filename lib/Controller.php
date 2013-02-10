@@ -413,7 +413,7 @@ class Controller {
 		if(!is_string($strValue) || empty($strValue)) return '';
 		if(!is_numeric($intMode) || $intMode < 0 || $intMode > 1) $intMode = 0;
 		
-		$str = str_replace( self::$arrPermalinkChar ,'-', strtolower( $this->replaceSpecialChars($strValue) ) );
+		$strValue = str_replace( self::$arrPermalinkChar ,'-', strtolower( $this->replaceSpecialChars($strValue) ) );
 	
 		$j = substr_count($strValue,'--');
 		for($i = 0; $i < $j; $i++) {

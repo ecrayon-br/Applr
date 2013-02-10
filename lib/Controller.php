@@ -1016,7 +1016,7 @@ class Controller {
 				break;
 				
 				case 'string':
-					if(!is_string($arrValues[$strKey])) 									return $strKey;
+					if(!is_string($arrValues[$strKey]) && !empty($arrValues[$strKey]))		return $strKey;
 				break;
 				
 				case 'string_notempty':

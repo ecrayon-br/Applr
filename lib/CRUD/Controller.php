@@ -160,9 +160,9 @@ class CRUD_Controller extends Main_controller {
 		if(($strField = $this->validateParamsArray($arrData,$this->arrFieldType,false)) === true) {
 			if(($intID = $this->objModelCRUD->replace($this->strTable,$arrData)) !== false) {
 				$arrData['id']	= $intID;
-				$this->objSmarty->assign('ALERT_MSG','Data added successfully!');
+				$this->objSmarty->assign('ALERT_MSG','Data saved successfully!');
 			} else {
-				$this->objSmarty->assign('ERROR_MSG','There was an error while trying to add data! Please try again!');
+				$this->objSmarty->assign('ERROR_MSG','There was an error while trying to save data! Please try again!');
 			}
 		} else {
 			$this->objSmarty->assign('ERROR_MSG','There was an error while validating "' . $strField . '" data! Please try again!');

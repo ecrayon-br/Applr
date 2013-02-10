@@ -122,7 +122,6 @@ function APPLR_autoload($strPackage) {
 }
 spl_autoload_register('APPLR_autoload');
 
-
 $objController = new Controller();
 #Controller::setInitVars();
 ?>

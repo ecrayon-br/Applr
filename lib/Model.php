@@ -401,7 +401,6 @@ class Model {
 			$objQuery = 'REPLACE INTO '.$strTable.' ('.implode(',',$arrField).') VALUES '.implode(',',$arrValue);
 			*/
 		}
-		
 		if(PEAR::isError($objQuery)) {
 			define('ERROR_MSG','Error on Model::prepareInsertQuery(): ' . $objQuery->getMessage());
 			return false;
@@ -702,11 +701,13 @@ class Model {
 		
 		// Prepares and execute query
 		$objQuery = $this->prepareInsertQuery($strTable,$arrField,false);
+		
 		if($objQuery !== false) {
 			// Treats UTF-8 and HTML SPECIAL CHARS
 			$this->prepareDataSyntax($arrField,false);
 			
 			$objQuery = $this->objConn->extended->executeMultiple($objQuery,$arrField);
+			
 			//$this->objConn->free();
 			
 			if(PEAR::isError($objQuery)) {

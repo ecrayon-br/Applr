@@ -58,9 +58,11 @@ class uploadFile_Controller extends Controller {
 	 */
 	public function setFile($strIndex) {
 		if(!is_array($_FILES[$strIndex]))																						return false;
-		if(!isset($_FILES[$strIndex]['name']) || !isset($_FILES[$strIndex]['tmp_name']) || !isset($_FILES[$strIndex]['type']))	return false;
+		if(empty($_FILES[$strIndex]['name']) || empty($_FILES[$strIndex]['tmp_name']) || empty($_FILES[$strIndex]['type']))		return false;
 		
 		$this->arrFile		= $_FILES[$strIndex];
+		
+		return true;
 	}
 	
 	/**
@@ -232,25 +234,25 @@ class uploadFile_Controller extends Controller {
 		
 		// IMAGE TYPES
         if($this->strFilter=="IMG" || $this->strFilter=="IMAGE" || $this->strFilter=="IMAGEM") {
-            if(!eregi("^image\/(jpeg|pjpeg|jpg|png|gif|bmp|x-png)$", $this->arquivo["type"])) {
+            if(!eregi("^image\/(jpeg|pjpeg|jpg|png|gif|bmp|x-png)$", $this->arrFile["type"])) {
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not an image!');
             } 
         }
         if($this->strFilter=="PNG") {
-            if($this->arquivo["type"] !== "image/png") { 
+            if($this->arrFile["type"] !== "image/png") { 
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a PNG image!');
             }
         }
         if($this->strFilter=="JPG") {
-            if(!eregi("^image\/(pjpeg|jpg)$", $this->arquivo["type"])) {
+            if(!eregi("^image\/(pjpeg|jpg)$", $this->arrFile["type"])) {
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a JPG image!');
             }
         }
         if($this->strFilter=="GIF") {
-            if($this->arquivo["type"] !== "image/gif") { 
+            if($this->arrFile["type"] !== "image/gif") { 
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a GIF image!');
             }	     
@@ -258,43 +260,43 @@ class uploadFile_Controller extends Controller {
         
         // TEXT and DOCUMENT TYPES
         if($this->strFilter=="TEXT" || $this->strFilter=="DOCUMENT" || $this->strFilter=="DOCUMENTO") {
-            if($this->arquivo["type"] !== "application/msword" && $this->arquivo["type"] !== "application/vnd.ms-excel" && $this->arquivo["type"] !== "application/vnd.ms-powerpoint" && $this->arquivo["type"] !== "text/html" && $this->arquivo["type"] !== "text/plain" && $this->arquivo["type"] !== "text/rtf" && $this->arquivo["type"] !== "application/pdf") { 
+            if($this->arrFile["type"] !== "application/msword" && $this->arrFile["type"] !== "application/vnd.ms-excel" && $this->arrFile["type"] !== "application/vnd.ms-powerpoint" && $this->arrFile["type"] !== "text/html" && $this->arrFile["type"] !== "text/plain" && $this->arrFile["type"] !== "text/rtf" && $this->arrFile["type"] !== "application/pdf") { 
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a document!');
             }
         }
         if($this->strFilter=="DOC") {
-            if($this->arquivo["type"] !== "application/msword") { 
+            if($this->arrFile["type"] !== "application/msword") { 
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a DOC file!');
             }	     
         }
         if($this->strFilter=="PDF") {
-            if($this->arquivo["type"] !== "application/pdf") { 
+            if($this->arrFile["type"] !== "application/pdf") { 
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a PDF file!');
             }	     
         }
         if($this->strFilter=="XLS") {
-            if($this->arquivo["type"] !== "application/vnd.ms-excel") { 
+            if($this->arrFile["type"] !== "application/vnd.ms-excel") { 
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a XLS file!');
             }	     
         }
         if($this->strFilter=="PPT") {
-            if($this->arquivo["type"] !== "application/vnd.ms-powerpoint") { 
+            if($this->arrFile["type"] !== "application/vnd.ms-powerpoint") { 
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a PPT file!');
             }	     
         }
         if($this->strFilter=="TXT") {
-            if($this->arquivo["type"] !== "text/plain") { 
+            if($this->arrFile["type"] !== "text/plain") { 
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a TXT/ASCII file!');
             }	     
         }
         if($this->strFilter=="RTF") {
-            if($this->arquivo["type"] !== "text/rtf") { 
+            if($this->arrFile["type"] !== "text/rtf") { 
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a RTF file!');
             }	     
@@ -302,49 +304,49 @@ class uploadFile_Controller extends Controller {
         
         // WEB SCRIPT TYPES
         if($this->strFilter=="PHP") {
-            if($this->arquivo["type"] !== "application/x-httpd-php") { 
+            if($this->arrFile["type"] !== "application/x-httpd-php") { 
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a PHP file!');
             }	     
         }
         if($this->strFilter=="PHPS") {
-            if($this->arquivo["type"] !== "application/x-httpd-php-source") { 
+            if($this->arrFile["type"] !== "application/x-httpd-php-source") { 
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a PHP Source file!'); 
             }	     
         }
         if($this->strFilter=="JS" || $this->strFilter=="JAVASCRIPT") {
-            if($this->arquivo["type"] !== "application/x-javascript") { 
+            if($this->arrFile["type"] !== "application/x-javascript") { 
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a JS file!');
             }	     
         }
         if($this->strFilter=="CSS") {
-            if($this->arquivo["type"] !== "text/css") { 
+            if($this->arrFile["type"] !== "text/css") { 
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a CSS file!');
             }	     
         }
         if($this->strFilter=="HTML") {
-            if($this->arquivo["type"] !== "text/html") { 
+            if($this->arrFile["type"] !== "text/html") { 
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a HTML/HTM/SHTML file!');
             }	     
         }
         if($this->strFilter=="XHTML") {
-            if($this->arquivo["type"] !== "application/xhtml+xml") { 
+            if($this->arrFile["type"] !== "application/xhtml+xml") { 
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a XHTML/XHTM file!');
             }	     
         }
         if($this->strFilter=="XML") {
-            if($this->arquivo["type"] !== "application/xml") { 
+            if($this->arrFile["type"] !== "application/xml") { 
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a XML/XSL file!');
             }	     
         }
         if($this->strFilter=="SWF" || $this->strFilter=="FLASH" || $this->strFilter=="FLA") {
-            if($this->arquivo["type"] !== "application/x-shockwave-flash") { 
+            if($this->arrFile["type"] !== "application/x-shockwave-flash") { 
                 $this->intError = 3;
                 $erro = "O arquivo enviado não é um SWF! Envie outro arquivo!"; 
             }	     
@@ -352,44 +354,44 @@ class uploadFile_Controller extends Controller {
         
         // MEDIA TYPES
         if($this->strFilter=="MIDI") {
-            if($this->arquivo["type"] !== "audio/midi") { 
+            if($this->arrFile["type"] !== "audio/midi") { 
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a MIDI file!');
             }	     
         }
         if($this->strFilter=="MP3") {
-            if($this->arquivo["type"] !== "audio/mpeg") { 
+            if($this->arrFile["type"] !== "audio/mpeg") { 
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a MP3 file!');
             }	     
         }
         if($this->strFilter=="WAV") {
-            if($this->arquivo["type"] !== "audio/x-wav") { 
+            if($this->arrFile["type"] !== "audio/x-wav") { 
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a WAV file!');
             }	     
         }
         
         if($this->strFilter=="MPEG") {
-            if($this->arquivo["type"] !== "video/mpeg") { 
+            if($this->arrFile["type"] !== "video/mpeg") { 
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a MPEG/MPG/MPE file!');
             }	     
         }
         if($this->strFilter=="MOV") {
-            if($this->arquivo["type"] !== "video/quicktime") { 
+            if($this->arrFile["type"] !== "video/quicktime") { 
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a MOV/QT file!');
             }	     
         }
         if($this->strFilter=="AVI") {
-            if($this->arquivo["type"] !== "video/x-msvideo") { 
+            if($this->arrFile["type"] !== "video/x-msvideo") { 
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a AVI file!');
             }	     
         }
         if($this->strFilter=="VIDEO") {
-            if($this->arquivo["type"] !== "video/x-msvideo" && $this->arquivo["type"] !== "video/quicktime" && $this->arquivo["type"] !== "video/mpeg") { 
+            if($this->arrFile["type"] !== "video/x-msvideo" && $this->arrFile["type"] !== "video/quicktime" && $this->arrFile["type"] !== "video/mpeg") { 
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a AVI file!');
             }	     
@@ -427,6 +429,73 @@ class uploadFile_Controller extends Controller {
 			$this->intError = 4;
 			return false;
 		}
+    }
+    
+    public function createThumbnail($strOrgPath,$intNewW = 0,$intNewH = 0,$strDestPath = '',$intQuality=80) {
+    	if(!is_file($strOrgPath)) return false;
+    	if($intNewW <= 0 && $intNewH <= 0) return false;
+    	
+    	// Defines original filename
+    	$strOrgFileName = basename($strOrgPath);
+    	$strOrgFileExt	= end(explode('.',$strOrgFileName));
+    	
+    	// Defines destination filename
+    	if(!is_file($strDestPath)) {
+    		$strDestFileName = date('YmdHis') . '_thumb.' . ($strOrgFileExt == 'png' ? 'png' : 'jpg');
+    	} else {
+    		$strDestFileName = basename($strDestPath);
+    	}
+    	
+	    // Defines destination directory path
+    	if(!empty($strDestPath) && (is_file($strDestPath) || is_dir($strDestPath))) {
+    		$strDestPath = realpath(pathinfo($strDestPath,PATHINFO_DIRNAME));
+    	} else {
+    		$strDestPath = realpath(pathinfo($strOrgPath,PATHINFO_DIRNAME));
+    	}
+    	$strDestFileName = $strDestPath . DIRECTORY_SEPARATOR . $strDestFileName;
+    	
+    	// Creates new image object
+    	if(strOrgFileExt == 'png') {
+			$objImg = imagecreatefrompng($strOrgPath);
+    	} else {
+			$objImg = imagecreatefromjpeg($strOrgPath);
+    	}
+		
+		// Gets original file dimensions
+	    $intW = imagesx($objImg); 
+	    $intH = imagesy($objImg); 
+	    
+	    // Defines thumbnail dimensions
+	    $intThumbW = ($intNewW > 0 ? $intNewW : ($intNewH * $intW) / $intH);
+	    $intThumbH = ($intNewH > 0 ? $intNewH : ($intNewW * $intH) / $intW);
+	    
+	    // Creates thumbnail
+	    if(function_exists('imagecopyresampled')) {
+	        if(function_exists('imageCreateTrueColor')) {
+	            $objFile	= imageCreateTrueColor($intThumbW,$intThumbH); 
+	        } else {
+	            $objFile	= imagecreate($intThumbW,$intThumbH); 
+	        }
+	        
+	        if(!($boolFile = @imagecopyresampled($objFile,$objImg,0,0,0,0,$intThumbW,$intThumbH,$intW,$intH))) { 
+	            $boolFile	= @imagecopyresized($objFile,$objImg,0,0,0,0,$intThumbW,$intThumbH,$intW,$intH); 
+	            
+	        } 
+	    } else {
+	        $objFile	= imagecreate($intThumbW,$intThumbH); 
+	        $boolFile 	= @imagecopyresized($objFile,$objImg,0,0,0,0,$intThumbW,$intThumbH,$intW,$intH); 
+	    } 
+	    if($boolFile) {
+		    if($strOrgFileExt == 'png') {  
+		        $boolFile = imagepng($objFile,$strDestFileName); 
+		    } else { 
+		        $boolFile = imagejpeg($objFile,$strDestFileName,$intQuality);
+		    }
+		    $strDestFileName = str_replace(array('/','\\'),'/',$strDestFileName);
+		    
+		    return ($boolFile ? $strDestFileName : false);
+	    }
+	    return false;
     }
 }
 ?>

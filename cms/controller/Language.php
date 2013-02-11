@@ -18,7 +18,6 @@ class Language_controller extends CRUD_controller {
 									);
 		
 	protected	$arrFieldList	= array('sys_language.*');
-	protected	$arrWhereList	= array('sys_language.status = 1');
 	
 	protected	$arrFieldData	= array('sys_language.*');
 	protected	$arrWhereData	= array('sys_language.id = {id}');

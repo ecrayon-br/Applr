@@ -26,11 +26,17 @@ class MediaGallery_controller extends CRUD_controller {
 										'status'		=> 'boolean'
 									);
 		
-	protected	$arrFieldList	= array('media_gallery.*');
-	protected	$arrWhereList	= array('media_gallery.status = 1','media_gallery.is_default = 0');
+	protected	$arrFieldList	= array('media_gallery.*','COUNT(media_data.id) AS files_count');
+	protected	$arrJoinList	= array('LEFT JOIN media_data ON media_data.media_gallery_id = media_gallery.id');
+	protected	$arrWhereList	= array('media_gallery.is_default = 0');
+	protected	$arrOrderList	= array('media_gallery.name ASC');
+	protected	$arrGroupList	= array('media_gallery.id');
 	
 	protected	$arrFieldData	= array('media_gallery.*');
+	protected	$arrJoinData	= array();
 	protected	$arrWhereData	= array('media_gallery.id = {id}');
+	protected	$arrOrderData	= array('media_gallery.name ASC');
+	protected	$arrGroupData	= array('media_gallery.id');
 	
 	private		$arrDirList		= array();
 	private		$arrSecList		= array();
@@ -77,9 +83,24 @@ class MediaGallery_controller extends CRUD_controller {
 		
 		$this->objSmarty->assign('arrDir',$this->arrDirList);
 		$this->objSmarty->assign('arrSec',$this->arrSecList);
-	
+		
 		// Shows default interface
 		if($boolRenderTemplate) $this->_read();
+	}
+	
+	/**
+	 * Lists content
+	 *
+	 * @return	void
+	 *
+	 * @since 	2013-02-09
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 *
+	 */
+	protected function _read() {
+		$this->objData	= $this->objModel->getList();
+		$this->objSmarty->assign('objData',$this->objData);
+		$this->renderTemplate();
 	}
 	
 	/**

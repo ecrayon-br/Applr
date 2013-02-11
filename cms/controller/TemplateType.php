@@ -17,7 +17,6 @@ class TemplateType_controller extends CRUD_controller {
 									);
 		
 	protected	$arrFieldList	= array('sys_template_type.*');
-	protected	$arrWhereList	= array('sys_template_type.status = 1');
 	
 	protected	$arrFieldData	= array('sys_template_type.*');
 	protected	$arrWhereData	= array('sys_template_type.id = {id}');

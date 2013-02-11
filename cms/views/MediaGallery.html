@@ -7,24 +7,26 @@
 	<tr>
 		<th>Name</th>
 		<th>Public Gallery</th>
+		<th>Files in Gallery</th>
 		<th>Edit</th>
 		<th>Delete</th>
 	</tr>
 	{if count($objData) == 0}
 	<tr>
-		<td colspan=4 align="center">No records found!</td>
+		<td colspan=5 align="center">No records found!</td>
 	</tr>
 	{else}
 	{foreach from=$objData name="listData" item="objTmp"}
 	<tr>
 		<td><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{$objTmp->id}">{$objTmp->name}</a></td>
 		<td><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{$objTmp->id}">{if $objTmp->public == 1}Yes{else}No{/if}</a></td>
+		<td><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{$objTmp->id}">{$objTmp->files_count}</a></td>
 		<td align="center"><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{$objTmp->id}">[ edit ]</a></td>
 		<td align="center"><input type="checkbox" name="delete[]" id="delete_{$objTmp->id}" value="{$objTmp->id}" /></td>
 	</tr>
 	{/foreach}
 	<tr>
-		<td colspan=4 align="right"><input type="submit" value="Delete" /></td>
+		<td colspan=5 align="right"><input type="submit" value="Delete" /></td>
 	</tr>
 	{/if}
 </table>

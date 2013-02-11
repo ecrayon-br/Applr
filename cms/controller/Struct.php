@@ -24,7 +24,6 @@ class Struct_controller extends CRUD_controller {
 									);
 		
 	protected	$arrFieldList	= array('sec_struct.*');
-	protected	$arrWhereList	= array('sec_struct.status = 1');
 	
 	protected	$arrFieldData	= array('sec_struct.*');
 	protected	$arrWhereData	= array('sec_struct.id = {id}');

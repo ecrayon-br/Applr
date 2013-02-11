@@ -20,7 +20,6 @@ class Folder_controller extends CRUD_controller {
 									);
 		
 	protected	$arrFieldList	= array('sys_folder.*');
-	protected	$arrWhereList	= array('sys_folder.status = 1');
 	
 	protected	$arrFieldData	= array('sys_folder.*');
 	protected	$arrWhereData	= array('sys_folder.id = {id}');

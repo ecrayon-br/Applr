@@ -36,10 +36,8 @@ class Config_controller extends CRUD_Controller {
 										'config_mail_contact' 			=> 'email',
 										'config_mail_user' 				=> 'email'
 									);
-	
-	protected	$arrFieldList	= array();
-	protected	$arrWhereList	= array();
-	
+	protected	$arrOrderList	= array('config.project_id');
+	protected	$arrGroupList	= array('config.project_id');
 	protected	$arrFieldData	= array(
 										'project.name',
 										'project.description',
@@ -51,6 +49,8 @@ class Config_controller extends CRUD_Controller {
 										'project.id = config.project_id',
 										'project.id = {id}'
 									);
+	protected	$arrOrderData	= array('config.project_id');
+	protected	$arrGroupData	= array('config.project_id');
 	
 	/**
 	 * Get CONFIG and PROJECT data
@@ -63,6 +63,7 @@ class Config_controller extends CRUD_Controller {
 	 */
 	protected function _read() {
 		$this->objData	= $this->objModelCRUD->getData($this->intProjectID);
+		
 		$this->objSmarty->assign('objData',$this->objData);
 		$this->renderTemplate();
 	}

@@ -159,7 +159,11 @@ class CRUD_Controller extends Main_controller {
 		
 		if(($strField = $this->validateParamsArray($arrData,$this->arrFieldType,false)) === true) {
 			if(($intID = $this->objModelCRUD->replace($this->strTable,$arrData)) !== false) {
-				$arrData['id']	= $intID;
+				if(!isset($arrData['id'])) {
+					$arrData['id']	= $intID;
+				} else {
+					$intID = $arrData['id'];
+				}
 				$this->objSmarty->assign('ALERT_MSG','Data saved successfully!');
 			} else {
 				$this->objSmarty->assign('ERROR_MSG','There was an error while trying to save data! Please try again!');
@@ -167,7 +171,6 @@ class CRUD_Controller extends Main_controller {
 		} else {
 			$this->objSmarty->assign('ERROR_MSG','There was an error while validating "' . $strField . '" data! Please try again!');
 		}
-		
 		$this->objData	= (object) array_merge((array) $this->objData,$arrData);
 		
 		$this->objSmarty->assign('objData',$this->objData);
@@ -194,7 +197,7 @@ class CRUD_Controller extends Main_controller {
 		if($boolMode) {
 			return $this->objModelCRUD->update($this->strTable,array('deleted' => 1),'id IN (' . implode($arrWhere) . ')');
 		} else {
-			return $this->objModelCRUD->delete($this->strTable,'id IN (' . implode($arrWhere) . ')');
+			return $this->objModelCRUD->delete($this->strTable,'id IN (' . implode(',',$arrWhere) . ')');
 		}
 	}
 	

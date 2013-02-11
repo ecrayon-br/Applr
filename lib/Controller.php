@@ -154,7 +154,11 @@ class Controller {
 			if(strrpos($objConfig->dir_dynamic,'/')		!= (strlen($objConfig->dir_dynamic)-1)) 	$objConfig->dir_dynamic 	.= '/';
 			if(strrpos($objConfig->dir_xml,'/') 		!= (strlen($objConfig->dir_xml)-1)) 		$objConfig->dir_xml 		.= '/';
 			if(strrpos($objConfig->dir_rss,'/') 		!= (strlen($objConfig->dir_rss)-1)) 		$objConfig->dir_rss 		.= '/';
-		
+			
+			define('DIR_UPLOAD'		,$objConfig->dir_upload);
+			define('DIR_IMAGE'		,$objConfig->dir_image);
+			define('DIR_VIDEO'		,$objConfig->dir_video);
+			
 			$strWebUpload			= str_replace('/images','/upload',$objConfig->dir_image);
 			define('ROOT_WEB_UPLOAD',SYS_ROOT.$strWebUpload);
 			define('ROOT_UPLOAD'	,( is_dir($objConfig->dir_upload) ? $objConfig->dir_upload : SYS_ROOT.$objConfig->dir_upload) );

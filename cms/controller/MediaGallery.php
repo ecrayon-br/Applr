@@ -32,6 +32,77 @@ class MediaGallery_controller extends CRUD_controller {
 	protected	$arrFieldData	= array('media_gallery.*');
 	protected	$arrWhereData	= array('media_gallery.id = {id}');
 	
+	private		$arrDirList		= array();
+	private		$arrSecList		= array();
+	
+	/**
+	 * Class constructor
+	 *
+	 * @param	boolean	$boolRenderTemplate	Defines whether to show default's interface
+	 *
+	 * @return	void
+	 *
+	 * @since 	2013-02-08
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 *
+	 */
+	public function __construct($boolRenderTemplate = true) {
+		parent::__construct(false);
+	
+		// Read ROOT_IMAGE files and create Smarty variable to SELECT box
+		$this->arrDirList = array();
+		if($objHandle = opendir(ROOT_IMAGE)) {
+			while (false !== ($strFile = readdir($objHandle))) {
+				if(is_dir(ROOT_IMAGE.$strFile) && $strFile != '.' && $strFile != '..') $this->arrDirList[] = DIR_IMAGE . $strFile;
+			}
+			closedir($objHandle);
+		}
+		if($objHandle = opendir(ROOT_VIDEO)) {
+			while (false !== ($strFile = readdir($objHandle))) {
+				if(is_dir(ROOT_VIDEO.$strFile) && $strFile != '.' && $strFile != '..') $this->arrDirList[] = DIR_VIDEO . $strFile;
+			}
+			closedir($objHandle);
+		}
+		if($objHandle = opendir(ROOT_UPLOAD)) {
+			while (false !== ($strFile = readdir($objHandle))) {
+				if(is_dir(ROOT_UPLOAD.$strFile) && $strFile != '.' && $strFile != '..') $this->arrDirList[] = DIR_UPLOAD . $strFile;
+			}
+			closedir($objHandle);
+		}
+		$arrMediaDir		= (array) $this->objModel->select('dirpath',$this->strTable,array(),array(),array(),array(),0,null,'Col');
+		$this->arrDirList	= array_diff($this->arrDirList,$arrMediaDir);
+		
+		// Gets SECTION list
+		$this->arrSecList	= (array) $this->objModel->select(array('id','name'),'sec_config',array(),array(),array(),array(),0,null,'Col');
+		
+		$this->objSmarty->assign('arrDir',$this->arrDirList);
+		$this->objSmarty->assign('arrSec',$this->arrSecList);
+	
+		// Shows default interface
+		if($boolRenderTemplate) $this->_read();
+	}
+	
+	/**
+	 * Shows INSERT / UPDATE form interface
+	 *
+	 * @param	integer	$intID			Content ID
+	 *
+	 * @return	void
+	 *
+	 * @since 	2013-02-08
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 *
+	 */
+	protected function _create($intID = 0) {
+		if($intID > 0) {
+			$this->objData = $this->objModelCRUD->getData($intID);
+			if(is_numeric($objData->sec_config_id) && $objData->sec_config_id > 0) $this->objData->sec_config_name = $this->objModelCRUD->recordExists('name','sec_config','id = ' . $objData->sec_config_id,true);
+			$this->objSmarty->assign('objData',$this->objData);
+		}
+	
+		$this->renderTemplate(true,$this->strModule . '_form.html');
+	}
+	
 	/**
 	 * @see CRUD_controller::delete()
 	 */
@@ -74,19 +145,29 @@ class MediaGallery_controller extends CRUD_controller {
 			// Image
 			case 2:
 			default:
-				$boolDir = @mkdir(ROOT_IMAGE . $strDirName,0755);
-				break;
+				if(@mkdir(ROOT_IMAGE . $strDirName,0755)) {
+					$strDirName = DIR_IMAGE . $strDirName;
+				}
+			break;
 		
-				// Video
+			// Video
 			case 1:
-				$boolDir = @mkdir(ROOT_VIDEO . $strDirName,0755);
-				break;
+				if(@mkdir(ROOT_VIDEO . $strDirName,0755)) {
+					$strDirName = DIR_VIDEO . $strDirName;
+				}
+			break;
 		
-				// Upload
+			// Upload
 			case 0:
-				$boolDir = @mkdir(ROOT_UPLOAD . $strDirName,0755);
-				break;
+				if(@mkdir(ROOT_UPLOAD . $strDirName,0755)) {
+					$strDirName = DIR_UPLOAD . $strDirName;
+				}
+			break;
 		}
+		if(!is_dir(SYS_ROOT . $strDirName)) {
+			$strDirName = DIR_UPLOAD . 'common';
+		}
+		$_POST['dirpath'] = $strDirName;
 		
 		if(!isset($_POST['autothumb_h']) || empty($_POST['autothumb_h'])) 	$_POST['autothumb_h'] = null;
 		if(!isset($_POST['autothumb_w']) || empty($_POST['autothumb_w'])) 	$_POST['autothumb_w'] = null;

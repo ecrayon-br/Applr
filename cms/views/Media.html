@@ -1,0 +1,35 @@
+{include file="struct/header.html"}
+
+<form name="formList" id="formList" method="post" action="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/delete/">
+<table border=1 width=650>
+	<caption>APPLR MEDIA GALLERY</caption>
+	{include file="struct/menu-top.html"}
+	<tr>
+		<th>Name</th>
+		<th>Media Type</th>
+		<th>Gallery Name</th>
+		<th>Edit</th>
+		<th>Delete</th>
+	</tr>
+	{if count($objData) == 0}
+	<tr>
+		<td colspan=5 align="center">No records found!</td>
+	</tr>
+	{else}
+	{foreach from=$objData name="listData" item="objTmp"}
+	<tr>
+		<td><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{$objTmp->id}">{$objTmp->name}</a></td>
+		<td><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{$objTmp->id}">{if $objTmp->mediatype == 2}Image{elseif $objTmp->mediatype == 1}Video{else}Upload{/if}</a></td>
+		<td><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{$objTmp->id}">{$objTmp->media_gallery_name}</a></td>
+		<td align="center"><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{$objTmp->id}">[ edit ]</a></td>
+		<td align="center"><input type="checkbox" name="delete[]" id="delete_{$objTmp->id}" value="{$objTmp->id}" /></td>
+	</tr>
+	{/foreach}
+	<tr>
+		<td colspan=5 align="right"><input type="submit" value="Delete" /></td>
+	</tr>
+	{/if}
+</table>
+</form>
+
+{include file="struct/footer.html"}

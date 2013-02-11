@@ -369,6 +369,7 @@ class uploadFile_Controller extends Controller {
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a WAV file!');
             }	     
         }
+        
         if($this->strFilter=="MPEG") {
             if($this->arquivo["type"] !== "video/mpeg") { 
                 $this->intError = 3;
@@ -383,6 +384,12 @@ class uploadFile_Controller extends Controller {
         }
         if($this->strFilter=="AVI") {
             if($this->arquivo["type"] !== "video/x-msvideo") { 
+                $this->intError = 3;
+                define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a AVI file!');
+            }	     
+        }
+        if($this->strFilter=="VIDEO") {
+            if($this->arquivo["type"] !== "video/x-msvideo" && $this->arquivo["type"] !== "video/quicktime" && $this->arquivo["type"] !== "video/mpeg") { 
                 $this->intError = 3;
                 define('ERROR_MSG','Error on uploadFile::validateFile - Uploaded file is not a AVI file!');
             }	     
@@ -407,7 +414,7 @@ class uploadFile_Controller extends Controller {
 	 */
     public function uploadFile() { 
 		if(empty($this->arrFile['name'])) 	return false;
-		if($this->validateFile() !== true) 	return $this->intError;
+		if($this->validateFile() !== true) 	return false;
 		 
 		// Clear all special characters on file name
 		$strTempName = $this->replaceSpecialChars($this->strPrefix.$this->arrFile['name']);
@@ -417,7 +424,8 @@ class uploadFile_Controller extends Controller {
 			return str_replace($this->strPath,'',$this->strDirectory).$strTempName;
 		} else {
 			define('ERROR_MSG','Error on uploadFile::uploadFile!');
-			return $this->intError = 4;
+			$this->intError = 4;
+			return false;
 		}
     }
 }

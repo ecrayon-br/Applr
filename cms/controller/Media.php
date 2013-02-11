@@ -167,8 +167,12 @@ class Media_controller extends CRUD_controller {
 				// Creates new file, resized
 				if($boolCreate) {
 					$strThumbPath = $objUpload->createThumbnail($strDestPath,$arrAutoThumb['autothumb_w'],$arrAutoThumb['autothumb_h']);
-					@unlink($strDestPath);
-					$strDestPath = $strThumbPath;
+					if(is_file($strThumbPath)) {
+						@unlink($strDestPath);
+						$strDestPath = $strThumbPath;
+					} else {
+						$strDestPath = $_POST['filepath'];
+					}
 				}
 				
 				// Sets variable to INSERT / UPDATE

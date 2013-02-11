@@ -441,9 +441,9 @@ class uploadFile_Controller extends Controller {
     	
     	// Defines destination filename
     	if(!is_file($strDestPath)) {
-    		$strDestFileName = date('YmdHis') . '_thumb.' . ($strOrgFileExt == 'png' ? 'png' : 'jpg');
+    		$strDestFileName = md5($strOrgFileName) . ($strOrgFileExt == 'png' ? '.png' : '.jpg');
     	} else {
-    		$strDestFileName = basename($strDestPath);
+    		$strDestFileName = md5(basename($strDestPath)) . ($strOrgFileExt == 'png' ? '.png' : '.jpg');
     	}
     	
 	    // Defines destination directory path

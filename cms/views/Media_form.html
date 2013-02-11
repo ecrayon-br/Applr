@@ -1,0 +1,101 @@
+{include file="struct/header.html"}
+
+<form name="formConfig" id="formConfig" method="post" action="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/add" enctype="multipart/form-data">
+<input type="hidden" name="id" id="id" value="{$objData->id}" />
+<table border=1 width=650>
+	<caption>APPLR MEDIA</caption>
+	{include file="struct/menu-top.html"}
+	<tr>
+		<th colspan=2>FIELD INFO</th>
+	</tr>
+	<tr>
+		<td>Media Type</td>
+		<td>
+			<input type="radio" name="mediatype" value=2 {if $objData->mediatype == 2 || !isset($objData->mediatype)}checked{/if} /> Image<br />
+			<input type="radio" name="mediatype" value=1 {if $objData->mediatype == 1}checked{/if} /> Video<br />
+			<input type="radio" name="mediatype" value=0 {if isset($objData->mediatype) && $objData->mediatype == 0}checked{/if} /> Upload
+		</td>
+	</tr>
+	<tr>
+		<td>Associate Gallery</td>
+		<td>
+			<select name="media_gallery_id" id=""media_gallery_id"" size="{if count($arrGall) < 5}1{else}5{/if}">
+				<option value="">N/R</option>
+				{foreach from=$arrGall name="listDir" item="objTmp"}
+				<option value="{$objTmp->id}|{$objTmp->dirpath}" {if $objData->media_gallery_id == $objTmp->id}selected{/if}>{$objTmp->name}</option>
+				{/foreach}
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td>Name</td>
+		<td>
+			<input type="text" maxlength="80" value="{$objData->name}" size="40" name="name" id="name" />
+		</td>
+	</tr>
+	<tr>
+		<td>Author</td>
+		<td>
+			<input type="text" maxlength="80" value="{$objData->author}" size="40" name="author" id="author" />
+		</td>
+	</tr>
+	<tr>
+		<td>Label</td>
+		<td>
+			<input type="text" maxlength="80" value="{$objData->label}" size="40" name="label" id="label" />
+		</td>
+	</tr>
+	<tr>
+		<th colspan=2>MAIN FILE DATA</th>
+	</tr>
+	<tr>
+		<td>URL</td>
+		<td>
+			<input type="text" maxlength="80" value="{$objData->filepath}" size="40" name="file_url" id="file_url" />
+		</td>
+	</tr>
+	<tr>
+		<td>Upload File</td>
+		<td>
+			<input type="file" maxlength="80" value="" size="40" name="file_upload" id="file_upload" />
+		</td>
+	</tr>
+	<tr>
+		<th colspan=2>STREAMING FILE DATA</th>
+	</tr>
+	<tr>
+		<td>URL</td>
+		<td>
+			<input type="text" maxlength="80" value="{$objData->filepath_streaming}" size="40" name="streaming_url" id="streaming_url" />
+		</td>
+	</tr>
+	<tr>
+		<td>Upload File</td>
+		<td>
+			<input type="file" maxlength="80" value="" size="40" name="streaming_upload" id="streaming_upload" />
+		</td>
+	</tr>
+	<tr>
+		<th colspan=2>THUMBNAIL DATA</th>
+	</tr>
+	<tr>
+		<td>URL</td>
+		<td>
+			<input type="text" maxlength="80" value="{$objData->filepath_thumbnail}" size="40" name="thumb_url" id="thumb_url" />
+		</td>
+	</tr>
+	<tr>
+		<td>Upload File</td>
+		<td>
+			<input type="file" maxlength="80" value="" size="40" name="thumb_upload" id="thumb_upload" />
+		</td>
+	</tr>
+	<tr>
+		<td colspan=2 align=right>
+			<input type="submit" value="Send" />
+		</td>
+	</tr>
+</table>
+</form>
+
+{include file="struct/footer.html"}

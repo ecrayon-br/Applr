@@ -46,7 +46,8 @@ class Media_controller extends CRUD_controller {
 		parent::__construct(false);
 		
 		// Gets GALLERY list
-		$this->arrGallList	= (array) $this->objModel->select(array('id','name'),'media_gallery',array(),array(),array(),array(),0,null,'Col');
+		$this->arrGallList	= (array) $this->objModel->select(array('id','name','dirpath'),'media_gallery',array(),array(),array(),array(),0,null,'All');
+		
 		$this->objSmarty->assign('arrGall',$this->arrGallList);
 	
 		// Shows default interface
@@ -72,53 +73,62 @@ class Media_controller extends CRUD_controller {
 	public function add() {
 		$this->unsecureGlobals();
 		
-		/*
-		// Sets sys vars
-		if(!is_numeric($_POST['mediatype']) || $_POST['mediatype'] < 0 || $_POST['mediatype'] > 2) $_POST['mediatype'] = 2;
-		if(!isset($_POST['is_default']) || $_POST['is_default'] != 0) 	$_POST['is_default'] = 0;
-		if(!isset($_POST['dirpath']) || empty($_POST['dirpath'])) 	$_POST['dirpath'] = null;
-		if(!isset($_POST['sec_config_id']) || empty($_POST['sec_config_id'])) {
-			$_POST['sec_config_id'] = null;
-			$_POST['public'] 		= 1;
-		} elseif(!is_numeric($_POST['sec_config_id']) || $_POST['sec_config_id'] <= 0) $_POST['sec_config_id'] = null;
-		
-		// Associated Directory
-		if(!is_null($_POST['dirpath'])) {
-			$strDirName = $_POST['dirpath'];
-		// Associated Section
-		} elseif(!is_null($_POST['sec_config_id'])) {
-			$strDirName = Controller::permalinkSyntax($this->objModel->recordExists('name','sec_config','sec_config.id = ' . $_POST['sec_config_id'],true));
-		// Common Gallery
-		} else {
-			$strDirName = Controller::permalinkSyntax($_POST['name']);
-		}
+		// Instantiats UPLOAD class
 		switch($_POST['mediatype']) {
-			// Image
+			// IMAGE
 			case 2:
 			default:
-				if(@mkdir(ROOT_IMAGE . $strDirName,0755)) {
-					$strDirName = DIR_IMAGE . $strDirName;
-				}
+				// Setups MEDIA GALLERY id and dir_path
+				$arrGall	= (!empty($_POST['media_gallery_id']) ? explode('|',$_POST['media_gallery_id']) : array(1,DIR_IMAGE . 'common'));
 			break;
 		
-			// Video
+				// VIDEO
 			case 1:
-				if(@mkdir(ROOT_VIDEO . $strDirName,0755)) {
-					$strDirName = DIR_VIDEO . $strDirName;
-				}
+				// Setups MEDIA GALLERY id and dir_path
+				$arrGall	= (!empty($_POST['media_gallery_id']) ? explode('|',$_POST['media_gallery_id']) : array(1,DIR_VIDEO . 'common'));
 			break;
 		
-			// Upload
+				// UPLOAD
 			case 0:
-				if(@mkdir(ROOT_UPLOAD . $strDirName,0755)) {
-					$strDirName = DIR_UPLOAD . $strDirName;
-				}
+				// Setups MEDIA GALLERY id and dir_path
+				$arrGall	= (!empty($_POST['media_gallery_id']) ? explode('|',$_POST['media_gallery_id']) : array(1,DIR_UPLOAD . 'common'));
 			break;
 		}
-		if(!is_dir(SYS_ROOT . $strDirName)) {
-			$strDirName = DIR_UPLOAD . 'common';
+		
+		// Instantiates uploadFile class
+		$objUpload = new uploadFile_Controller('applr_tmp',SYS_ROOT . $arrGall[1]);
+		
+		// Sets MAIN FILE URL or uploads user file
+		if(!empty($_POST['file_url'])) {
+			$_POST['filepath'] = $_POST['file_url'];
+		} else {
+			$objUpload->setFile('file_upload');
+			$_POST['filepath'] = $objUpload->uploadFile();
 		}
-		$_POST['dirpath'] = $strDirName;
+		
+		// Sets STREAMING FILE URL or uploads user file
+		if(!empty($_POST['streaming_url'])) {
+			$_POST['filepath_streaming'] = $_POST['streaming_url'];
+		} else {
+			$objUpload->setFile('streaming_upload');
+			$_POST['filepath_streaming'] = $objUpload->uploadFile();
+		}
+		
+		// Sets THUMBNAIL FILE URL or uploads user file
+		if(!empty($_POST['thumb_url'])) {
+			$_POST['filepath_thumbnail'] = $_POST['thumb_url'];
+		} else {
+			$objUpload->setFile('thumb_upload');
+			$_POST['filepath_thumbnail'] = $objUpload->uploadFile();
+		}
+		
+		// Sets sys vars
+		if(!isset($_POST['media_gallery_id']) || empty($_POST['media_gallery_id'])) {
+			$_POST['media_gallery_id'] = 1;
+		} elseif(!is_numeric($_POST['media_gallery_id']) || $_POST['media_gallery_id'] <= 0) $_POST['media_gallery_id'] = 1;
+		if(!is_numeric($_POST['mediatype']) || $_POST['mediatype'] < 0 || $_POST['mediatype'] > 2) $_POST['mediatype'] = 2;
+		
+		/*
 		
 		if(!isset($_POST['autothumb_h']) || empty($_POST['autothumb_h'])) 	$_POST['autothumb_h'] = null;
 		if(!isset($_POST['autothumb_w']) || empty($_POST['autothumb_w'])) 	$_POST['autothumb_w'] = null;

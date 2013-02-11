@@ -42,7 +42,7 @@ class uploadFile_Controller extends Controller {
 		$this->setPrefix($strPrefix);
 		$this->setFilter($strFilter);
 		
-		if(!empty($strIndex)) $this->setFile($strIndex);
+		$this->setFile($strIndex);
 	}
 	
 	/**
@@ -60,7 +60,7 @@ class uploadFile_Controller extends Controller {
 		if(!is_array($_FILES[$strIndex]))																						return false;
 		if(!isset($_FILES[$strIndex]['name']) || !isset($_FILES[$strIndex]['tmp_name']) || !isset($_FILES[$strIndex]['type']))	return false;
 		
-		$this->arrFile		&= $_FILES[$strIndex];
+		$this->arrFile		= $_FILES[$strIndex];
 	}
 	
 	/**
@@ -224,7 +224,7 @@ class uploadFile_Controller extends Controller {
 		if(!isset($this->intError)) $this->validateFileSize();
 		if(!isset($this->intError)) $this->validateDirectory();
 		if(!isset($this->intError)) $this->validateFileName();
-		
+	
 		if(isset($this->intError)) {
 			define('ERROR_MSG','Error on uploadFile::validateFile!');
 			return $this->intError;
@@ -389,6 +389,8 @@ class uploadFile_Controller extends Controller {
         }
         
         if($this->intError == 3) return false;
+        
+        return true;
     }
 	
 	/**
@@ -403,15 +405,15 @@ class uploadFile_Controller extends Controller {
 	 * @author		Diego Flores <diegotf [at] gmail [dot] com>
 	 * 
 	 */
-    public function uploadFile() {
+    public function uploadFile() { 
 		if(empty($this->arrFile['name'])) 	return false;
 		if($this->validateFile() !== true) 	return $this->intError;
-		
+		 
 		// Clear all special characters on file name
 		$strTempName = $this->replaceSpecialChars($this->strPrefix.$this->arrFile['name']);
 		
 		// Save temp file on host
-		if(move_uploaded_file($this->arrFile['tmp_name'],$this->strDirectory.$strTempName)) {
+		if(($objMoveFile = move_uploaded_file($this->arrFile['tmp_name'],$this->strDirectory.$strTempName)) !== false) {
 			return str_replace($this->strPath,'',$this->strDirectory).$strTempName;
 		} else {
 			define('ERROR_MSG','Error on uploadFile::uploadFile!');

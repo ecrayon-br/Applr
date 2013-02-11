@@ -8,9 +8,15 @@ class CRUD_Controller extends Main_controller {
 	protected	$arrTable		= array();
 	protected	$arrFieldType	= array();
 	protected	$arrFieldList	= array();
+	protected	$arrJoinList	= array();
 	protected	$arrWhereList	= array();
+	protected	$arrOrderList	= array();
+	protected	$arrGroupList	= array();
 	protected	$arrFieldData	= array();
+	protected	$arrJoinData	= array();
 	protected	$arrWhereData	= array();
+	protected	$arrOrderData	= array();
+	protected	$arrGroupData	= array();
 	
 	public		$objData;
 	
@@ -30,12 +36,13 @@ class CRUD_Controller extends Main_controller {
 		
 		if(!DEBUG) authUser_Controller::isLoggedIn(true,'Login.html');
 		
-		$this->objModelCRUD	= new Crud_Model($this->arrTable,$this->arrFieldList,$this->arrWhereList,$this->arrFieldType,$this->arrFieldData,$this->arrWhereData);
+		$this->objModelCRUD	= new Crud_Model($this->arrTable,$this->arrFieldType,$this->arrFieldList,$this->arrJoinList,$this->arrWhereList,$this->arrOrderList,$this->arrGroupList,$this->arrFieldData,$this->arrJoinData,$this->arrWhereData,$this->arrOrderData,$this->arrGroupData);
 		
 		$this->strModule 	= str_replace(array('_Controller','_controller'),'',get_class($this));
 		$strModelClass		= $this->strModule . '_model';
+		
 		if(class_exists($strModelClass)) {
-			$this->objModel = new $strModelClass();
+			$this->objModel = new $strModelClass($this->arrTable,$this->arrFieldType,$this->arrFieldList,$this->arrJoinList,$this->arrWhereList,$this->arrOrderList,$this->arrGroupList,$this->arrFieldData,$this->arrJoinData,$this->arrWhereData,$this->arrOrderData,$this->arrGroupData);
 		} else {
 			$this->objModel = $this->objModelCRUD;
 		}

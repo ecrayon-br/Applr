@@ -456,7 +456,7 @@ class Model {
 		if(!is_string($strWhere)		|| empty($strWhere))	return false;
 		if(!is_bool($boolReturnValue) 	&& $boolReturnValue !== 1 && $boolReturnValue !== 0)	return false;
 		
-		$objQuery	= $this->select($strField,$strTable,'',$strWhere,'','',0,1,'Row');
+		$objQuery	= $this->select($strField,$strTable,array(),$strWhere,array(),array(),0,1,'Row');
 		
 		if(isset($objRS->$strField) && !is_null($objRS->$strField)) { return ($boolReturnValue ? $objRS->$strField : true); }
 		

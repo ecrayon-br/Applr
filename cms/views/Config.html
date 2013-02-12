@@ -23,6 +23,10 @@
 		<td>Project Logo</td>
 		<td>
 			<input type="file" maxlength="80" value="" size="40" name="project.logo_upload" id="project-logo_upload" />
+			{if !empty($objData->logo_upload)}
+			<br />
+			{html_image file=$objData->logo_upload} 
+			{/if}
 		</td>
 	</tr>
 	<tr>

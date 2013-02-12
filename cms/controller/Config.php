@@ -16,6 +16,7 @@ class Config_controller extends CRUD_Controller {
 										'project_start_date_Day' 		=> 'numeric',
 										'project_start_date_Month' 		=> 'numeric',
 										'project_start_date_Year' 		=> 'numeric',
+										'project_logo_upload'			=> 'string',
 										'config_paging_limit' 			=> 'numeric',
 										'config_rss_group' 				=> 'numeric',
 										'config_rss_limit' 				=> 'numeric',
@@ -63,6 +64,7 @@ class Config_controller extends CRUD_Controller {
 	 */
 	protected function _read() {
 		$this->objData	= $this->objModelCRUD->getData($this->intProjectID);
+		$this->objData->logo_upload = SYS_DIR . $this->objData->logo_upload;
 		
 		$this->objSmarty->assign('objData',$this->objData);
 		$this->renderTemplate();
@@ -93,13 +95,20 @@ class Config_controller extends CRUD_Controller {
 				$objData->config[str_replace($tmpPrefix . '_','',$strKey)]	= $mxdValue;
 			}
 		}
+		if(isset($_FILES['project_logo_upload']['name'])) {
+			$_POST['project_logo_upload'] = '';
+			$objData->project['project_logo_upload'] = '';
+		}
+		
 		$arrOrgData	= array_merge($objData->project,$objData->config);
 		
 		if(($mxdValidate = $this->validateParamsArray($_POST,$this->arrFieldType,false)) === true) {
 			// Setups field's data
-			$objManager			= new manageContent_Controller();
-			$objData->project	= $objManager->setupFieldSufyx($objData->project,array_keys($objData->project),1);
-			$objData->config	= $objManager->setupFieldSufyx($objData->config,array_keys($objData->config),1);
+			$objManager						= new manageContent_Controller();
+			$objData->project				= $objManager->setupFieldSufyx($objData->project,array_keys($objData->project),1);
+			$objData->config				= $objManager->setupFieldSufyx($objData->config,array_keys($objData->config),1);
+			$objData->project->logo_upload 	= $objData->project->project_logo_upload;
+			unset($objData->project->project_logo_upload);
 			
 			// Updates PROJECT
 			if($this->objModel->update('project',$objData->project,'id = ' . $this->intProjectID) !== false) {
@@ -119,6 +128,7 @@ class Config_controller extends CRUD_Controller {
 			$this->objData				= (object) $arrOrgData;
 			$this->objData->start_date 	= $this->objData->start_date_Year . '-' . $this->objData->start_date_Month . '-' . $this->objData->start_date_Day;
 		}
+		if(!empty($this->objData->logo_upload)) $this->objData->logo_upload = SYS_DIR . $this->objData->logo_upload;
 		$this->objSmarty->assign('objData',$this->objData);
 		
 		$this->secureGlobals();

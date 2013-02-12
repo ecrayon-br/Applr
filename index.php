@@ -1,4 +1,7 @@
 <?php
+print_r($_REQUEST);
+die('ROOT');
+
 include_once 'init.php';
 
 $strURL = str_replace(array(URI_DOMAIN,LOCAL_DIR),'',$_SERVER['REQUEST_URI']);

@@ -458,7 +458,7 @@ class Model {
 		
 		$objQuery	= $this->select($strField,$strTable,array(),$strWhere,array(),array(),0,1,'Row');
 		
-		if(isset($objRS->$strField) && !is_null($objRS->$strField)) { return ($boolReturnValue ? $objRS->$strField : true); }
+		if(isset($objQuery->$strField) && !is_null($objQuery->$strField)) { return ($boolReturnValue ? $objQuery->$strField : true); }
 		
 		return false;
 	}

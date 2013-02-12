@@ -18,7 +18,6 @@ class MediaGallery_controller extends CRUD_controller {
 										'mediatype'		=> 'numeric',
 										'description'	=> 'string',
 										'dirpath'		=> 'string',
-										'public'		=> 'boolean',
 										'is_default'	=> 'boolean',
 										'autothumb'		=> 'boolean',
 										'autothumb_h'	=> 'numeric_empty',
@@ -89,21 +88,6 @@ class MediaGallery_controller extends CRUD_controller {
 	}
 	
 	/**
-	 * Lists content
-	 *
-	 * @return	void
-	 *
-	 * @since 	2013-02-09
-	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
-	 *
-	 */
-	protected function _read() {
-		$this->objData	= $this->objModel->getList();
-		$this->objSmarty->assign('objData',$this->objData);
-		$this->renderTemplate();
-	}
-	
-	/**
 	 * Shows INSERT / UPDATE form interface
 	 *
 	 * @param	integer	$intID			Content ID
@@ -114,6 +98,7 @@ class MediaGallery_controller extends CRUD_controller {
 	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
 	 *
 	 */
+	/*
 	protected function _create($intID = 0) {
 		if($intID > 0) {
 			$this->objData = $this->objModelCRUD->getData($intID);
@@ -123,6 +108,7 @@ class MediaGallery_controller extends CRUD_controller {
 	
 		$this->renderTemplate(true,$this->strModule . '_form.html');
 	}
+	*/
 	
 	/**
 	 * @see CRUD_controller::delete()
@@ -149,7 +135,6 @@ class MediaGallery_controller extends CRUD_controller {
 		if(!isset($_POST['dirpath']) || empty($_POST['dirpath'])) 	$_POST['dirpath'] = null;
 		if(!isset($_POST['sec_config_id']) || empty($_POST['sec_config_id'])) {
 			$_POST['sec_config_id'] = null;
-			$_POST['public'] 		= 1;
 		} elseif(!is_numeric($_POST['sec_config_id']) || $_POST['sec_config_id'] <= 0) $_POST['sec_config_id'] = null;
 		
 		// Associated Directory

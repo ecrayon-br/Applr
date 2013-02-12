@@ -394,13 +394,8 @@ class Model {
 			// Prepare query using MDB2::prepare
 			$objQuery = $this->objConn->extended->buildManipSQL($strTable,$arrField,MDB2_AUTOQUERY_INSERT);
 			$objQuery = $this->objConn->prepare( str_replace('INSERT INTO','REPLACE INTO',$objQuery) );
-			
-			/*
-			// Prepare row's syntax
-			$arrValue	= $this->prepareInsertRowSyntax($arrField);
-			$objQuery = 'REPLACE INTO '.$strTable.' ('.implode(',',$arrField).') VALUES '.implode(',',$arrValue);
-			*/
 		}
+		
 		if(PEAR::isError($objQuery)) {
 			define('ERROR_MSG','Error on Model::prepareInsertQuery(): ' . $objQuery->getMessage());
 			return false;

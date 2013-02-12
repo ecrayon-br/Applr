@@ -1,0 +1,177 @@
+{include file="struct/header.html"}
+
+<form name="formConfig" id="formConfig" method="post" action="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/add">
+<input type="hidden" name="id" id="id" value="{$objData->id}" />
+<input type="hidden" name="permalink" id="permalink" value="{$objData->permalink}" />
+<table border=1 width=650>
+	<caption>APPLR SECTION CONFIG</caption>
+	{include file="struct/menu-top.html"}
+	<tr>
+		<th colspan=2>SECTION INFO</th>
+	</tr>
+	<tr>
+		<td>Hierarchy</td>
+		<td>
+			<select name="hierarchy" id="hierarchy" size="5">
+				{foreach from=$arrFld name="listFolder" item="arrTmpFld"}
+				<optgroup label="{$arrTmpFld->name}">
+					<option value="{$arrTmpFld->id}|0" {if $arrTmpFld->id == $objData->sys_folder_id && empty($objData->parent)}selected{/if}>-| Root level</option>
+					{foreach from=$arrSec.$arrTmpFld->id name="listSec" item="arrTmpSec"}
+					<option value="{$arrTmpFld->id}|{$arrTmpSec->id}"  {if $arrTmpFld->id == $objData->sys_folder_id && $arrTmpSec->id == $objData->parent}selected{/if}>--| {$arrTmpSec->name}</option>
+					{/foreach}
+				</optgroup>
+				{/foreach}
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td>Name</td>
+		<td>
+			<input type="text" maxlength="80" value="{$objData->name}" size="40" name="name" id="name" />
+		</td>
+	</tr>
+	<tr>
+		<td>Table</td>
+		<td>
+			<input type="text" maxlength="60" value="{$objData->table_name}" size="40" name="table_name" id="table_name" />
+		</td>
+	</tr>
+	<tr>
+		<td>Allows user to manage content?</td>
+		<td>
+			<input type="radio" name="user_edit" value=1 {if $objData->user_edit == 1}checked{/if} /> Yes<br />
+			<input type="radio" name="user_edit" value=0 {if $objData->user_edit == 0}checked{/if} /> No
+		</td>
+	</tr>
+	<tr>
+		<td>Allows public access?</td>
+		<td>
+			<input type="radio" name="public" value=1 {if !isset($objData->public) || $objData->public == 1}checked{/if} /> Yes<br />
+			<input type="radio" name="public" value=0 {if isset($objData->public) && $objData->public == 0}checked{/if} /> No
+		</td>
+	</tr>
+	<tr>
+		<td>Is website's section?</td>
+		<td>
+			<input type="radio" name="website" value=1 {if !isset($objData->website) || $objData->website == 1}checked{/if} /> Yes<br />
+			<input type="radio" name="website" value=0 {if isset($objData->website) && $objData->website == 0}checked{/if} /> No
+		</td>
+	</tr>
+	<tr>
+		<td>Exhibits content as Home Page?</td>
+		<td>
+			<input type="radio" name="home" value=1 {if !isset($objData->home) || $objData->home == 1}checked{/if} /> Yes<br />
+			<input type="radio" name="home" value=0 {if isset($objData->home) && $objData->home == 0}checked{/if} /> No
+		</td>
+	</tr>
+	<tr>
+		<td>Creates static files automatically?</td>
+		<td>
+			<input type="radio" name="static" value=1 {if $objData->static == 1}checked{/if} /> Yes<br />
+			<input type="radio" name="static" value=0 {if $objData->static == 0}checked{/if} /> No
+		</td>
+	</tr>
+	<tr>
+		<td>Static filename</td>
+		<td>
+			<input type="text" maxlength="45" value="{$objData->static_filename}" size="40" name="static_filename" id="static_filename" />
+		</td>
+	</tr>
+	<tr>
+		<td>Creates XML content files automatically?</td>
+		<td>
+			<input type="radio" name="xml" value=1 {if $objData->xml == 1}checked{/if} /> Yes<br />
+			<input type="radio" name="xml" value=0 {if $objData->xml == 0}checked{/if} /> No
+		</td>
+	</tr>
+	<tr>
+		<td>XML content limit</td>
+		<td>
+			<select name="xml_items" id="xml_items">
+			{section name="countLimit" loop=1000 start=0}
+			<option value="{$smarty.section.countLimit.index}" {if $smarty.section.countLimit.index == $objData->xml_items}selected{/if}>{$smarty.section.countLimit.index}</option>
+			{/section}
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td>Creates RSS content files automatically?</td>
+		<td>
+			<input type="radio" name="rss" value=1 {if $objData->rss == 1}checked{/if} /> Yes<br />
+			<input type="radio" name="rss" value=0 {if $objData->rss == 0}checked{/if} /> No
+		</td>
+	</tr>
+	<tr>
+		<td>RSS content limit</td>
+		<td>
+			<select name="rss_items" id="rss_items">
+			{section name="countLimit" loop=1000 start=0}
+			<option value="{$smarty.section.countLimit.index}" {if $smarty.section.countLimit.index == $objData->rss_items}selected{/if}>{$smarty.section.countLimit.index}</option>
+			{/section}
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td>Paging limit</td>
+		<td>
+			<select name="list_items" id="list_items">
+			{section name="countLimit" loop=1000 start=0}
+			<option value="{$smarty.section.countLimit.index}" {if $smarty.section.countLimit.index == $objData->list_items}selected{/if}>{$smarty.section.countLimit.index}</option>
+			{/section}
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td>Order By</td>
+		<td>
+			<input type="radio" name="applr_orderby" id="applr_orderby_1"	value="name ASC"			onclick="document.formConfig.orderby.value = this.value; document.formConfig.orderby.readOnly = true;" {if $objData->orderby == 'name ASC'}checked{/if}> <label for="applr_orderby_1">Name ASC</label>
+			<br />
+			<input type="radio" name="applr_orderby" id="applr_orderby_2"	value="name DESC"			onclick="document.formConfig.orderby.value = this.value; document.formConfig.orderby.readOnly = true;" {if $objData->orderby == 'name DESC'}checked{/if}> <label for="applr_orderby_2">Name DESC</label>
+			<br />
+			<input type="radio" name="applr_orderby" id="applr_orderby_3"	value="publish_date ASC"	onclick="document.formConfig.orderby.value = this.value; document.formConfig.orderby.readOnly = true;" {if $objData->orderby == 'publish_date ASC'}checked{/if}> <label for="applr_orderby_3">Publish Date ASC</label>
+			<br />
+			<input type="radio" name="applr_orderby" id="applr_orderby_4"	value="publish_date DESC"	onclick="document.formConfig.orderby.value = this.value; document.formConfig.orderby.readOnly = true;" {if !isset($objData->orderby) || $objData->orderby == 'publish_date DESC'}checked{/if}> <label for="applr_orderby_4">Publish Date DESC</label>
+			<br />
+			<input type="radio" name="applr_orderby" id="applr_orderby_5"	value="RAND()"				onclick="document.formConfig.orderby.value = this.value; document.formConfig.orderby.readOnly = true;" {if $objData->orderby == 'RAND()'}checked{/if}> <label for="applr_orderby_5">Random</label>
+			<br />
+			<input type="radio" name="applr_orderby" id="applr_orderby_6"	value=""					onclick="document.formConfig.orderby.value = this.value; document.formConfig.orderby.readOnly = false; document.formConfig.orderby.focus();"> <label for="applr_orderby_6">Custom</label>
+			<br />
+			<input type="text" name="orderby" value="{$objData->orderby}" maxlength="255" readonly size="40" />
+		</td>
+	</tr>
+	<tr>
+		<td>Content is searchable?</td>
+		<td>
+			<input type="radio" name="search" value=1 {if !isset($objData->search) || $objData->search == 1}checked{/if} /> Yes<br />
+			<input type="radio" name="search" value=0 {if isset($objData->search) && $objData->search == 0}checked{/if} /> No
+		</td>
+	</tr>
+	<tr>
+		<td>Auto-Thumb content's images by Height</td>
+		<td>
+			<select name="autothumb_h" id="autothumb_h">
+				{section name="countLimit" loop=1000 start=0}
+				<option value="{$smarty.section.countLimit.index}" {if $smarty.section.countLimit.index == $objData->autothumb_h}selected{/if}>{$smarty.section.countLimit.index}</option>
+				{/section}
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td>Auto-Thumb content's images by Width</td>
+		<td>
+			<select name="autothumb_w" id="autothumb_w">
+				{section name="countLimit" loop=1000 start=0}
+				<option value="{$smarty.section.countLimit.index}" {if $smarty.section.countLimit.index == $objData->autothumb_w}selected{/if}>{$smarty.section.countLimit.index}</option>
+				{/section}
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td colspan=2 align=right>
+			<input type="submit" value="Send" />
+		</td>
+	</tr>
+</table>
+</form>
+
+{include file="struct/footer.html"}

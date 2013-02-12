@@ -154,6 +154,7 @@ class CRUD_Controller extends Main_controller {
 	 * Inserts / Updates data
 	 * 
 	 * @param	array	$arrData	Array field => value paired to updates
+	 * @param	boolean	$boolRenderTemplate	Defines whether to show default's interface
 	 *
 	 * @return	void
 	 *
@@ -161,12 +162,14 @@ class CRUD_Controller extends Main_controller {
 	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
 	 *
 	 */
-	protected function _update($arrData) {
+	protected function _update($arrData,$boolRenderTemplate = true) {
+		if(!is_bool($boolRenderView) && $boolRenderView !== 1 && $boolRenderView !== 0)	$boolRenderView = true;
+		
 		if(isset($this->arrFieldType['usr_data_id'])) $arrData['usr_data_id'] = $this->intUserID;
 		
 		if(($strField = $this->validateParamsArray($arrData,$this->arrFieldType,false)) === true) {
 			if(($intID = $this->objModelCRUD->replace($this->strTable,$arrData)) !== false) {
-				if(!isset($arrData['id'])) {
+				if(empty($arrData['id'])) {
 					$arrData['id']	= $intID;
 				} else {
 					$intID = $arrData['id'];
@@ -174,15 +177,21 @@ class CRUD_Controller extends Main_controller {
 				$this->objSmarty->assign('ALERT_MSG','Data saved successfully!');
 			} else {
 				$this->objSmarty->assign('ERROR_MSG','There was an error while trying to save data! Please try again!');
+				return false;
 			}
 		} else {
 			$this->objSmarty->assign('ERROR_MSG','There was an error while validating "' . $strField . '" data! Please try again!');
+			return false;
 		}
+		
 		$this->objData	= (object) array_merge((array) $this->objData,$arrData);
 		
-		$this->objSmarty->assign('objData',$this->objData);
+		if($boolRenderTemplate) {
+			$this->objSmarty->assign('objData',$this->objData);
+			$this->_create($intID);
+		}
 		
-		$this->_create($intID);
+		return true;
 	}
 	
 	/**

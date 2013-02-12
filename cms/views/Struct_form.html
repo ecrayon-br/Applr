@@ -81,8 +81,8 @@
 	<tr>
 		<td>Null</td>
 		<td>
-			<input type="radio" name="notnull" value=0 {if $objData->notnull === 0}checked{/if} /> Yes<br />
-			<input type="radio" name="notnull" value=1 {if $objData->notnull == 1 || !isset($objData->notnull)}checked{/if} /> No
+			<input type="radio" name="notnull" value=0 {if $objData->notnull == 0 || !isset($objData->notnull)}checked{/if} /> Yes<br />
+			<input type="radio" name="notnull" value=1 {if $objData->notnull == 1}checked{/if} /> No
 		</td>
 	</tr>
 	<tr>

@@ -27,7 +27,9 @@
 	<tr>
 		<td>Name</td>
 		<td>
-			<input type="text" maxlength="80" value="{$objData->name}" size="40" name="name" id="name" />
+		{foreach from=$arrLang item="arrTmp" name="listLang"}
+			<label for="name_{$arrTmp->id}">{$arrTmp->name}</label> <input type="text" maxlength="80" value="{$objData->language.{$arrTmp->id}->name}" size="40" name="name[{$arrTmp->id}]" id="name_{$arrTmp->id}" /><br />
+		{/foreach}
 		</td>
 	</tr>
 	<tr>

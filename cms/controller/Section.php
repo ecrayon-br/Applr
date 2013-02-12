@@ -51,6 +51,7 @@ class Section_controller extends CRUD_controller {
 	private		$intSecID		= 0;
 	private		$arrFldList		= array();
 	private		$arrSecList		= array();
+	private		$arrLangList	= array();
 	
 	/**
 	 * Class constructor
@@ -66,6 +67,9 @@ class Section_controller extends CRUD_controller {
 	public function __construct($boolRenderTemplate = true) {
 		parent::__construct(false);
 		
+		// Gets LANGUAGES list
+		$this->arrLangList	= $this->objModel->select(array('id','name'),'sys_language',array(),array(),array(),array(),0,null,'All');
+		
 		// Gets FOLDER list
 		$this->arrFldList	= $this->objModel->select(array('id','name'),'sys_folder',array(),array(),array(),array(),0,null,'All');
 		
@@ -76,6 +80,7 @@ class Section_controller extends CRUD_controller {
 		}
 		$this->objSmarty->assign('arrFld',$this->arrFldList);
 		$this->objSmarty->assign('arrSec',$this->arrSecList);
+		$this->objSmarty->assign('arrLang',$this->arrLangList);
 		
 		// Shows default interface
 		if($boolRenderTemplate) $this->_read();
@@ -100,6 +105,18 @@ class Section_controller extends CRUD_controller {
 	public function add() {
 		$this->unsecureGlobals();
 		
+		// Set LANGUAGE var
+		$arrInsertLang	= array();
+		foreach($_POST['name'] AS $intLang => $strName) {
+			if(!empty($strName)) {
+				$arrInsertLang[] = 	array(
+									'sys_language_id'	=> $intLang,
+									'name'				=> $strName
+								);
+			}
+		}
+		$_POST['name']	= reset($arrInsertLang)['name']; 
+		
 		// Sets sys vars
 		if(!isset($_POST['autothumb_h']) || empty($_POST['autothumb_h'])) 	$_POST['autothumb_h'] = null;
 		if(!isset($_POST['autothumb_w']) || empty($_POST['autothumb_w'])) 	$_POST['autothumb_w'] = null;
@@ -107,7 +124,7 @@ class Section_controller extends CRUD_controller {
 		if(!isset($_POST['id']) || empty($_POST['id']) || $_POST['id'] <= 0) {
 			$_POST['permalink'] = Controller::permalinkSyntax($_POST['name']);
 		} else {
-			$_POST['permalink'] = $this->objModel->recordExists('permalink',$this->strTable,'id = ' . $_POST['id']);
+			$_POST['permalink'] = $this->objModel->recordExists('permalink',$this->strTable,'id = ' . $_POST['id'],true);
 		}
 		
 		// Sets Hierarchy variables
@@ -122,34 +139,72 @@ class Section_controller extends CRUD_controller {
 		
 		// Saves data
 		if($this->_update($_POST,false)) {
-			// Creates media directories and galleries
-			@mkdir(ROOT_IMAGE	. $_POST['permalink'],0755);
-			@mkdir(ROOT_VIDEO	. $_POST['permalink'],0755);
-			@mkdir(ROOT_UPLOAD	. $_POST['permalink'],0755);
-			@mkdir(ROOT_STATIC	. $_POST['permalink'],0755);
-			@mkdir(ROOT_RSS		. $_POST['permalink'],0755);
-			@mkdir(ROOT_XML		. $_POST['permalink'],0755);
-			
-			$arrMediaGalleryInfo	= array(
-											'usr_data_id'	=> $this->intUserID,
-											'sec_config_id'	=> $this->objData->id,
-											'name'			=> $_POST['name'],
-											'is_default'	=> 1,
-											'autothumb'		=> $_POST['autothumb'],
-											'autothumb_h'	=> $_POST['autothumb_h'],
-											'autothumb_w'	=> $_POST['autothumb_w'],
-											'status'		=> 1
-										);
-			$this->objModel->insert('media_gallery',array_merge($arrMediaGalleryInfo,array('mediatype' => 2, 'dirpath' => DIR_IMAGE . $_POST['permalink'])));
-			$this->objModel->insert('media_gallery',array_merge($arrMediaGalleryInfo,array('mediatype' => 1, 'dirpath' => DIR_VIDEO . $_POST['permalink'])));
-			$this->objModel->insert('media_gallery',array_merge($arrMediaGalleryInfo,array('mediatype' => 0, 'dirpath' => DIR_UPLOAD . $_POST['permalink'])));
-			
-			$this->objData->hierarchy = (!is_null($this->objData->sys_folder_id) ? $this->objData->sys_folder_id : 0) . '|' . (!is_null($this->objData->parent) ? $this->objData->parent : 0);
+			// Saves LANGUAGE REL data
+			$this->objModel->delete('rel_sec_language','sec_config_id = ' . $this->objData->id);
+			foreach($arrInsertLang AS &$arrTmp) {
+				$arrTmp['sec_config_id'] = $this->objData->id;
+			}
+			if($this->objModel->insert('rel_sec_language', $arrInsertLang)) {
+				// Creates media directories and galleries
+				@mkdir(ROOT_IMAGE	. $_POST['permalink'],0755);
+				@mkdir(ROOT_VIDEO	. $_POST['permalink'],0755);
+				@mkdir(ROOT_UPLOAD	. $_POST['permalink'],0755);
+				@mkdir(ROOT_STATIC	. $_POST['permalink'],0755);
+				@mkdir(ROOT_RSS		. $_POST['permalink'],0755);
+				@mkdir(ROOT_XML		. $_POST['permalink'],0755);
+				
+				$arrMediaGalleryInfo	= array(
+												'usr_data_id'	=> $this->intUserID,
+												'sec_config_id'	=> $this->objData->id,
+												'name'			=> $_POST['name'],
+												'is_default'	=> 1,
+												'autothumb'		=> $_POST['autothumb'],
+												'autothumb_h'	=> $_POST['autothumb_h'],
+												'autothumb_w'	=> $_POST['autothumb_w'],
+												'status'		=> 1
+											);
+				$this->objModel->insert('media_gallery',array_merge($arrMediaGalleryInfo,array('mediatype' => 2, 'dirpath' => DIR_IMAGE . $_POST['permalink'])));
+				$this->objModel->insert('media_gallery',array_merge($arrMediaGalleryInfo,array('mediatype' => 1, 'dirpath' => DIR_VIDEO . $_POST['permalink'])));
+				$this->objModel->insert('media_gallery',array_merge($arrMediaGalleryInfo,array('mediatype' => 0, 'dirpath' => DIR_UPLOAD . $_POST['permalink'])));
+				
+				$this->objData->hierarchy = (!is_null($this->objData->sys_folder_id) ? $this->objData->sys_folder_id : 0) . '|' . (!is_null($this->objData->parent) ? $this->objData->parent : 0);
+			} else {
+				$this->objSmarty->assign('ERROR_MSG','There was an error while trying to save data! Please try again!');
+			}
 		}
 		
 		// Shows interface
 		$this->_create($this->objData->id);
 		
 		$this->secureGlobals();
+	}
+	
+	/**
+	 * Shows INSERT / UPDATE form interface
+	 *
+	 * @param	integer	$intID			Content ID
+	 *
+	 * @return	void
+	 *
+	 * @since 	2013-02-08
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 *
+	 */
+	protected function _create($intID = 0) {
+		if($intID > 0) {
+			$this->objData = $this->objModelCRUD->getData($intID);
+			
+			$arrLang	= array();
+			$objLang 	= $this->objModel->select(array('sys_language.id','rel_sec_language.name'),array('sys_language','rel_sec_language'),array(),array('rel_sec_language.sys_language_id = sys_language.id','rel_sec_language.sec_config_id = ' . $intID),array(),array(),0,null,'All');
+			foreach($objLang AS $objTmp) {
+				$arrLang[$objTmp->id] = $objTmp;
+			}
+			unset($objLang);
+			$this->objData->language = $arrLang;
+			
+			$this->objSmarty->assign('objData',$this->objData);
+		}
+		
+		$this->renderTemplate(true,$this->strModule . '_form.html');
 	}
 }

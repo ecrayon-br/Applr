@@ -220,5 +220,70 @@ class manageDB_Controller extends Controller {
 		}
 		return false;
 	}
+	
+	/**
+	 * Alters table element
+	 *
+	 * @param	string	$strValue	Table name
+	 * @param	boolean	$boolCheck	If true, no changes will be made, but only a check if the proposed changes are feasible for the specific table and RDBMS
+	 *
+	 * @return	boolean
+	 */
+	public function alter($strTable,$arrAlterParams = array(), $boolCheck = false) {
+		if(!is_string($strTable) || empty($strTable)) 					return false;
+		if(!is_bool($boolCheck) && $boolCheck != 0 && $boolCheck != 1)	$boolCheck = false;
+		if(!is_array($arrAlterParams) || empty($arrAlterParams)) 		return false;
+		
+		// Sets altering array params
+		$strNewTableName	= $strTable;
+		$arrAddFields 		= array();
+		$arrRemoveFields 	= array();
+		$arrChangeFields 	= array();
+		$arrRenameFields 	= array();
+		
+		$arrChangesDef = 	array(
+								'name'		=> $strNewTableName,
+								'add'		=> $arrAddFields,
+								'remove'	=> $arrRemoveFields,
+								'change'	=> $arrChangeFields,
+								'rename'	=> $arrRenameFields
+							);
+		
+		if($this->objModel->objConn->alterTable($strTable,$arrChangesDef,$boolCheck)) {
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Drops database element
+	 * 
+	 * @param	string	$strMethod	Method name
+	 * @param	string	$strValue	Element name
+	 * @param	string	$strArgs	Arguments, in case of dropConstraint or dropIndex
+	 * 
+	 * @return	boolean
+	 */
+	public function drop($strMethod,$strValue,$strArgs) {
+		if(!is_string($strMethod) 	|| empty($strValue)) 	return false;
+		if(!is_string($strValue) 	|| empty($strValue)) 	return false;
+		if(!is_string($strArgs) 	|| empty($strArgs)) 	return false;
+		
+		$arrMethod	= array('Sequence','Constraint','Index','Table','Database');
+		if(!in_array($strMethod,$arrMethod)) return false;
+		
+		$strMethod	= 'drop' . ucfirst(strtolower($strMethod));
+		if($strMethod == 'dropConstraint' || $strMethod == 'dropIndex') {
+			if(strtoupper($strArgs) == 'PRIMARY') $strArgs = 'PRIMARY';
+			$mxdReturn	= $this->objModel->objConn->$strMethod($strValue,$strArgs,($strArgs == 'PRIMARY' ? true : false));
+		} else {
+			$mxdReturn	= $this->objModel->objConn->$strMethod($strValue);
+		}
+		
+		if($mxdReturn) {
+			return true;
+		}
+		return false;
+	}
 }
 ?>

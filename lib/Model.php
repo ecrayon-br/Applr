@@ -57,7 +57,8 @@ class Model {
 		    					'debug'       	=> 2,
 		    					'portability' 	=> MDB2_PORTABILITY_ALL,
 								'persistent'	=> true,
-								'seqcol_name'	=> 'id'
+								'seqcol_name'	=> 'id',
+								'seqname_format'=> '%s'
 								);
 		
 		$this->objConn 	=& PEAR_ApplrDB::singleton($arrDSN,$arrOptions);

@@ -224,8 +224,13 @@ class manageDB_Controller extends Controller {
 	/**
 	 * Alters table element
 	 *
-	 * @param	string	$strValue	Table name
-	 * @param	boolean	$boolCheck	If true, no changes will be made, but only a check if the proposed changes are feasible for the specific table and RDBMS
+	 * @param	string	$strValue		Table name
+	 * @param	array	$arrAlterParams	Array definition for each ALTER action, such as 
+											$arrAlterParams['add'] 		= array(name => array( 'type' => 'text', 'length' => 20 ));
+											$arrAlterParams['remove'] 	= array(name => array());
+											$arrAlterParams['change'] 	= array(name => array( 'length' => '20', 'definition' => array( 'type' => 'text', 'length' => 20 ) ) );
+											$arrAlterParams['rename'] 	= array(name => array('name' => newname, 'definition' => array( 'type' => 'text', 'length' => 1, 'default' => 'M' ) ) );
+	 * @param	boolean	$boolCheck		If true, no changes will be made, but only a check if the proposed changes are feasible for the specific table and RDBMS
 	 *
 	 * @return	boolean
 	 */
@@ -234,19 +239,19 @@ class manageDB_Controller extends Controller {
 		if(!is_bool($boolCheck) && $boolCheck != 0 && $boolCheck != 1)	$boolCheck = false;
 		if(!is_array($arrAlterParams) || empty($arrAlterParams)) 		return false;
 		
+		if(!isset($arrAlterParams['add'])) 		$arrAlterParams['add']		= array();
+		if(!isset($arrAlterParams['remove'])) 	$arrAlterParams['remove'] 	= array();
+		if(!isset($arrAlterParams['change'])) 	$arrAlterParams['change'] 	= array();
+		if(!isset($arrAlterParams['rename'])) 	$arrAlterParams['rename'] 	= array();
+		
 		// Sets altering array params
 		$strNewTableName	= $strTable;
-		$arrAddFields 		= array();
-		$arrRemoveFields 	= array();
-		$arrChangeFields 	= array();
-		$arrRenameFields 	= array();
-		
-		$arrChangesDef = 	array(
+		$arrChangesDef 		= 	array(
 								'name'		=> $strNewTableName,
-								'add'		=> $arrAddFields,
-								'remove'	=> $arrRemoveFields,
-								'change'	=> $arrChangeFields,
-								'rename'	=> $arrRenameFields
+								'add'		=> $arrAlterParams['add'],
+								'remove'	=> $arrAlterParams['remove'],
+								'change'	=> $arrAlterParams['change'],
+								'rename'	=> $arrAlterParams['rename']
 							);
 		
 		if($this->objModel->objConn->alterTable($strTable,$arrChangesDef,$boolCheck)) {

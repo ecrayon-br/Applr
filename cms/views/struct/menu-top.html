@@ -3,7 +3,9 @@
 			<input type="button" value="Menu" onclick="window.location.href = '{$smarty.const.HTTP_CMS}';" />
 			{if $smarty.const.ACTION != 'config'}
 			<input type="button" value="List" onclick="window.location.href = '{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/list';" />
+			{if $smarty.const.ACTION != 'section-struct'}
 			<input type="button" value="Insert" onclick="window.location.href = '{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/insert';" />
+			{/if}
 			{/if}
 		</td>
 	</tr>

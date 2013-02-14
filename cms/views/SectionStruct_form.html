@@ -1,0 +1,104 @@
+{include file="struct/header.html"}
+
+<form name="formConfig" id="formConfig" method="post" action="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/add">
+<input type="hidden" name="sec_config_id" id="sec_config_id" value="{$objData->id}" />
+<table border=1 width=650>
+	<caption>APPLR SECTION STRUCT BUILDER</caption>
+	{include file="struct/menu-top.html"}
+	<tr>
+		<th colspan=2>FIELD INFO</th>
+	</tr>
+	<tr>
+		<td>Field label</td>
+		<td>
+			<input type="text" maxlength="80" value="{$objData->name}" size="40" name="name" id="name" />
+		</td>
+	</tr>
+	<tr>
+		<td>Field name</td>
+		<td>
+			<input type="text" maxlength="65" value="{$objData->field_name}" size="40" name="field_name" id="field_name" />
+		</td>
+	</tr>
+	<tr>
+		<td>Tool tip</td>
+		<td>
+			<input type="text" maxlength="255" value="{$objData->tooltip}" size="40" name="tooltip" id="tooltip" />
+		</td>
+	</tr>
+	<tr>
+		<td>Fill is mandatory?</td>
+		<td>
+			<input type="radio" name="mandatory" value=1 {if $objData->mandatory == 1}checked{/if} /> Yes<br />
+			<input type="radio" name="mandatory" value=0 {if $objData->mandatory == 0}checked{/if} /> No
+		</td>
+	</tr>
+	<tr>
+		<td>Requires administrative privileges?</td>
+		<td>
+			<input type="radio" name="admin" value=1 {if $objData->admin == 1}checked{/if} /> Yes<br />
+			<input type="radio" name="admin" value=0 {if $objData->admin == 0}checked{/if} /> No
+		</td>
+	</tr>
+	<tr>
+		<th colspan=2>FIELD STRUCT</th>
+	</tr>
+	<tr>
+		<td>Field Category</td>
+		<td>
+			<input type="radio" name="field" value=1 {if $objData->field == 1 || !isset($objData->field)}checked{/if} /> Dynamic<br />
+			<input type="radio" name="field" value=2 {if $objData->field == 2}checked{/if} /> Relationship
+		</td>
+	</tr>
+	<tr>
+		<td>Pre-defined Struct Fields</td>
+		<td>
+			<select name="sec_struct_id" id="sec_struct_id">
+				<option value="">N/R</option>
+				{foreach from=$arrStruct name="listStruct" item="arrTmp"}
+					<option value="{$arrTmp->id}" {if $arrTmp->id == $objData->sec_struct_id}selected{/if}>{$arrTmp->name}</option>
+				{/foreach}
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td>Section</td>
+		<td>
+			<select name="child_id" id="child_id" size="5" onchange="alert(this.value)">
+				{foreach from=$arrFld name="listFolder" item="arrTmpFld"}
+				<optgroup label="{$arrTmpFld->name}">
+					{foreach from=$arrSec.{$arrTmpFld->id} name="listSec" item="arrTmpSec"}
+					<option value="{$arrTmpFld->id}|{$arrTmpSec->id}"  {if $arrTmpSec->id == $objData->child_id}selected{/if}>--| {$arrTmpSec->name}</option>
+					{/foreach}
+				</optgroup>
+				{/foreach}
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td>Refered Section's Field to Exhibit</td>
+		<td>
+			<select name="sec_struct_id" id="sec_struct_id" size="5">
+				{foreach from=$arrSec.1.1->fields name="listStruct" item="arrTmp"}
+					<option value="{$arrTmp->id}" {if $arrTmp->id == $objData->sec_struct_id}selected{/if}>{$arrTmp->name}</option>
+				{/foreach}
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td>Relationship Type</td>
+		<td>
+			<input type="radio" name="field_type" value=2 {if $objData->field_type == 2}checked{/if} /> Check Box<br />
+			<input type="radio" name="field_type" value=1 {if $objData->field_type == 1}checked{/if} /> Radio Button<br />
+			<input type="radio" name="field_type" value=0 {if $objData->field_type == 0}checked{/if} /> Combo Box
+		</td>
+	</tr>
+	<tr>
+		<td colspan=2 align=right>
+			<input type="submit" value="Send" />
+		</td>
+	</tr>
+</table>
+</form>
+
+{include file="struct/footer.html"}

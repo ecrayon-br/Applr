@@ -78,6 +78,82 @@ class manageDB_Controller extends Controller {
 	}
 	
 	/**
+	 * Creates Relationship Table with default fields
+	 *
+	 * @param	array	$arrParent		Parent Table fields data definition, such as $arrParent = 	array(
+																										'table' => tablename,
+																										'field' => array(
+																														'name' => new_fieldname,
+																														'reference' => related_fieldname 
+																													)
+																									);
+	 * @param	array	$arrChild		Child Table fields data definition, same structure as $arrParent
+	 * @param	string	$strValue		Table name
+	 *
+	 * @return	boolean
+	 *
+	 * @since 	2013-02-13
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 *
+	 */
+	public function createRelationTable($arrParent,$arrChild,$strTable = '') {
+		if(!isset($arrParent['table']) || !is_string($arrParent['table'])) 							return false;
+		if(!isset($arrChild['table']) || !is_string($arrChild['table'])) 							return false;
+		
+		if(!isset($arrParent['field']) || !is_array($arrParent['field'])) 							return false;
+		if(!isset($arrChild['field']) || !is_array($arrChild['field'])) 							return false;
+		
+		if(!isset($arrParent['field']['name']) || !is_array($arrParent['field']['name'])) 			return false;
+		if(!isset($arrChild['field']['name']) || !is_array($arrChild['field']['name'])) 			return false;
+		
+		if(!isset($arrParent['field']['reference']) || !is_array($arrParent['field']['reference'])) return false;
+		if(!isset($arrChild['field']['reference']) || !is_array($arrChild['field']['reference'])) 	return false;
+		
+		if(!is_string($strTable) || empty($strTable)) $strTable = 'rel_' . $arrParent['table'] . '_' . $arrChild['table'];
+		 
+		// Sets fields structure
+		$arrDataDef	= array();
+		$arrDataDef[$arrParent['field']['reference']] = array(
+				'type'			=> 'integer',
+				'unsigned'		=> 0,
+				'notnull'		=> 1
+		);
+		$arrDataDef[$arrChild['field']['reference']] = array(
+				'type'			=> 'integer',
+				'unsigned'		=> 0,
+				'notnull'		=> 1
+		);
+	
+		// Sets specifics DBMS options
+		switch(DB_TYPE) {
+			case 'mysql':
+			case 'mysqli':
+			default:
+				$arrTableOpt = 	array(
+				'charset' => 'utf8',
+				'collate' => 'utf8_unicode_ci',
+				'type'    => 'innodb'
+				);
+				break;
+		}
+		
+		// Creates table
+		if($this->objModel->objConn->createTable($strTable,$arrDataDef,$arrTableOpt) === 0) {
+			// Sets foreign keys
+			if(
+				$this->setForeignKey( $strTable, $arrParent['table'], array($arrParent['field']['name'] => array()), array($arrParent['field']['reference'] => array()) ) &&
+				$this->setForeignKey( $strTable, $arrChild['table'], array($arrChild['field']['name'] => array()), array($arrChild['field']['reference'] => array()) )
+			) {
+				return true;
+			}
+
+			// If error on creating constraint
+			$this->drop('Table',$strTable);
+		}
+		return false;
+	}
+	
+	/**
 	 * Creates PRIMARY KEY attribute on $strValue TABLE
 	 *
 	 * @param	string	$strValue		Table name

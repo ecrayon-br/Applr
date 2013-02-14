@@ -22,7 +22,7 @@ class manageDB_Controller extends Controller {
 	public function createDatabase($strValue) {
 		if(!is_string($strValue) || empty($strValue)) return false;
 		
-		if($this->objModel->objConn->createDatabase($strValue)) {
+		if($this->objModel->objConn->createDatabase($strValue) === 0) {
 			$this->objModel->objConn->setDatabase($strValue);
 			
 			return true;
@@ -31,7 +31,7 @@ class manageDB_Controller extends Controller {
 	}
 	
 	/**
-	 * Creates Table with default fields `id` (integer) and `name` (string[255])
+	 * Creates Table with default fields `id` (integer)
 	 * 
 	 * @param	string	$strValue		Table name
 	 * @param	array	$arrDataDef		Table fields data definition
@@ -43,23 +43,17 @@ class manageDB_Controller extends Controller {
 	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
 	 *
 	 */
-	public function createTable($strValue,$arrDataDef,$arrTableOpt = array()) {
+	public function createTable($strValue,$arrDataDef = array(),$arrTableOpt = array()) {
 		if(!is_string($strValue) 	|| empty($strValue)) 	return false;
-		if(!is_array($arrDataDef) 	|| empty($arrDataDef)) 	return false;
+		if(!is_array($arrDataDef)) 	return false;
 		
 		// Checks default fields 
 		if(!isset($arrDataDef['id']) || !is_array($arrDataDef['id']) || !isset($arrDataDef['id']['type']) || $arrDataDef['id']['type'] != 'integer') {
 			$arrDataDef['id'] = array(
-									'type'		=> 'integer',
-									'unsigned'	=> 1,
-									'notnull'	=> 1
-								);
-		}
-		if(!isset($arrDataDef['name']) || !is_array($arrDataDef['name']) || !isset($arrDataDef['name']['type']) || $arrDataDef['name']['type'] != 'text') {
-			$arrDataDef['name'] = array(
-									'type'		=> 'text',
-									'length'	=> 255,
-									'notnull'	=> 1
+									'type'			=> 'integer',
+									'unsigned'		=> 0,
+									'notnull'		=> 1,
+									'autoincrement' => true
 								);
 		}
 		
@@ -77,8 +71,7 @@ class manageDB_Controller extends Controller {
 				break;
 			}
 		}
-		
-		if($this->objModel->objConn->createTable($strValue,$arrDataDef,$arrTableOpt)) {
+		if($this->objModel->objConn->createTable($strValue,$arrDataDef,$arrTableOpt) === 0) {
 			return true;
 		}
 		return false;
@@ -104,7 +97,7 @@ class manageDB_Controller extends Controller {
 							'primary'	=> true,
 							'fields'	=> array ('id' => array())
 						);
-		if($this->objModel->objConn->createConstraint($strValue, $strValue . '_PK', $arrKeyDef)) {
+		if($this->objModel->objConn->createConstraint($strValue, $strValue . '_PK', $arrKeyDef) === 0) {
 			return true;
 		}
 		return false;
@@ -130,7 +123,7 @@ class manageDB_Controller extends Controller {
 							'unique'	=> true,
 							'fields'	=> array ($strField => array())
 						);
-		if($this->objModel->objConn->createConstraint($strValue, $strField . '_Unq', $arrKeyDef)) {
+		if($this->objModel->objConn->createConstraint($strValue, $strField . '_Unq', $arrKeyDef) === 0) {
 			return true;
 		}
 		return false;
@@ -194,10 +187,19 @@ class manageDB_Controller extends Controller {
 													'match' 			=> $strMatch
 												)
 						);
-		if($this->objModel->objConn->createConstraint($strMainTable, $strMainTable . '_' . $strRelatedTable . '_FK', $arrKeyDef)) {
-			return true;
+		
+		// Query is specific written due to MDB2 bug not implementing ADD CONSTRAINT FOREIGN KEY
+		$strQuery	= 'ALTER TABLE ' . $strMainTable . ' ADD CONSTRAINT `' . $strMainTable . '_' . $strRelatedTable . '_FK' . '` FOREIGN KEY (`' . reset(array_keys($arrMainKey)) . '`) REFERENCES `' . $strRelatedTable . '` (`' . reset(array_keys($arrReferedKey)) . '`) ON DELETE ' . $strOnDelete . ' ON UPDATE ' . $strOnUpdate;
+		
+		// Tests if native MDB2 method succeeds; if not, tryes $strQuery
+		if(MDB2::isError($this->objModel->objConn->createConstraint($strMainTable, $strMainTable . '_' . $strRelatedTable . '_FK', $arrKeyDef))) {
+			if(MDB2::isError($this->objModel->executeQuery($strQuery))) {
+				return false;
+			} else {
+				return true;
+			}
 		}
-		return false;
+		return true;
 	}
 	
 	/**
@@ -223,7 +225,7 @@ class manageDB_Controller extends Controller {
 		}
 		
 		$arrKeyDef	=	array ( 'fields' => array ( $strField => $arrIndexDef ) );
-		if($this->objModel->objConn->createIndex($strValue, $strField . '_Idx', $arrIndexDef)) {
+		if($this->objModel->objConn->createIndex($strValue, $strField . '_Idx', $arrIndexDef) === 0) {
 			return true;
 		}
 		return false;
@@ -286,7 +288,7 @@ class manageDB_Controller extends Controller {
 								'rename'	=> $arrAlterParams['rename']
 							);
 		
-		if($this->objModel->objConn->alterTable($strTable,$arrChangesDef,$boolCheck)) {
+		if($this->objModel->objConn->alterTable($strTable,$arrChangesDef,$boolCheck) === 0) {
 			return true;
 		}
 		return false;
@@ -321,7 +323,7 @@ class manageDB_Controller extends Controller {
 			$mxdReturn	= $this->objModel->objConn->$strMethod($strValue);
 		}
 		
-		if($mxdReturn) {
+		if($mxdReturn === 0) {
 			return true;
 		}
 		return false;

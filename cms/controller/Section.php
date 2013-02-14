@@ -48,12 +48,12 @@ class Section_controller extends CRUD_controller {
 										);
 	protected	$arrWhereData	= array('sec_config.id = {id}');
 	
-	private		$intSecID		= 0;
-	private		$arrFldList		= array();
-	private		$arrSecList		= array();
-	private		$arrLangList	= array();
-	private		$arrTPLTypeList	= array();
-	private		$arrTPLList		= array();
+	protected		$intSecID		= 0;
+	protected		$arrFldList		= array();
+	protected		$arrSecList		= array();
+	protected		$arrLangList	= array();
+	protected		$arrTPLTypeList	= array();
+	protected		$arrTPLList		= array();
 	
 	protected	$objManage;
 	
@@ -84,6 +84,7 @@ class Section_controller extends CRUD_controller {
 		$this->arrFldList	= $this->objModel->select(array('id','name'),'sys_folder',array(),array(),array(),array(),0,null,'All');
 		
 		// Gets SECTION list
+		$this->arrSecList	= array();
 		$arrTempSec			= $this->objModel->select(array('id','name','sys_folder_id'),'sec_config',array(),array('sec_config.id <> ' . $this->intSecID),array(),array(),0,null,'All');
 		foreach($arrTempSec AS $intKey => $objTemp) {
 			$this->arrSecList[$objTemp->sys_folder_id][] = $objTemp;

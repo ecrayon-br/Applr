@@ -268,7 +268,7 @@ class manageDB_Controller extends Controller {
 	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
 	 *
 	 */
-	public function alter($strTable,$arrAlterParams = array(), $boolCheck = false) {
+	public function alterTable($strTable,$arrAlterParams = array(), $boolCheck = false) {
 		if(!is_string($strTable) || empty($strTable)) 					return false;
 		if(!is_bool($boolCheck) && $boolCheck != 0 && $boolCheck != 1)	$boolCheck = false;
 		if(!is_array($arrAlterParams) || empty($arrAlterParams)) 		return false;

@@ -209,7 +209,7 @@ class Section_controller extends CRUD_controller {
 						foreach($arrInsertTPL AS &$arrTmp) {
 							$arrTmp['sec_config_id'] = $this->objData->id;
 						}
-						echo '<pre>'; print_r($arrInsertTPL);
+						
 						if($this->objModel->insert('rel_sec_template', $arrInsertTPL)) {
 							
 						} else {
@@ -300,7 +300,7 @@ class Section_controller extends CRUD_controller {
 								);
 		
 		if($this->objManage->createTable($strValue)) {
-			if($this->objManage->alter($strValue,$arrDefaultFields)) {
+			if($this->objManage->alterTable($strValue,$arrDefaultFields)) {
 				if($this->objManage->setForeignKey($strValue,'usr_data',array('usr_data_id' => array()))) {
 					if($this->objManage->setForeignKey($strValue,'sys_language',array('sys_language_id' => array()))) {
 						return true;

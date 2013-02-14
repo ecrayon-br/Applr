@@ -14,6 +14,10 @@ class manageDB_Controller extends Controller {
 	 * @param	string	$strValue	Database name
 	 * 
 	 * @return	boolean
+	 *
+	 * @since 	2013-02-13
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 *
 	 */
 	public function createDatabase($strValue) {
 		if(!is_string($strValue) || empty($strValue)) return false;
@@ -34,6 +38,10 @@ class manageDB_Controller extends Controller {
 	 * @param	array	$arrTableOpt	Specifics DBMS options
 	 * 
 	 * @return	boolean
+	 *
+	 * @since 	2013-02-13
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 *
 	 */
 	public function createTable($strValue,$arrDataDef,$arrTableOpt = array()) {
 		if(!is_string($strValue) 	|| empty($strValue)) 	return false;
@@ -83,6 +91,10 @@ class manageDB_Controller extends Controller {
 	 * @param	string	$strField		Field name
 	 *
 	 * @return	boolean
+	 *
+	 * @since 	2013-02-13
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 *
 	 */
 	public function setPrimaryKey($strValue,$strField = 'id') {
 		if(!is_string($strValue) 	|| empty($strValue)) 	return false;
@@ -105,6 +117,10 @@ class manageDB_Controller extends Controller {
 	 * @param	string	$strField		Field name
 	 *
 	 * @return	boolean
+	 *
+	 * @since 	2013-02-13
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 *
 	 */
 	public function setUniqueKey($strValue,$strField) {
 		if(!is_string($strValue) 	|| empty($strValue)) 	return false;
@@ -132,6 +148,10 @@ class manageDB_Controller extends Controller {
 	 * @param 	string 	$strMatch			FK MATCH parameter
 	 *
 	 * @return	boolean
+	 *
+	 * @since 	2013-02-13
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 *
 	 */
 	public function setForeignKey($strMainTable,$strRelatedTable,$arrMainKey = array('id' => array()),$arrReferedKey = array('id' => array()),$strOnDelete = 'CASCADE',$strOnUpdate = 'CASCADE',$strMatch = 'FULL') {
 		if(!is_string($strMainTable) 	|| empty($strMainTable)) 	return false;
@@ -188,6 +208,10 @@ class manageDB_Controller extends Controller {
 	 * @param	array	$arrIndexDef	Index definitions ('sorting' => ascending|descending, 'length' => integer)
 	 *
 	 * @return	boolean
+	 *
+	 * @since 	2013-02-13
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 *
 	 */
 	public function setIndex($strValue,$strField,$arrIndexDef = array('sorting' => 'descending')) {
 		if(!is_string($strValue) 	|| empty($strValue)) 	return false;
@@ -211,6 +235,10 @@ class manageDB_Controller extends Controller {
 	 * @param	string	$strValue		Table name
 	 * 
 	 * @return	boolean
+	 *
+	 * @since 	2013-02-13
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 *
 	 */
 	public function createSequence($strValue) {
 		if(!is_string($strValue) 	|| empty($strValue)) 	return false;
@@ -233,6 +261,10 @@ class manageDB_Controller extends Controller {
 	 * @param	boolean	$boolCheck		If true, no changes will be made, but only a check if the proposed changes are feasible for the specific table and RDBMS
 	 *
 	 * @return	boolean
+	 *
+	 * @since 	2013-02-13
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 *
 	 */
 	public function alter($strTable,$arrAlterParams = array(), $boolCheck = false) {
 		if(!is_string($strTable) || empty($strTable)) 					return false;
@@ -268,6 +300,10 @@ class manageDB_Controller extends Controller {
 	 * @param	string	$strArgs	Arguments, in case of dropConstraint or dropIndex
 	 * 
 	 * @return	boolean
+	 *
+	 * @since 	2013-02-13
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 *
 	 */
 	public function drop($strMethod,$strValue,$strArgs) {
 		if(!is_string($strMethod) 	|| empty($strValue)) 	return false;

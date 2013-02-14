@@ -247,6 +247,7 @@ class Section_controller extends CRUD_controller {
 		if($intID > 0) {
 			$this->objData = $this->objModelCRUD->getData($intID);
 			
+			// Gets Section name for each language
 			$arrLang	= array();
 			$objLang 	= $this->objModel->select(array('sys_language.id','rel_sec_language.name'),array('sys_language','rel_sec_language'),array(),array('rel_sec_language.sys_language_id = sys_language.id','rel_sec_language.sec_config_id = ' . $intID),array(),array(),0,null,'All');
 			foreach($objLang AS $objTmp) {
@@ -255,6 +256,7 @@ class Section_controller extends CRUD_controller {
 			unset($objLang);
 			$this->objData->language = $arrLang;
 			
+			// Gets template related for each template type
 			$arrTPL	= array();
 			$objTPL 	= $this->objModel->select(array('rel_sec_template.sys_template_type_id','rel_sec_template.sys_template_id'),array('rel_sec_template'),array(),array('rel_sec_template.sec_config_id = ' . $intID),array(),array(),0,null,'All');
 			foreach($objTPL AS $objTmp) {

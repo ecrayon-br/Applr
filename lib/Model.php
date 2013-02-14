@@ -165,7 +165,7 @@ class Model {
 	 * @author	Diego Flores <diegotf [at] gmail dot com>
 	 * @since	2008-01-29
 	**/
-	public function setFetchMode($mxdFetch = 0) {
+	public function setFetchMode($mxdFetch = 0)  {
 		if(!is_object($this->objConn))							return false;
 		if(!is_string($mxdFetch) && !is_numeric($mxdFetch))		return false;
 		if(is_string($mxdFetch))								$mxdFetch = strtoupper($mxdFetch);

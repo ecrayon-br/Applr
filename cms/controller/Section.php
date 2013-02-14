@@ -164,13 +164,38 @@ class Section_controller extends CRUD_controller {
 			$_POST['parent'] = $arrHierarchy[1];
 			$_POST['sys_folder_id'] = null;
 		}
-		$this->objData->hierarchy = (!is_null($_POST['sys_folder_id']) ? $_POST['sys_folder_id'] : 0) . '|' . (!is_null($_POST['parent']) ? $_POST['parent'] : 0);
+		$this->objData->hierarchy 	= (!is_null($_POST['sys_folder_id']) ? $_POST['sys_folder_id'] : 0) . '|' . (!is_null($_POST['parent']) ? $_POST['parent'] : 0);
+		
+		// Sets table name preffix
+		$_POST['table_name']		= 'sec_ctn_' . str_replace('-','_', Controller::permalinkSyntax($_POST['table_name']) );
 		
 		// Creates section table
-		if($this->createSectionTable(str_replace('-','_',Controller::permalinkSyntax('sec_' . $_POST['table_name'])))) {
+		if($this->createSectionTable($_POST['table_name'])) {
 			// Saves data
 			if($this->_update($_POST,false)) {
-			
+				
+				// Creates media directories and galleries
+				@mkdir(ROOT_IMAGE	. $_POST['permalink'],0755);
+				@mkdir(ROOT_VIDEO	. $_POST['permalink'],0755);
+				@mkdir(ROOT_UPLOAD	. $_POST['permalink'],0755);
+				@mkdir(ROOT_STATIC	. $_POST['permalink'],0755);
+				@mkdir(ROOT_RSS		. $_POST['permalink'],0755);
+				@mkdir(ROOT_XML		. $_POST['permalink'],0755);
+				
+				$arrMediaGalleryInfo	= array(
+						'usr_data_id'	=> $this->intUserID,
+						'sec_config_id'	=> $this->objData->id,
+						'name'			=> $_POST['name'],
+						'is_default'	=> 1,
+						'autothumb'		=> $_POST['autothumb'],
+						'autothumb_h'	=> $_POST['autothumb_h'],
+						'autothumb_w'	=> $_POST['autothumb_w'],
+						'status'		=> 1
+				);
+				$this->objModel->insert('media_gallery',array_merge($arrMediaGalleryInfo,array('mediatype' => 2, 'dirpath' => DIR_IMAGE . $_POST['permalink'])));
+				$this->objModel->insert('media_gallery',array_merge($arrMediaGalleryInfo,array('mediatype' => 1, 'dirpath' => DIR_VIDEO . $_POST['permalink'])));
+				$this->objModel->insert('media_gallery',array_merge($arrMediaGalleryInfo,array('mediatype' => 0, 'dirpath' => DIR_UPLOAD . $_POST['permalink'])));
+				
 				// Saves LANGUAGE REL data
 				$this->objModel->delete('rel_sec_language','sec_config_id = ' . $this->objData->id);
 				foreach($arrInsertLang AS &$arrTmp) {
@@ -179,35 +204,17 @@ class Section_controller extends CRUD_controller {
 				if($this->objModel->insert('rel_sec_language', $arrInsertLang)) {
 					
 					// Saves TEMPLATE REL data
-					$this->objModel->delete('rel_sec_template','sec_config_id = ' . $this->objData->id);
-					foreach($arrInsertTPL AS &$arrTmp) {
-						$arrTmp['sec_config_id'] = $this->objData->id;
-					}
-					if($this->objModel->insert('rel_sec_template', $arrInsertTPL)) {
+					if(!empty($arrInsertTPL)) {
+						$this->objModel->delete('rel_sec_template','sec_config_id = ' . $this->objData->id);
+						foreach($arrInsertTPL AS &$arrTmp) {
+							$arrTmp['sec_config_id'] = $this->objData->id;
+						}
+						echo '<pre>'; print_r($arrInsertTPL);
+						if($this->objModel->insert('rel_sec_template', $arrInsertTPL)) {
 							
-						// Creates media directories and galleries
-						@mkdir(ROOT_IMAGE	. $_POST['permalink'],0755);
-						@mkdir(ROOT_VIDEO	. $_POST['permalink'],0755);
-						@mkdir(ROOT_UPLOAD	. $_POST['permalink'],0755);
-						@mkdir(ROOT_STATIC	. $_POST['permalink'],0755);
-						@mkdir(ROOT_RSS		. $_POST['permalink'],0755);
-						@mkdir(ROOT_XML		. $_POST['permalink'],0755);
-						
-						$arrMediaGalleryInfo	= array(
-														'usr_data_id'	=> $this->intUserID,
-														'sec_config_id'	=> $this->objData->id,
-														'name'			=> $_POST['name'],
-														'is_default'	=> 1,
-														'autothumb'		=> $_POST['autothumb'],
-														'autothumb_h'	=> $_POST['autothumb_h'],
-														'autothumb_w'	=> $_POST['autothumb_w'],
-														'status'		=> 1
-													);
-						$this->objModel->insert('media_gallery',array_merge($arrMediaGalleryInfo,array('mediatype' => 2, 'dirpath' => DIR_IMAGE . $_POST['permalink'])));
-						$this->objModel->insert('media_gallery',array_merge($arrMediaGalleryInfo,array('mediatype' => 1, 'dirpath' => DIR_VIDEO . $_POST['permalink'])));
-						$this->objModel->insert('media_gallery',array_merge($arrMediaGalleryInfo,array('mediatype' => 0, 'dirpath' => DIR_UPLOAD . $_POST['permalink'])));
-					} else {
-						$this->objSmarty->assign('ERROR_MSG','There was an error while trying to save template data! Please try again!');
+						} else {
+							$this->objSmarty->assign('ERROR_MSG','There was an error while trying to save template data! Please try again!');
+						}
 					}
 				} else {
 					$this->objSmarty->assign('ERROR_MSG','There was an error while trying to save language data! Please try again!');
@@ -275,10 +282,29 @@ class Section_controller extends CRUD_controller {
 	 *
 	 */
 	protected function createSectionTable($strValue) {
+		$arrDefaultFields = array('add' => array(
+												'lang_content'		=> array('type' => 'integer', 'unsigned' => 0, 'notnull' => 1),
+												'usr_data_id'		=> array('type' => 'integer', 'unsigned' => 0, 'notnull' => 1),
+												'sys_language_id'	=> array('type' => 'integer', 'unsigned' => 0, 'notnull' => 1),
+												'date_create' 		=> array('type' => 'timestamp', 'notnull' => 1),
+												'date_publish' 		=> array('type' => 'timestamp', 'notnull' => 1),
+												'date_expire' 		=> array('type' => 'timestamp', 'notnull' => 0),
+												'create_html'		=> array('type' => 'boolean', 'notnull' => 1, 'default' => 0),
+												'active'			=> array('type' => 'boolean', 'notnull' => 1, 'default' => 1),
+												'deleted'			=> array('type' => 'boolean', 'notnull' => 1, 'default' => 0),
+												'seo_description'	=> array('type' => 'text'),
+												'seo_keywords'		=> array('type' => 'text', 'length' => 255, 'notnull' => 1),
+												'name' 				=> array('type' => 'text', 'length' => 255, 'notnull' => 1),
+												'permalink'			=> array('type' => 'text', 'length' => 255, 'notnull' => 1)
+												)
+								);
+		
 		if($this->objManage->createTable($strValue)) {
-			if($this->objManage->createSequence($strValue)) {
-				if($this->objManage->setPrimaryKey($strValue)) {
-					return true;
+			if($this->objManage->alter($strValue,$arrDefaultFields)) {
+				if($this->objManage->setForeignKey($strValue,'usr_data',array('usr_data_id' => array()))) {
+					if($this->objManage->setForeignKey($strValue,'sys_language',array('sys_language_id' => array()))) {
+						return true;
+					} else return false;
 				} else return false;
 			} else return false;
 		} else return false;

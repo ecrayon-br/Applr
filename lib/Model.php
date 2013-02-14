@@ -173,6 +173,7 @@ class Model {
 		switch($mxdFetch) {
 			case 'MDB2_FETCHMODE_OBJECT':
 			case 'OBJ':
+			case 'OBJECT':
 			case 0:
 				$this->objConn->setFetchMode(MDB2_FETCHMODE_OBJECT);
 			break;
@@ -345,26 +346,6 @@ class Model {
 		}
 		
 		return $arrData;
-		/*
-		foreach($arrData AS $intRowKey => &$arrRowData) {
-			$intRow	= count($arrRowData);
-			if($intRow > 0) {
-				// Completes empty fields in rows array
-				if($intRow < $intColumn) {
-					// Defines difference between column quantity and $arrRowData elements
-					$intDiffColumn 	= $intColumn - $intRow;
-					
-					// Fills $arrRowData with empty values for missing elements
-					for($intI = 0; $intI < $intDiffColumn; $intI++) array_push($arrRowData,'');
-				}
-		*/
-		
-		/*
-			} else {
-				unset($arrData[$intRowKey]);
-			}
-		}
-		*/
 	}
 	
 	/**

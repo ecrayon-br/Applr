@@ -439,10 +439,13 @@ class Model {
 		if(!is_bool($boolReturnValue) 	&& $boolReturnValue !== 1 && $boolReturnValue !== 0)	return false;
 		
 		$objQuery	= $this->select($strField,$strTable,array(),$strWhere,array(),array(),0,1,'Row');
+		$mxdReturn	= reset($objQuery);
 		
-		if(isset($objQuery->$strField) && !is_null($objQuery->$strField)) { return ($boolReturnValue ? $objQuery->$strField : true); }
-		
-		return false;
+		if(MDB2::isError($objQuery) || !$mxdReturn) {
+			return false;
+		} else {
+			return ($boolReturnValue ? $mxdReturn : true);
+		}
 	}
 	
 	/**

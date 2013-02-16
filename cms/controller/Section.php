@@ -48,12 +48,12 @@ class Section_controller extends CRUD_controller {
 										);
 	protected	$arrWhereData	= array('sec_config.id = {id}');
 	
-	protected		$intSecID		= 0;
-	protected		$arrFldList		= array();
-	protected		$arrSecList		= array();
-	protected		$arrLangList	= array();
-	protected		$arrTPLTypeList	= array();
-	protected		$arrTPLList		= array();
+	protected	$intSecID		= 0;
+	protected	$arrFldList		= array();
+	protected	$arrSecList		= array();
+	protected	$arrLangList	= array();
+	protected	$arrTPLTypeList	= array();
+	protected	$arrTPLList		= array();
 	
 	protected	$objManage;
 	
@@ -70,6 +70,10 @@ class Section_controller extends CRUD_controller {
 	 */
 	public function __construct($boolRenderTemplate = true) {
 		parent::__construct(false);
+		
+		// Sets editing Section ID
+		$this->intSecID		= intval($_SESSION[self::$strProjectName]['URI_SEGMENT'][4]);
+		if(!$this->intSecID) $this->intSecID = intval($_POST['sec_config_id']);
 		
 		// Gets TEMPLATES list
 		$this->arrTPLList	= $this->objModel->select(array('id','name'),'sys_template',array(),array(),array(),array(),0,null,'All');
@@ -216,9 +220,7 @@ class Section_controller extends CRUD_controller {
 								$arrTmp['sec_config_id'] = $this->objData->id;
 							}
 							
-							if($this->objModel->insert('rel_sec_template', $arrInsertTPL)) {
-								
-							} else {
+							if(!$this->objModel->insert('rel_sec_template', $arrInsertTPL)) {
 								$this->objSmarty->assign('ERROR_MSG','There was an error while trying to save template data! Please try again!');
 							}
 						}
@@ -254,7 +256,7 @@ class Section_controller extends CRUD_controller {
 	 */
 	protected function _create($intID = 0) {
 		if($intID > 0) {
-			$this->objData = $this->objModelCRUD->getData($intID);
+			$this->objData 	= $this->objModel->getData($this->intSecID);
 			
 			// Gets Section name for each language
 			$arrLang	= array();
@@ -279,7 +281,6 @@ class Section_controller extends CRUD_controller {
 		
 		$this->renderTemplate(true,$this->strModule . '_form.html');
 	}
-	
 	
 	/**
 	 * Creates Section table with default fields `id` (integer) and `name` (string[255])

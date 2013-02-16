@@ -101,8 +101,8 @@ class MediaGallery_controller extends CRUD_controller {
 	/*
 	protected function _create($intID = 0) {
 		if($intID > 0) {
-			$this->objData = $this->objModelCRUD->getData($intID);
-			if(is_numeric($objData->sec_config_id) && $objData->sec_config_id > 0) $this->objData->sec_config_name = $this->objModelCRUD->recordExists('name','sec_config','id = ' . $objData->sec_config_id,true);
+			$this->objData = $this->objModel->getData($intID);
+			if(is_numeric($objData->sec_config_id) && $objData->sec_config_id > 0) $this->objData->sec_config_name = $this->objModel->recordExists('name','sec_config','id = ' . $objData->sec_config_id,true);
 			$this->objSmarty->assign('objData',$this->objData);
 		}
 	

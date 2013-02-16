@@ -1,7 +1,6 @@
 <?php
 class CRUD_Controller extends Main_controller {
 	protected 	$objModel;
-	protected	$objModelCRUD;
 
 	protected	$strModule		= '';
 	protected	$strTable		= '';
@@ -36,15 +35,12 @@ class CRUD_Controller extends Main_controller {
 		
 		if(!DEBUG) authUser_Controller::isLoggedIn(true,'Login.html');
 		
-		$this->objModelCRUD	= new Crud_Model($this->arrTable,$this->arrFieldType,$this->arrFieldList,$this->arrJoinList,$this->arrWhereList,$this->arrOrderList,$this->arrGroupList,$this->arrFieldData,$this->arrJoinData,$this->arrWhereData,$this->arrOrderData,$this->arrGroupData);
-		
 		$this->strModule 	= str_replace(array('_Controller','_controller'),'',get_class($this));
 		$strModelClass		= $this->strModule . '_model';
-		
 		if(class_exists($strModelClass)) {
 			$this->objModel = new $strModelClass($this->arrTable,$this->arrFieldType,$this->arrFieldList,$this->arrJoinList,$this->arrWhereList,$this->arrOrderList,$this->arrGroupList,$this->arrFieldData,$this->arrJoinData,$this->arrWhereData,$this->arrOrderData,$this->arrGroupData);
 		} else {
-			$this->objModel = $this->objModelCRUD;
+			$this->objModel	= new Crud_Model($this->arrTable,$this->arrFieldType,$this->arrFieldList,$this->arrJoinList,$this->arrWhereList,$this->arrOrderList,$this->arrGroupList,$this->arrFieldData,$this->arrJoinData,$this->arrWhereData,$this->arrOrderData,$this->arrGroupData);
 		}
 		
 		if($boolRenderTemplate) $this->_read();
@@ -82,7 +78,7 @@ class CRUD_Controller extends Main_controller {
 		}
 		if(!is_numeric($intID) || $intID <= 0) {
 			$this->objSmarty->assign('ALERT_MSG','You must choose an item to update!');
-			$this->renderTemplate(); exit();
+			$this->_read(); exit();
 		}
 		
 		$this->_create($intID);
@@ -128,7 +124,7 @@ class CRUD_Controller extends Main_controller {
 	 */
 	protected function _create($intID = 0) {
 		if($intID > 0) {
-			$this->objData = $this->objModelCRUD->getData($intID);
+			$this->objData = $this->objModel->getData($intID);
 			$this->objSmarty->assign('objData',$this->objData);
 		}
 		
@@ -145,7 +141,7 @@ class CRUD_Controller extends Main_controller {
 	 *
 	 */
 	protected function _read() {
-		$this->objData	= $this->objModelCRUD->getList();
+		$this->objData	= $this->objModel->getList();
 		$this->objSmarty->assign('objData',$this->objData);
 		$this->renderTemplate();
 	}
@@ -168,7 +164,7 @@ class CRUD_Controller extends Main_controller {
 		if(isset($this->arrFieldType['usr_data_id'])) $arrData['usr_data_id'] = $this->intUserID;
 		
 		if(($strField = $this->validateParamsArray($arrData,$this->arrFieldType,false)) === true) {
-			if(($intID = $this->objModelCRUD->replace($this->strTable,$arrData)) !== false) {
+			if(($intID = $this->objModel->replace($this->strTable,$arrData)) !== false) {
 				if(empty($arrData['id'])) {
 					$arrData['id']	= $intID;
 				} else {
@@ -211,9 +207,9 @@ class CRUD_Controller extends Main_controller {
 		if(!is_bool($boolMode) && !is_numeric($boolMode) || (is_numeric($boolMode) && $boolMode != 0 && $boolMode != 1)) return false;
 		
 		if($boolMode) {
-			return $this->objModelCRUD->update($this->strTable,array('deleted' => 1),'id IN (' . implode($arrWhere) . ')');
+			return $this->objModel->update($this->strTable,array('deleted' => 1),'id IN (' . implode($arrWhere) . ')');
 		} else {
-			return $this->objModelCRUD->delete($this->strTable,'id IN (' . implode(',',$arrWhere) . ')');
+			return $this->objModel->delete($this->strTable,'id IN (' . implode(',',$arrWhere) . ')');
 		}
 	}
 	

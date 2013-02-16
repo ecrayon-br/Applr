@@ -355,14 +355,12 @@ class manageDB_Controller extends Controller {
 		if(!isset($arrAlterParams['rename'])) 	$arrAlterParams['rename'] 	= array();
 		
 		// Sets altering array params
-		$strNewTableName	= $strTable;
-		$arrChangesDef 		= 	array(
-								'name'		=> $strNewTableName,
-								'add'		=> $arrAlterParams['add'],
-								'remove'	=> $arrAlterParams['remove'],
-								'change'	=> $arrAlterParams['change'],
-								'rename'	=> $arrAlterParams['rename']
-							);
+		$strNewTableName		= $strTable;
+		$arrChangesDef['name'] 	= $strNewTableName;
+		if(!empty($arrAlterParams['add'])) 		$arrChangesDef['add']		= $arrAlterParams['add'];
+		if(!empty($arrAlterParams['remove']))	$arrChangesDef['remove']	= $arrAlterParams['remove'];
+		if(!empty($arrAlterParams['change']))	$arrChangesDef['change']	= $arrAlterParams['change'];
+		if(!empty($arrAlterParams['rename']))	$arrChangesDef['rename']	= $arrAlterParams['rename'];
 		
 		if($this->objModel->objConn->alterTable($strTable,$arrChangesDef,$boolCheck) === 0) {
 			return true;

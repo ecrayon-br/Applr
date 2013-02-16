@@ -63,7 +63,7 @@ class Config_controller extends CRUD_Controller {
 	 *
 	 */
 	protected function _read() {
-		$this->objData	= $this->objModelCRUD->getData($this->intProjectID);
+		$this->objData	= $this->objModel->getData($this->intProjectID);
 		$this->objData->logo_upload = SYS_DIR . $this->objData->logo_upload;
 		
 		$this->objSmarty->assign('objData',$this->objData);

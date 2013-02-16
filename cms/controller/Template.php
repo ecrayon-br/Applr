@@ -69,7 +69,7 @@ class Template_controller extends CRUD_controller {
 	 */
 	protected function _create($intID = 0) {
 		if($intID > 0) {
-			$this->objData = $this->objModelCRUD->getData($intID);
+			$this->objData = $this->objModel->getData($intID);
 			
 			$this->objData->path	= $this->objData->filename;
 			$this->objData->html	= file_get_contents(ROOT_TEMPLATE . $this->objData->filename);

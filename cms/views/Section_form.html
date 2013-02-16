@@ -17,7 +17,7 @@
 				<optgroup label="{$arrTmpFld->name}">
 					<option value="{$arrTmpFld->id}|0" {if $arrTmpFld->id == $objData->sys_folder_id && empty($objData->parent)}selected{/if}>-| Root level</option>
 					{foreach from=$arrSec.{$arrTmpFld->id} name="listSec" item="arrTmpSec"}
-					<option value="{$arrTmpFld->id}|{$arrTmpSec->id}"  {if $arrTmpFld->id == $objData->sys_folder_id && $arrTmpSec->id == $objData->parent}selected{/if}>--| {$arrTmpSec->name}</option>
+					<option value="{$arrTmpFld->id}|{$arrTmpSec->id}"  {if $arrTmpFld->id == $objData->sys_folder_id && $arrTmpSec->id == $objData->parent}selected{/if}>-| {$arrTmpSec->name}</option>
 					{/foreach}
 				</optgroup>
 				{/foreach}

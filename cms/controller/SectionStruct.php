@@ -38,6 +38,7 @@ class SectionStruct_controller extends Section_controller {
 	
 	private		$arrStruct		= array();
 	private		$strSecTable;
+	private		$strChildTable;
 	private		$intFieldID;
 	
 	public		$objField;
@@ -70,11 +71,15 @@ class SectionStruct_controller extends Section_controller {
 		$this->arrSecList	= array();
 		$arrTempSec			= $this->objModel->select(array('id','name','sys_folder_id','table_name'),'sec_config',array(),array(),array(),array(),0,null,'All');
 		foreach($arrTempSec AS $intKey => $objTemp) {
-			$objTemp->fields = $this->objModel->select(array('id','name'),'rel_sec_struct',array(),array('sec_config_id = ' . $objTemp->id),array(),array(),0,null,'All');
+			$objTemp->fields = $this->objModel->select(array('id','name','field_name'),'rel_sec_struct',array(),array('sec_config_id = ' . $objTemp->id),array(),array(),0,null,'All');
 			$this->arrSecList[$objTemp->sys_folder_id][$objTemp->id] = $objTemp;
 			
 			if($objTemp->id == $this->intSecID) {
 				$this->strSecTable = $objTemp->table_name;
+			}
+			
+			if(!empty($_POST['child_id']) && $objTemp->id == $_POST['child_id']) {
+				$this->strChildTable = $objTemp->table_name;
 			}
 		}
 		$this->objSmarty->assign('arrSec',$this->arrSecList);
@@ -88,6 +93,10 @@ class SectionStruct_controller extends Section_controller {
 	 * Deletes field
 	 * 
 	 * @return	void
+	 * 
+	 * @since 	2013-02-16
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 *
 	 */
 	public function delete() {
 		$this->getFieldData();
@@ -103,6 +112,8 @@ class SectionStruct_controller extends Section_controller {
 	/**
 	 * Gets specific Field data and fills Struct Builder form
 	 *
+	 * @return void
+	 * 
 	 * @since 	2013-02-16
 	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
 	 *
@@ -143,6 +154,7 @@ class SectionStruct_controller extends Section_controller {
 		if(isset($_POST['field']) && $_POST['field'] == 1) {
 			// Sets main insert table
 			$strTable			= 'rel_sec_struct';
+			$intFieldType		= 1;
 			
 			// Sets field name syntax
 			$strSuffix				= (!empty($this->arrStruct[$_POST['sec_struct_id']]->suffix ) ? '_' . (string) $this->arrStruct[$_POST['sec_struct_id']]->suffix : '');
@@ -168,14 +180,22 @@ class SectionStruct_controller extends Section_controller {
 		} elseif(isset($_POST['field']) && $_POST['field'] == 2) {
 			// Sets main insert table
 			$strTable			= 'rel_sec_sec';
+			$intFieldType		= 2;
 			
 			// Sets specific field data to validate
 			$this->arrFieldType	= 	array_merge($this->arrFieldType,array(
 																		'child_id'		=> 'numeric',
-																		'field_rel'		=> 'numeric',
-																		'field_type'	=> 'numeric'
+																		'field_rel'		=> 'string_notempty',
+																		'field_type'	=> 'numeric',
+																		'table_name'	=> 'string_notempty'
 																	)
 									);
+			
+			// Defines rel table name
+			$strChildTable			= $this->objModel->recordExists('table_name','sec_config','id = ' . $_POST['child_id'],true);
+			if(!empty($strChildTable)) {
+				$_POST['table_name']	= 'sec_rel_' . str_replace('sec_ctn_','',$this->strSecTable) . ($this->strSecTable == $strChildTable ? '_parent' : '') . '_rel_' . str_replace('sec_ctn_','',$strChildTable) . ($this->strSecTable == $strChildTable ? '_child' : '');
+			}
 			
 			// If is editing a field, sets rel_sec_struct.id param
 			if(!empty($_POST['id'])) {
@@ -201,7 +221,7 @@ class SectionStruct_controller extends Section_controller {
 											'field_id'		=> $intFieldID,
 											'sec_config_id'	=> $_POST['sec_config_id'],
 											'field_order'	=> $intOrder,
-											'type'			=> 1
+											'type'			=> $intFieldType
 										);
 					
 					// Inserts field order data
@@ -311,26 +331,43 @@ class SectionStruct_controller extends Section_controller {
 		if(!is_array($arrData) || !isset($arrData['sec_struct_id']) || !isset($this->arrStruct[$arrData['sec_struct_id']])) $arrData['sec_struct_id'] = 1;
 		if(!is_string($arrData['field_name']) || empty($arrData['field_name'])) return false;
 		
-		// Sets RDBMS struct array
-		$arrStruct['type'] 		= $this->arrStruct[$arrData['sec_struct_id']]->fieldtype;
-		$arrStruct['unsigned'] 	= $this->arrStruct[$arrData['sec_struct_id']]->is_unsigned;
-		$arrStruct['null'] 		= $this->arrStruct[$arrData['sec_struct_id']]->notnull;
-		$arrStruct['default'] 	= $this->arrStruct[$arrData['sec_struct_id']]->default_value;
-		if($this->arrStruct[$arrData['sec_struct_id']]->length > 0) {
-			$arrStruct['length']= $this->arrStruct[$arrData['sec_struct_id']]->length;
-		}
-		
-		$arrDefaultFields 		= array('add' =>array($arrData['field_name'] => $arrStruct));
-		
 		switch($boolStruct) {
 			// rel_sec_struct
 			case true:
 			default:
+				// Sets RDBMS struct array
+				$arrStruct['type'] 		= $this->arrStruct[$arrData['sec_struct_id']]->fieldtype;
+				$arrStruct['unsigned'] 	= $this->arrStruct[$arrData['sec_struct_id']]->is_unsigned;
+				$arrStruct['null'] 		= $this->arrStruct[$arrData['sec_struct_id']]->notnull;
+				$arrStruct['default'] 	= $this->arrStruct[$arrData['sec_struct_id']]->default_value;
+				if($this->arrStruct[$arrData['sec_struct_id']]->length > 0) {
+					$arrStruct['length']= $this->arrStruct[$arrData['sec_struct_id']]->length;
+				}
+				
+				$arrDefaultFields 		= array('add' =>array($arrData['field_name'] => $arrStruct));
+				
 				return $this->objManage->alterTable($this->strSecTable,$arrDefaultFields);
 			break;
 			
 			// rel_sec_sec
 			case false:
+				$arrParent = array(
+						'table' => $this->strSecTable,
+						'field' => array(
+								'name' 		=> 'parent_id',
+								'reference' => 'id'
+						)
+				);
+				
+				$arrChild = array(
+						'table' => $this->strChildTable,
+						'field' => array(
+								'name' 		=> 'child_id',
+								'reference' => 'id'
+						)
+				);
+				
+				return $this->objManage->createRelationTable($arrParent,$arrChild,$arrData['table_name']);
 			break;
 		} return false;
 	}

@@ -69,7 +69,7 @@
 				{foreach from=$arrFld name="listFolder" item="arrTmpFld"}
 				<optgroup label="{$arrTmpFld->name}">
 					{foreach from=$arrSec.{$arrTmpFld->id} name="listSec" item="arrTmpSec"}
-					<option value="{$arrTmpFld->id}|{$arrTmpSec->id}"  {if $arrTmpSec->id == $objField->child_id}selected{/if}>--| {$arrTmpSec->name}</option>
+					<option value="{$arrTmpSec->id}"  {if $arrTmpSec->id == $objField->child_id}selected{/if}>--| {$arrTmpSec->name}</option>
 					{/foreach}
 				</optgroup>
 				{/foreach}
@@ -81,7 +81,7 @@
 		<td>
 			<select name="field_rel" id="field_rel" size="5">
 				{foreach from=$arrSec.1.1->fields name="listStruct" item="arrTmp"}
-					<option value="{$arrTmp->id}" {if $arrTmp->id == $objField->sec_struct_id}selected{/if}>{$arrTmp->name}</option>
+					<option value="{$arrTmp->field_name}" {if $arrTmp->field_name == $objField->field_name}selected{/if}>{$arrTmp->name}</option>
 				{/foreach}
 			</select>
 		</td>

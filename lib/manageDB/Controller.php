@@ -97,28 +97,28 @@ class manageDB_Controller extends Controller {
 	 *
 	 */
 	public function createRelationTable($arrParent,$arrChild,$strTable = '') {
-		if(!isset($arrParent['table']) || !is_string($arrParent['table'])) 							return false;
-		if(!isset($arrChild['table']) || !is_string($arrChild['table'])) 							return false;
+		if(empty($arrParent['table']) || !is_string($arrParent['table'])) 							return false;
+		if(empty($arrChild['table']) || !is_string($arrChild['table'])) 							return false;
 		
-		if(!isset($arrParent['field']) || !is_array($arrParent['field'])) 							return false;
-		if(!isset($arrChild['field']) || !is_array($arrChild['field'])) 							return false;
+		if(empty($arrParent['field']) || !is_array($arrParent['field'])) 							return false;
+		if(empty($arrChild['field']) || !is_array($arrChild['field'])) 								return false;
 		
-		if(!isset($arrParent['field']['name']) || !is_array($arrParent['field']['name'])) 			return false;
-		if(!isset($arrChild['field']['name']) || !is_array($arrChild['field']['name'])) 			return false;
+		if(empty($arrParent['field']['name']) || !is_string($arrParent['field']['name'])) 			return false;
+		if(empty($arrChild['field']['name']) || !is_string($arrChild['field']['name'])) 			return false;
 		
-		if(!isset($arrParent['field']['reference']) || !is_array($arrParent['field']['reference'])) return false;
-		if(!isset($arrChild['field']['reference']) || !is_array($arrChild['field']['reference'])) 	return false;
+		if(empty($arrParent['field']['reference']) || !is_string($arrParent['field']['reference'])) 	return false;
+		if(empty($arrChild['field']['reference']) || !is_string($arrChild['field']['reference'])) 	return false;
 		
 		if(!is_string($strTable) || empty($strTable)) $strTable = 'rel_' . $arrParent['table'] . '_' . $arrChild['table'];
-		 
+		
 		// Sets fields structure
 		$arrDataDef	= array();
-		$arrDataDef[$arrParent['field']['reference']] = array(
+		$arrDataDef[$arrParent['field']['name']] = array(
 				'type'			=> 'integer',
 				'unsigned'		=> 0,
 				'notnull'		=> 1
 		);
-		$arrDataDef[$arrChild['field']['reference']] = array(
+		$arrDataDef[$arrChild['field']['name']] = array(
 				'type'			=> 'integer',
 				'unsigned'		=> 0,
 				'notnull'		=> 1
@@ -141,8 +141,8 @@ class manageDB_Controller extends Controller {
 		if($this->objModel->objConn->createTable($strTable,$arrDataDef,$arrTableOpt) === 0) {
 			// Sets foreign keys
 			if(
-				$this->setForeignKey( $strTable, $arrParent['table'], array($arrParent['field']['name'] => array()), array($arrParent['field']['reference'] => array()) ) &&
-				$this->setForeignKey( $strTable, $arrChild['table'], array($arrChild['field']['name'] => array()), array($arrChild['field']['reference'] => array()) )
+				$this->setForeignKey( $strTable, $arrParent['table'], array($arrParent['field']['name'] => array()), array($arrParent['field']['reference'] => array()), 'CASCADE', 'CASCADE', 'FULL', $arrParent['table'] . '_parent_FK' ) &&
+				$this->setForeignKey( $strTable, $arrChild['table'], array($arrChild['field']['name'] => array()), array($arrChild['field']['reference'] => array()), 'CASCADE', 'CASCADE', 'FULL', $arrParent['table'] . '_child_FK' )
 			) {
 				return true;
 			}
@@ -222,7 +222,7 @@ class manageDB_Controller extends Controller {
 	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
 	 *
 	 */
-	public function setForeignKey($strMainTable,$strRelatedTable,$arrMainKey = array('id' => array()),$arrReferedKey = array('id' => array()),$strOnDelete = 'CASCADE',$strOnUpdate = 'CASCADE',$strMatch = 'FULL') {
+	public function setForeignKey($strMainTable,$strRelatedTable,$arrMainKey = array('id' => array()),$arrReferedKey = array('id' => array()),$strOnDelete = 'CASCADE',$strOnUpdate = 'CASCADE',$strMatch = 'FULL',$strKeyName = '') {
 		if(!is_string($strMainTable) 	|| empty($strMainTable)) 	return false;
 		if(!is_string($strRelatedTable) || empty($strRelatedTable)) return false;
 		
@@ -246,6 +246,9 @@ class manageDB_Controller extends Controller {
 		$strMatch = strtoupper($strMatch);
 		if(!is_string($strMatch) || empty($strMatch) || !in_array($strMatch,$arrOnActions)) $strMatch = 'FULL';
 		
+		// Defines FK name
+		if(!is_string($strKeyName) || empty($strKeyName)) $strKeyName = $strMainTable . '_' . $strRelatedTable . '_FK';
+		
 		
 		$arrKeyDef =	array (
 							'primary'		=> 	false,
@@ -265,10 +268,10 @@ class manageDB_Controller extends Controller {
 						);
 		
 		// Query is specific written due to MDB2 bug not implementing ADD CONSTRAINT FOREIGN KEY
-		$strQuery	= 'ALTER TABLE ' . $strMainTable . ' ADD CONSTRAINT `' . $strMainTable . '_' . $strRelatedTable . '_FK' . '` FOREIGN KEY (`' . reset(array_keys($arrMainKey)) . '`) REFERENCES `' . $strRelatedTable . '` (`' . reset(array_keys($arrReferedKey)) . '`) ON DELETE ' . $strOnDelete . ' ON UPDATE ' . $strOnUpdate;
+		$strQuery	= 'ALTER TABLE ' . $strMainTable . ' ADD CONSTRAINT `' . $strKeyName . '` FOREIGN KEY (`' . reset(array_keys($arrMainKey)) . '`) REFERENCES `' . $strRelatedTable . '` (`' . reset(array_keys($arrReferedKey)) . '`) ON DELETE ' . $strOnDelete . ' ON UPDATE ' . $strOnUpdate;
 		
 		// Tests if native MDB2 method succeeds; if not, tryes $strQuery
-		if(MDB2::isError($this->objModel->objConn->createConstraint($strMainTable, $strMainTable . '_' . $strRelatedTable . '_FK', $arrKeyDef))) {
+		if(MDB2::isError($this->objModel->objConn->createConstraint($strMainTable, $strKeyName, $arrKeyDef))) {
 			if(MDB2::isError($this->objModel->executeQuery($strQuery))) {
 				return false;
 			} else {

@@ -2,6 +2,7 @@
 
 <form name="formConfig" id="formConfig" method="post" action="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/add">
 <input type="hidden" name="sec_config_id" id="sec_config_id" value="{$objData.0->sec_config_id}" />
+<input type="hidden" name="id" id="id" value="{$objField->id}" />
 <table border=1 width=700>
 	<caption>APPLR SECTION STRUCT BUILDER</caption>
 	{include file="struct/menu-top.html"}
@@ -124,8 +125,8 @@
 		<td>{if $objTmp->admin}Yes{else}No{/if}</td>
 		<td align="center"><a href="" title="">[ up ]</a></td>
 		<td align="center"><a href="" title="">[ down ]</a></td>
-		<td align="center"><a href="" title="">[ edit ]</a></td>
-		<td align="center">{if $objTmp->field_name != 'name'}<a href="" title="">[ delete ]</a>{/if}</td>
+		<td align="center"><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/edit/{$objData.0->sec_config_id}/{$objTmp->id}" title="Edit">[ edit ]</a></td>
+		<td align="center">{if $objTmp->field_name != 'name'}<a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/delete/{$objData.0->sec_config_id}/{$objTmp->id}" title="Delete">[ delete ]</a>{/if}</td>
 	</tr>
 	{/foreach}
 	<tr>

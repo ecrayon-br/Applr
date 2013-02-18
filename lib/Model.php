@@ -367,7 +367,7 @@ class Model {
 		if(!is_bool($boolInsertMode) && $boolInsertMode !== 1 && $boolInsertMode !== 0)	return false;
 		
 		// Gets array with DB::entity field name values 
-		$arrField = array_keys($arrField[0]);
+		$arrField = array_keys(reset($arrField));
 		
 		if($boolInsertMode) {
 			// Prepare query using MDB2::autoPrepare
@@ -611,7 +611,7 @@ class Model {
 		
 		if($this->_boolDebug) { echo '<pre>'; var_dump($objQuery); echo '</pre>'; }
 		
-		if(MDB2::isError($objQuery)) {
+		if(MDB2::isError($objQuery)) { var_dump($objQuery);
 			define('ERROR_MSG',"Error on Model::select->$arrFetch[$strFetchMode](): " . $objQuery->getMessage());
 			return false;
 		} else {
@@ -676,7 +676,7 @@ class Model {
 		if(is_array($strTable)) 						$strTable = reset($strTable);
 		if(!is_string($strTable) || empty($strTable))	return false;
 		if(empty($arrField)) 							return false;
-		if(!is_array($arrField[0])) 					$arrField 	= array($arrField);
+		if(!is_array(reset($arrField)))					$arrField 	= array($arrField);
 		
 		// Prepares and execute query
 		$objQuery = $this->prepareInsertQuery($strTable,$arrField,false);

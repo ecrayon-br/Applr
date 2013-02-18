@@ -384,10 +384,10 @@ class manageDB_Controller extends Controller {
 	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
 	 *
 	 */
-	public function drop($strMethod,$strValue,$strArgs) {
+	public function drop($strMethod,$strValue,$strArgs = '') {
 		if(!is_string($strMethod) 	|| empty($strValue)) 	return false;
 		if(!is_string($strValue) 	|| empty($strValue)) 	return false;
-		if(!is_string($strArgs) 	|| empty($strArgs)) 	return false;
+		if( ($strMethod == 'dropConstraint' || $strMethod == 'dropIndex') && (!is_string($strArgs) || empty($strArgs)) ) 	return false;
 		
 		$arrMethod	= array('Sequence','Constraint','Index','Table','Database');
 		if(!in_array($strMethod,$arrMethod)) return false;

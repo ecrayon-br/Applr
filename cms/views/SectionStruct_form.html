@@ -1,7 +1,7 @@
 {include file="struct/header.html"}
 
 <form name="formConfig" id="formConfig" method="post" action="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/add">
-<input type="hidden" name="sec_config_id" id="sec_config_id" value="{$objData.0->sec_config_id}" />
+<input type="hidden" name="sec_config_id" id="sec_config_id" value="{$intSecID}" />
 <input type="hidden" name="id" id="id" value="{$objField->id}" />
 <table border=1 width=700>
 	<caption>APPLR SECTION STRUCT BUILDER</caption>
@@ -96,6 +96,7 @@
 	</tr>
 	<tr>
 		<td colspan=2 align=right>
+			<input type="button" value="Cancel" onclick="document.location.href = '{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{$intSecID}';" />
 			<input type="submit" value="Save" />
 		</td>
 	</tr>
@@ -120,18 +121,18 @@
 	<tr>
 		<td>{$objTmp->name}</td>
 		<td>{$objTmp->field_name}</td>
-		<td>{$objTmp->sec_struct_name}</td>
+		<td>{if !empty($objTmp->sec_struct_name)}{$objTmp->sec_struct_name}{else}Relationship{/if}</td>
 		<td>{if $objTmp->mandatory}Yes{else}No{/if}</td>
 		<td>{if $objTmp->admin}Yes{else}No{/if}</td>
-		<td align="center"><a href="" title="">[ up ]</a></td>
-		<td align="center"><a href="" title="">[ down ]</a></td>
-		<td align="center"><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/edit/{$objData.0->sec_config_id}/{$objTmp->id}" title="Edit">[ edit ]</a></td>
-		<td align="center">{if $objTmp->field_name != 'name'}<a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/delete/{$objData.0->sec_config_id}/{$objTmp->id}" title="Delete">[ delete ]</a>{/if}</td>
+		<td align="center">{if !$smarty.foreach.listFields.first}<a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/order-up/{$intSecID}/{$objTmp->id}" title="">[ up ]</a>{/if}</td>
+		<td align="center">{if !$smarty.foreach.listFields.last}<a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/order-down/{$intSecID}/{$objTmp->id}" title="">[ down ]</a>{/if}</td>
+		<td align="center"><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/edit/{$intSecID}/{$objTmp->id}" title="Edit">[ edit ]</a></td>
+		<td align="center">{if $objTmp->field_name != 'name'}<a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/delete/{$intSecID}/{$objTmp->id}" title="Delete">[ delete ]</a>{/if}</td>
 	</tr>
 	{/foreach}
 	<tr>
 		<td colspan=9 align=right>
-			<input type="submit" value="Finish" />
+			<input type="button" value="Finish" onclick="document.location.href = '{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}';" />
 		</td>
 	</tr>
 </table>

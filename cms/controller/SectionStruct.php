@@ -26,6 +26,7 @@ class SectionStruct_controller extends Section_controller {
 											'rel_sec_struct.id = sec_config_order.field_id',
 											'rel_sec_struct.sec_struct_id = sec_struct.id'
 											);
+	protected	$arrOrderList		= array('sec_config.id');
 	
 	protected	$arrFieldData		= array('rel_sec_struct.*','sec_config_order.field_order','sec_config_order.type','sec_struct.name AS sec_struct_name');
 	protected	$arrJoinData		= array('JOIN rel_sec_struct','JOIN sec_config_order','JOIN sec_struct');
@@ -35,13 +36,13 @@ class SectionStruct_controller extends Section_controller {
 											'rel_sec_struct.sec_struct_id = sec_struct.id'
 											);
 	protected	$arrGroupData		= array('rel_sec_struct.id');
+	protected	$arrOrderData		= array('rel_sec_struct.id');
 	
 	protected	$arrRelFieldData	= array('rel_sec_sec.*','sec_config_order.field_order','sec_config_order.type');
 	protected	$arrRelJoinData		= array('JOIN rel_sec_sec','JOIN sec_config_order');
 	protected	$arrRelWhereData	= array(
 											'rel_sec_sec.sec_config_id = sec_config.id',
-											'rel_sec_sec.id = sec_config_order.field_id',
-											'rel_sec_sec.id = {id}'
+											'rel_sec_sec.id = sec_config_order.field_id'
 											);
 	protected	$arrRelGroupData	= array('rel_sec_sec.id');
 	protected	$arrRelOrderData	= array('rel_sec_sec.id');
@@ -109,19 +110,22 @@ class SectionStruct_controller extends Section_controller {
 	 *
 	 */
 	public function delete() {
+		// Gets field data
+		$this->getFieldData();
+		
 		// Relationship field
-		if($this->intFieldID >= 200000) {
-			// Gets field data
-			$this->getFieldData();
-			
+		if($this->objField->type == 2) {
 			// Deletes all table records
-			//$this->objModel->delete($this->strSecTable);
+			$this->objModel->delete($this->objField->table_name);
 			
+			// Drops relationship table
+			$this->objManage->drop('Table',$this->objField->table_name);
+			
+			// Deletes Applr Section info
+			$this->objModel->delete('rel_sec_sec','id = ' . $this->intFieldID);
+			$this->objModel->delete('sec_config_order','field_id = ' . $this->intFieldID);
 		// Struct field
 		} else {
-			// Gets field data
-			$this->getFieldData();
-			
 			// Drops field
 			if($this->objManage->alterTable($this->strSecTable,array('remove' => array($this->objField->field_name => array())))) {
 				
@@ -161,6 +165,59 @@ class SectionStruct_controller extends Section_controller {
 	
 		// Shows interface
 		$this->renderTemplate(true,$this->strModule . '_form.html');
+	}
+	
+	/**
+	 * Sets field new order
+	 * 
+	 * @param	integer	$intMove	Moving index; i.e. -1 => moves field 1 level up
+	 * 
+	 * @return	void
+	 */
+	private function orderField($intMove = -1) {
+		// Gets full field list
+		$this->getListData();
+		
+		// Reorders all list items
+		$i = 1;
+		$arrReplace = array();
+		foreach($this->objData AS $objTemp) {
+			$arrReplace[($i - 1)] = array(
+								'field_id'		=> $objTemp->id,
+								'sec_config_id' => $this->intSecID,
+								'field_order'	=> $i,
+								'type'			=> $objTemp->type
+							);
+			
+			// Sets moving indexes
+			if($objTemp->id == $this->intFieldID) {
+				$intOrder		= $i - 1;
+				$intMoveOrder	= ($i + $intMove) - 1;
+			}
+			
+			$i++;
+		}
+		
+		// Move array elements according to moving indexes
+		$arrReplace[$intMoveOrder]['field_order'] 	= $intOrder + 1;
+		$arrReplace[$intOrder]['field_order'] 		= $intMoveOrder + 1;
+		
+		return $this->objModel->replace('sec_config_order',$arrReplace);
+	}
+	public function orderUp() {
+		if(!$this->orderField(-1)) {
+			$this->objSmarty->assign('ERROR_MSG','There was an error trying to reorder Section Fields! Please, try again!');
+		}
+		
+		$this->_create();
+	}
+	public function orderDown() {
+		if(!$this->orderField(+1)) {
+			$this->objSmarty->assign('ERROR_MSG','There was an error trying to reorder Section Fields! Please, try again!');
+		}
+		
+		$this->_create();
+		
 	}
 	
 	/**
@@ -227,8 +284,6 @@ class SectionStruct_controller extends Section_controller {
 				$this->arrFieldType['id']	= 'numeric';
 				$this->getFieldData();
 			}
-			
-			#echo '<pre>'; print_r($_POST); die();
 		}
 		
 		// Validate $_POST params
@@ -270,7 +325,7 @@ class SectionStruct_controller extends Section_controller {
 					
 					// If field type is different from previous config
 					if($_POST['sec_struct_id'] != $this->objField->sec_struct_id) {
-						if(!$this->alterField($_POST,$this->objField->field_name,($strTable == 'rel_sec_struct' ? true : false))) {
+						if(!$this->alterField($_POST,$this->objField->field_name)) {
 							$this->objSmarty->assign('ERROR_MSG','There was an error while trying to alter "' . $_POST['name'] . '" field in database! Please try again!');
 						}
 					}
@@ -298,13 +353,31 @@ class SectionStruct_controller extends Section_controller {
 	 *
 	 */
 	private function getListData() {
+		// Gets Struct Field list
 		$this->objModel->arrFieldList	= $this->arrFieldData;
 		$this->objModel->arrJoinList	= $this->arrJoinData;
 		$this->objModel->arrWhereList	= $this->arrWhereData;
 		$this->objModel->arrWhereList[]	= 'sec_config.id = ' . $this->intSecID;
 		$this->objModel->arrGroupList	= $this->arrGroupData;
+		$this->objModel->arrOrderList	= $this->arrOrderData;
 		
-		$this->objData = $this->objModel->getList();
+		$arrTempList = $this->objModel->getList();
+		
+		// Gets Relationship Field list
+		$this->objModel->arrFieldList	= $this->arrRelFieldData;
+		$this->objModel->arrJoinList	= $this->arrRelJoinData;
+		$this->objModel->arrWhereList	= $this->arrRelWhereData;
+		$this->objModel->arrGroupList	= $this->arrRelGroupData;
+		$this->objModel->arrOrderList	= $this->arrRelOrderData;
+		
+		$arrTempList = array_merge($arrTempList,$this->objModel->getList());
+		
+		// Merges and orders array data
+		$this->objData = array();
+		foreach($arrTempList AS $objData) {
+			$this->objData[$objData->field_order] = clone $objData;
+		}
+		ksort($this->objData);
 	}
 	
 	/**
@@ -322,6 +395,7 @@ class SectionStruct_controller extends Section_controller {
 			$this->objModel->arrFieldData	= $this->arrRelFieldData;
 			$this->objModel->arrJoinData	= $this->arrRelJoinData;
 			$this->objModel->arrWhereData	= $this->arrRelWhereData;
+			$this->objModel->arrWhereData[]	= 'rel_sec_sec.id = {id}';
 			$this->objModel->arrGroupData	= $this->arrRelGroupData;
 			$this->objModel->arrOrderData	= $this->arrRelOrderData;
 			
@@ -348,8 +422,8 @@ class SectionStruct_controller extends Section_controller {
 	protected function _create() {
 		if(is_numeric($this->intSecID) && $this->intSecID > 0) {
 			$this->getListData();
+			
 			$this->objSmarty->assign('objData',$this->objData);
-
 			$this->renderTemplate(true,$this->strModule . '_form.html');
 		} else {
 			// Shows list interface
@@ -420,14 +494,15 @@ class SectionStruct_controller extends Section_controller {
 	 *
 	 * @param	array	$arrData		New field info; mandatory data is array('field_name' => string, 'sec_struct_id' => integer).
 										RDBMS struct data from $this->arrStruct[$arrData['sec_struct_id']]; if $arrData['sec_struct_id'] is not set, assumes single text line
-	 *
+	 * @param	string	$strFieldName	Original field name
+	 * 
 	 * @return	boolean
 	 *
 	 * @since 	2013-02-15
 	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
 	 *
 	 */
-	protected function alterField($arrData,$strFieldName,$boolStruct = true) {
+	protected function alterField($arrData,$strFieldName) {
 		if(!is_array($arrData) || !isset($arrData['sec_struct_id']) || !isset($this->arrStruct[$arrData['sec_struct_id']])) $arrData['sec_struct_id'] = 1;
 		if(!is_string($arrData['field_name']) || empty($arrData['field_name'])) return false;
 		if(!is_string($strFieldName) || empty($strFieldName)) return false;
@@ -443,17 +518,7 @@ class SectionStruct_controller extends Section_controller {
 		}
 		
 		$arrDefaultFields 		= array('rename' => array($strFieldName => array('name' => $arrData['field_name'],'definition' => $arrStruct)));
-		 #var_dump($this->objManage->alterTable($this->strSecTable,$arrDefaultFields)); die();
-		switch($boolStruct) {
-			// rel_sec_struct
-			case true:
-			default:
-				return $this->objManage->alterTable($this->strSecTable,$arrDefaultFields);
-			break;
-			
-			// rel_sec_sec
-			case false:
-			break;
-		} return false;
+		 
+		return $this->objManage->alterTable($this->strSecTable,$arrDefaultFields);
 	}
 }

@@ -7,36 +7,46 @@ class SectionStruct_controller extends Section_controller {
 	 * ALL PROTECTED VARS BELOWS MUST BE SET UP WITH DATABASE AND RESPECTIVE DATA FOR APPLR TO WORK!
 	 * 
 	 */
-	protected	$strTable		= 'sec_config';
-	protected	$arrTable		= array('sec_config','rel_sec_struct','sec_config_order','sec_struct');
+	protected	$strTable			= 'sec_config';
+	protected	$arrTable			= array('sec_config');
 	
-	protected	$arrFieldType	= array(
-										'sec_config_id'		=> 'numeric',
-										'name'				=> 'string_notempty',
-										'field_name'		=> 'string_notempty',
-										'tooltip'			=> 'string',
-										'mandatory'			=> 'boolean',
-										'admin'				=> 'boolean'
-									);
+	protected	$arrFieldType		= array(
+											'sec_config_id'		=> 'numeric',
+											'name'				=> 'string_notempty',
+											'field_name'		=> 'string_notempty',
+											'tooltip'			=> 'string',
+											'mandatory'			=> 'boolean',
+											'admin'				=> 'boolean'
+										);
 		
-	protected	$arrFieldList	= array('sec_config.*','sec_parent.name AS sec_parent_name');
-	protected	$arrJoinList	= array('LEFT JOIN sec_config AS sec_parent ON sec_config.parent = sec_parent.id');
-	protected	$arrWhereList	= array(
-										'rel_sec_struct.sec_config_id = sec_config.id',
-										'rel_sec_struct.id = sec_config_order.field_id',
-										'rel_sec_struct.sec_struct_id = sec_struct.id'
-										);
+	protected	$arrFieldList		= array('sec_config.*','sec_parent.name AS sec_parent_name');
+	protected	$arrJoinList		= array('LEFT JOIN sec_config AS sec_parent ON sec_config.parent = sec_parent.id','JOIN rel_sec_struct','JOIN sec_config_order','JOIN sec_struct');
+	protected	$arrWhereList		= array(
+											'rel_sec_struct.sec_config_id = sec_config.id',
+											'rel_sec_struct.id = sec_config_order.field_id',
+											'rel_sec_struct.sec_struct_id = sec_struct.id'
+											);
 	
-	protected	$arrFieldData	= array('rel_sec_struct.*','sec_config_order.field_order','sec_config_order.type','sec_struct.name AS sec_struct_name');
-	protected	$arrJoinData	= array();
-	protected	$arrWhereData	= array(
-										'rel_sec_struct.sec_config_id = sec_config.id',
-										'rel_sec_struct.id = sec_config_order.field_id',
-										'rel_sec_struct.sec_struct_id = sec_struct.id'
-										);
-	protected	$arrGroupData	= array('rel_sec_struct.id');
+	protected	$arrFieldData		= array('rel_sec_struct.*','sec_config_order.field_order','sec_config_order.type','sec_struct.name AS sec_struct_name');
+	protected	$arrJoinData		= array('JOIN rel_sec_struct','JOIN sec_config_order','JOIN sec_struct');
+	protected	$arrWhereData		= array(
+											'rel_sec_struct.sec_config_id = sec_config.id',
+											'rel_sec_struct.id = sec_config_order.field_id',
+											'rel_sec_struct.sec_struct_id = sec_struct.id'
+											);
+	protected	$arrGroupData		= array('rel_sec_struct.id');
 	
-	private		$arrStruct		= array();
+	protected	$arrRelFieldData	= array('rel_sec_sec.*','sec_config_order.field_order','sec_config_order.type');
+	protected	$arrRelJoinData		= array('JOIN rel_sec_sec','JOIN sec_config_order');
+	protected	$arrRelWhereData	= array(
+											'rel_sec_sec.sec_config_id = sec_config.id',
+											'rel_sec_sec.id = sec_config_order.field_id',
+											'rel_sec_sec.id = {id}'
+											);
+	protected	$arrRelGroupData	= array('rel_sec_sec.id');
+	protected	$arrRelOrderData	= array('rel_sec_sec.id');
+	
+	private		$arrStruct			= array();
 	private		$strSecTable;
 	private		$strChildTable;
 	private		$intFieldID;
@@ -99,11 +109,26 @@ class SectionStruct_controller extends Section_controller {
 	 *
 	 */
 	public function delete() {
-		$this->getFieldData();
-		
-		if($this->objManage->alterTable($this->strSecTable,array('remove' => array($this->objField->field_name => array())))) {
-			$this->objModel->delete('rel_sec_struct','id = ' . $this->intFieldID);
-			$this->objModel->delete('sec_config_order','field_id = ' . $this->intFieldID);
+		// Relationship field
+		if($this->intFieldID >= 200000) {
+			// Gets field data
+			$this->getFieldData();
+			
+			// Deletes all table records
+			//$this->objModel->delete($this->strSecTable);
+			
+		// Struct field
+		} else {
+			// Gets field data
+			$this->getFieldData();
+			
+			// Drops field
+			if($this->objManage->alterTable($this->strSecTable,array('remove' => array($this->objField->field_name => array())))) {
+				
+				// Deletes Applr Section info
+				$this->objModel->delete('rel_sec_struct','id = ' . $this->intFieldID);
+				$this->objModel->delete('sec_config_order','field_id = ' . $this->intFieldID);
+			}
 		}
 		
 		$this->_create();
@@ -202,6 +227,8 @@ class SectionStruct_controller extends Section_controller {
 				$this->arrFieldType['id']	= 'numeric';
 				$this->getFieldData();
 			}
+			
+			#echo '<pre>'; print_r($_POST); die();
 		}
 		
 		// Validate $_POST params
@@ -237,7 +264,10 @@ class SectionStruct_controller extends Section_controller {
 						$this->objModel->delete('rel_sec_struct','id = ' . $intFieldID);
 						$this->objSmarty->assign('ERROR_MSG','There was an error while trying to save "' . $_POST['name'] . '" order data! Please try again!');
 					}
-				} else {
+				
+				// Else, if editing dynamic field
+				} elseif($strTable == 'rel_sec_struct') {
+					
 					// If field type is different from previous config
 					if($_POST['sec_struct_id'] != $this->objField->sec_struct_id) {
 						if(!$this->alterField($_POST,$this->objField->field_name,($strTable == 'rel_sec_struct' ? true : false))) {
@@ -287,8 +317,21 @@ class SectionStruct_controller extends Section_controller {
 	 *
 	 */
 	private function getFieldData() {
-		$this->objModel->arrWhereData[]	= 'rel_sec_struct.id = {id}';
-		$this->objField = $this->objModel->getData($this->intFieldID);
+		// Relationship field
+		if($this->intFieldID >= 200000) {
+			$this->objModel->arrFieldData	= $this->arrRelFieldData;
+			$this->objModel->arrJoinData	= $this->arrRelJoinData;
+			$this->objModel->arrWhereData	= $this->arrRelWhereData;
+			$this->objModel->arrGroupData	= $this->arrRelGroupData;
+			$this->objModel->arrOrderData	= $this->arrRelOrderData;
+			
+			$this->objField = $this->objModel->getData($this->intFieldID);
+			
+		// Struct field
+		} else {
+			$this->objModel->arrWhereData[]	= 'rel_sec_struct.id = {id}';
+			$this->objField = $this->objModel->getData($this->intFieldID);
+		}
 	}
 	
 	/**

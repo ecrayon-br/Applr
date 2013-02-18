@@ -47,8 +47,8 @@
 	<tr>
 		<td>Field Category</td>
 		<td>
-			<input type="radio" name="field" value=1 {if $objField->field == 1 || !isset($objField->field)}checked{/if} /> Dynamic<br />
-			<input type="radio" name="field" value=2 {if $objField->field == 2}checked{/if} /> Relationship
+			<input type="radio" name="field" value=1 {if empty($objField->field_rel)}checked{/if} /> Dynamic<br />
+			<input type="radio" name="field" value=2 {if !empty($objField->field_rel)}checked{/if} /> Relationship
 		</td>
 	</tr>
 	<tr>
@@ -81,7 +81,7 @@
 		<td>
 			<select name="field_rel" id="field_rel" size="5">
 				{foreach from=$arrSec.1.1->fields name="listStruct" item="arrTmp"}
-					<option value="{$arrTmp->field_name}" {if $arrTmp->field_name == $objField->field_name}selected{/if}>{$arrTmp->name}</option>
+					<option value="{$arrTmp->field_name}" {if $arrTmp->field_name == $objField->field_rel}selected{/if}>{$arrTmp->name}</option>
 				{/foreach}
 			</select>
 		</td>

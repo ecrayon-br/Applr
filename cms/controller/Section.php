@@ -95,6 +95,7 @@ class Section_controller extends CRUD_controller {
 		}
 		
 		// Sets SMARTY vars
+		$this->objSmarty->assign('intSecID',$this->intSecID);
 		$this->objSmarty->assign('arrFld',$this->arrFldList);
 		$this->objSmarty->assign('arrSec',$this->arrSecList);
 		$this->objSmarty->assign('arrLang',$this->arrLangList);

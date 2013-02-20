@@ -38,19 +38,12 @@ class SectionStruct_controller extends Section_controller {
 	protected	$arrGroupData		= array('rel_sec_struct.id');
 	protected	$arrOrderData		= array('rel_sec_struct.id');
 	
-	protected	$arrRelFieldData	= array('rel_sec_sec.*','sec_config_order.field_order','sec_config_order.type');
-	protected	$arrRelJoinData		= array('JOIN rel_sec_sec','JOIN sec_config_order');
-	protected	$arrRelWhereData	= array(
-											'rel_sec_sec.sec_config_id = sec_config.id',
-											'rel_sec_sec.id = sec_config_order.field_id'
-											);
-	protected	$arrRelGroupData	= array('rel_sec_sec.id');
-	protected	$arrRelOrderData	= array('rel_sec_sec.id');
-	
-	private		$arrStruct			= array();
+	protected	$arrStruct			= array();
+
 	private		$strSecTable;
 	private		$strChildTable;
 	private		$intFieldID;
+	private		$objManageContent;
 	
 	public		$objField;
 	
@@ -58,6 +51,8 @@ class SectionStruct_controller extends Section_controller {
 	 * Class constructor
 	 *
 	 * @param	boolean	$boolRenderTemplate	Defines whether to show default's interface
+	 * @param	integer	$intSecID			Section's ID
+	 * @param	integer	$intFieldID			Field's ID
 	 *
 	 * @return	void
 	 *
@@ -65,12 +60,19 @@ class SectionStruct_controller extends Section_controller {
 	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
 	 *
 	 */
-	public function __construct($boolRenderTemplate = true) {
-		parent::__construct(false);
+	public function __construct($boolRenderTemplate = true,$intSecID = 0,$intFieldID = 0) {
+		parent::__construct(false,$intSecID);
+		
+		// Sets manageContent_Controller() class' object
+		$this->objManageContent = new manageContent_Controller($this->intSecID);
 		
 		// Sets editing Field ID
-		$this->intFieldID	= intval($_SESSION[self::$strProjectName]['URI_SEGMENT'][5]);
-		if(empty($this->intFieldID)) $this->intFieldID = intval($_POST['id']);
+		if(!empty($intFieldID)) {
+			$this->intFieldID	= $intFieldID;
+		} elseif(empty($this->intFieldID)) {
+			$this->intFieldID	= intval($_SESSION[self::$strProjectName]['URI_SEGMENT'][5]);
+			if(empty($this->intFieldID)) $this->intFieldID = intval($_POST['id']);
+		}
 		
 		// Gets STRUCT list
 		$arrStruct	= $this->objModel->select(array('sec_struct.*'),'sec_struct',array(),array(),array(),array(),0,null,'All');
@@ -98,6 +100,56 @@ class SectionStruct_controller extends Section_controller {
 		
 		// Shows default interface
 		if($boolRenderTemplate || !is_numeric($this->intSecID) || $this->intSecID <= 0) $this->_read();
+	}
+	
+	/**
+	 * Gets Field List data and sets $this->objData according to $this->intSecID
+	 * 
+	 * @return	void
+	 *
+	 * @since 	2013-02-19
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 *
+	 */
+	private function getFieldList() {
+		$this->objData = $this->objManageContent->getFieldList($this->intSecID);
+	}
+	
+	/**
+	 * Gets specific Field data and sets $this->objData according to $this->intSecID
+	 *
+	 * @return	void
+	 *
+	 * @since 	2013-02-19
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 *
+	 */
+	private function getFieldData() {
+		$this->objField = $this->objManageContent->getFieldData($this->intFieldID);
+	}
+	
+	/**
+	 * Shows INSERT / UPDATE form interface
+	 *
+	 * @param	integer	$intID			Content ID
+	 *
+	 * @return	void
+	 *
+	 * @since 	2013-02-08
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 *
+	 */
+	protected function _create() { 
+		if(is_numeric($this->intSecID) && $this->intSecID > 0) {
+			$this->getFieldList();
+			
+			$this->objSmarty->assign('objData',$this->objData);
+			$this->renderTemplate(true,$this->strModule . '_form.html');
+		} else {
+			// Shows list interface
+			$this->objSmarty->assign('ALERT_MSG','You must choose an item to update!');
+			$this->_read();
+		}
 	}
 	
 	/**
@@ -154,13 +206,13 @@ class SectionStruct_controller extends Section_controller {
 			$this->_create();
 			exit();
 		}
-	
+		
 		// Gets Field Data
 		$this->getFieldData();
 		$this->objSmarty->assign('objField',$this->objField);
 	
 		// Gets Fields List
-		$this->getListData();
+		$this->getFieldList();
 		$this->objSmarty->assign('objData',$this->objData);
 	
 		// Shows interface
@@ -176,7 +228,7 @@ class SectionStruct_controller extends Section_controller {
 	 */
 	private function orderField($intMove = -1) {
 		// Gets full field list
-		$this->getListData();
+		$this->getFieldList();
 		
 		// Reorders all list items
 		$i = 1;
@@ -341,95 +393,6 @@ class SectionStruct_controller extends Section_controller {
 		$this->_create();
 		
 		$this->secureGlobals();
-	}
-	
-	/**
-	 * Sets Field List data array
-	 * 
-	 * @return	void
-	 * 
-	 * @since 	2013-02-16
-	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
-	 *
-	 */
-	private function getListData() {
-		// Gets Struct Field list
-		$this->objModel->arrFieldList	= $this->arrFieldData;
-		$this->objModel->arrJoinList	= $this->arrJoinData;
-		$this->objModel->arrWhereList	= $this->arrWhereData;
-		$this->objModel->arrWhereList[]	= 'sec_config.id = ' . $this->intSecID;
-		$this->objModel->arrGroupList	= $this->arrGroupData;
-		$this->objModel->arrOrderList	= $this->arrOrderData;
-		
-		$arrTempList = $this->objModel->getList();
-		
-		// Gets Relationship Field list
-		$this->objModel->arrFieldList	= $this->arrRelFieldData;
-		$this->objModel->arrJoinList	= $this->arrRelJoinData;
-		$this->objModel->arrWhereList	= $this->arrRelWhereData;
-		$this->objModel->arrGroupList	= $this->arrRelGroupData;
-		$this->objModel->arrOrderList	= $this->arrRelOrderData;
-		
-		$arrTempList = array_merge($arrTempList,$this->objModel->getList());
-		
-		// Merges and orders array data
-		$this->objData = array();
-		foreach($arrTempList AS $objData) {
-			$this->objData[$objData->field_order] = clone $objData;
-		}
-		ksort($this->objData);
-	}
-	
-	/**
-	 * Sets Specific Field data array
-	 *
-	 * @return	void
-	 *
-	 * @since 	2013-02-16
-	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
-	 *
-	 */
-	private function getFieldData() {
-		// Relationship field
-		if($this->intFieldID >= 200000) {
-			$this->objModel->arrFieldData	= $this->arrRelFieldData;
-			$this->objModel->arrJoinData	= $this->arrRelJoinData;
-			$this->objModel->arrWhereData	= $this->arrRelWhereData;
-			$this->objModel->arrWhereData[]	= 'rel_sec_sec.id = {id}';
-			$this->objModel->arrGroupData	= $this->arrRelGroupData;
-			$this->objModel->arrOrderData	= $this->arrRelOrderData;
-			
-			$this->objField = $this->objModel->getData($this->intFieldID);
-			
-		// Struct field
-		} else {
-			$this->objModel->arrWhereData[]	= 'rel_sec_struct.id = {id}';
-			$this->objField = $this->objModel->getData($this->intFieldID);
-		}
-	}
-	
-	/**
-	 * Shows INSERT / UPDATE form interface
-	 *
-	 * @param	integer	$intID			Content ID
-	 *
-	 * @return	void
-	 *
-	 * @since 	2013-02-08
-	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
-	 *
-	 */
-	protected function _create() {
-		if(is_numeric($this->intSecID) && $this->intSecID > 0) {
-			$this->getListData();
-			
-			$this->objSmarty->assign('objData',$this->objData);
-			$this->renderTemplate(true,$this->strModule . '_form.html');
-		} else {
-			// Shows list interface
-			$this->objSmarty->assign('ALERT_MSG','You must choose an item to update!');
-			$this->_read();
-		}
 	}
 	
 	/**

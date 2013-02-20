@@ -3,6 +3,7 @@ class CRUD_Controller extends Main_controller {
 	protected 	$objModel;
 
 	protected	$strModule		= '';
+	
 	protected	$strTable		= '';
 	protected	$arrTable		= array();
 	protected	$arrFieldType	= array();

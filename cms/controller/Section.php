@@ -61,6 +61,7 @@ class Section_controller extends CRUD_controller {
 	 * Class constructor
 	 *
 	 * @param	boolean	$boolRenderTemplate	Defines whether to show default's interface
+	 * @param	integer	$intSecID			Section's ID
 	 *
 	 * @return	void
 	 *
@@ -68,12 +69,16 @@ class Section_controller extends CRUD_controller {
 	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
 	 *
 	 */
-	public function __construct($boolRenderTemplate = true) {
+	public function __construct($boolRenderTemplate = true,$intSecID = 0) {
 		parent::__construct(false);
 		
 		// Sets editing Section ID
-		$this->intSecID		= intval($_SESSION[self::$strProjectName]['URI_SEGMENT'][4]);
-		if(!$this->intSecID) $this->intSecID = intval($_POST['sec_config_id']);
+		if(!empty($intSecID)) {
+			$this->intSecID		= $intSecID;
+		} elseif(empty($this->intSecID)) {
+			$this->intSecID		= intval($_SESSION[self::$strProjectName]['URI_SEGMENT'][4]);
+			if(!$this->intSecID) $this->intSecID = intval($_POST['sec_config_id']);
+		}
 		
 		// Gets TEMPLATES list
 		$this->arrTPLList	= $this->objModel->select(array('id','name'),'sys_template',array(),array(),array(),array(),0,null,'All');

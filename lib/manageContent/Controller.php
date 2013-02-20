@@ -152,6 +152,7 @@ class manageContent_Controller extends CRUD_Controller {
 		$this->objModel->arrFieldList	= $this->arrRelFieldData;
 		$this->objModel->arrJoinList	= $this->arrRelJoinData;
 		$this->objModel->arrWhereList	= $this->arrRelWhereData;
+		$this->objModel->arrWhereList[]	= 'sec_config.id = ' . $intSecID;
 		$this->objModel->arrGroupList	= $this->arrRelGroupData;
 		$this->objModel->arrOrderList	= $this->arrRelOrderData;
 		$arrTempList = array_merge($arrTempList,$this->objModel->getList());

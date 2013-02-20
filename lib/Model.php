@@ -777,7 +777,7 @@ class Model {
 	 * 
 	 * @param	integer		$intSection	Section ID
 	 *
-	 * @return 	If MDB2::isError, sets ERROR_MSG constant and returns false; else, returns MDB2_Result_object
+	 * @return 	Object
 	 *
 	 * @since	2013-01-18
 	 * @author 	Diego Flores <diegotf [at] gmail dot com>
@@ -786,7 +786,13 @@ class Model {
 	public function getSectionConfig($intSection) {
 		if(!is_numeric($intSection) || $intSection 	<= 0) return false;
 		
-		return;
+		$objReturn = $this->select('*','sec_config',array(),'sec_config.id = ' . $intSection);
+		
+		if(!empty($objReturn)) {
+			return reset($objReturn);
+		} else {
+			return false;
+		}
 	}
 }
 ?>

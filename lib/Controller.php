@@ -1,7 +1,7 @@
 <?php
 class Controller {
 	
-	static 		$arrSpecialChar		= array('/','*',"'",'=','-','#',';','<','>','+','%','.',' ');
+	static 		$arrSpecialChar		= array('/','*',"'",'=','-','#',';','<','>','+','%','.',' ',':');
 	static		$arrOnlyNumberChar	= array(' ','+','-','_','.',':',',',';','?','(',')','[',']','{','}','/','\\','*','&','%','$','#','@','!','=','<','>','~','º','ª','¬','¢','£','³','²','¹','|','°','§','^');
 	static		$arrPermalinkChar	= array(' ','+','_','.',':',',',';','?','(',')','[',']','{','}','/','\\','*','&','%','$','#','@','!','=','<','>','~','º','ª','¬','¢','£','³','²','¹','|','°','§','^');
 	static		$arrExtTPL			= array('htm','html','php','tpl');
@@ -1020,29 +1020,37 @@ class Controller {
 				break;
 				
 				case 'string':
-					if(!is_string($arrValues[$strKey]) && !empty($arrValues[$strKey]))		return $strKey;
+					if(!is_string($arrValues[$strKey]) || empty($arrValues[$strKey])) 		return $strKey;
 				break;
 				
-				case 'string_notempty':
-					if(!is_string($arrValues[$strKey]) || empty($arrValues[$strKey])) 		return $strKey;
+				case 'string_empty':
+					if(!is_string($arrValues[$strKey]) && !empty($arrValues[$strKey]))		return $strKey;
 				break;
 				
 				case 'date':
 					if(!checkdate(date('m',strtotime($arrValues[$strKey])),date('d',strtotime($arrValues[$strKey])),date('Y',strtotime($arrValues[$strKey])))) return $strKey;
 				break;
 				
-				case 'email':
-					if(empty($arrValues[$strKey]) || !$this->checkEmailSyntax($arrValues[$strKey])) return $strKey;
+				case 'date_empty':
+					if(!empty($arrValues[$strKey]) && !checkdate(date('m',strtotime($arrValues[$strKey])),date('d',strtotime($arrValues[$strKey])),date('Y',strtotime($arrValues[$strKey])))) return $strKey;
 				break;
 				
-				case 'email_notempty':
+				case 'email':
 					if(!$this->checkEmailSyntax($arrValues[$strKey]))						return $strKey;
 				break;
 				
+				case 'email_empty':
+					if(!empty($arrValues[$strKey]) && !$this->checkEmailSyntax($arrValues[$strKey])) return $strKey;
+				break;
+				
 				case 'boolean':
-					if(	!is_bool($arrValues[$strKey]) 	&&
+					if(empty($arrValues[$strKey])) {
+						$arrValues[$strKey] = 0;
+					} elseif(
+						!is_bool($arrValues[$strKey]) 	&&
 						$arrValues[$strKey] !== 1 		&& $arrValues[$strKey] !== 0	&&
-						$arrValues[$strKey] !== '1' 	&& $arrValues[$strKey] !== '0')		return $strKey;
+						$arrValues[$strKey] !== '1' 	&& $arrValues[$strKey] !== '0'
+					)																		return $strKey;
 				break;
 				
 				case 'array':

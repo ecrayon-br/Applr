@@ -40,7 +40,7 @@
 		<td>Field Type</td>
 		<td>
 			<select name="fieldtype" id="fieldtype">
-			{if $smarty.const.DB_TYPE == 'mysql' || $smarty.const.DB_TYPE == 'mysqli'}
+			{*if $smarty.const.DB_TYPE == 'mysql' || $smarty.const.DB_TYPE == 'mysqli'}
 				<option value="text"		{if $objData->fieldtype == 'text'}selected{/if}>		TEXT</option>
 				<option value="char"		{if $objData->fieldtype == 'char'}selected{/if}>		CHAR</option>
 				<option value="varchar"		{if $objData->fieldtype == 'varchar'}selected{/if}>		VARCHAR</option>
@@ -58,7 +58,7 @@
 				<option value="time"		{if $objData->fieldtype == 'time'}selected{/if}>		TIME</option>
 				<option value="date"		{if $objData->fieldtype == 'date'}selected{/if}>		DATE</option>
 				<option value="year"		{if $objData->fieldtype == 'year'}selected{/if}>		YEAR</option>
-			{else}
+			{else*}
 				<option value="clob"		{if $objData->fieldtype == 'clob'}selected{/if}>		TEXT</option>
 				<option value="text|fixed"	{if $objData->fieldtype == 'text|fixed'}selected{/if}>	CHAR</option>
 				<option value="text"		{if $objData->fieldtype == 'text'}selected{/if}>		VARCHAR</option>
@@ -70,7 +70,7 @@
 				<option value="date"		{if $objData->fieldtype == 'date'}selected{/if}>		DATE</option>
 				<option value="time"		{if $objData->fieldtype == 'time'}selected{/if}>		TIME</option>
 				<option value="timestamp"	{if $objData->fieldtype == 'timestamp'}selected{/if}>	TIMESTAMP</option>
-			{/if}
+			{*/if*}
 			</select>
 		</td>
 	</tr>

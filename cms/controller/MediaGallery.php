@@ -1,5 +1,5 @@
 <?php
-class MediaGallery_controller extends CRUD_controller {	
+class MediaGallery_controller extends CRUD_Controller {	
 	/**
 	 * 
 	 * ATENTION!
@@ -12,12 +12,12 @@ class MediaGallery_controller extends CRUD_controller {
 	
 	protected	$arrFieldType	= array(
 										'id'			=> 'numeric_empty',
-										'usr_data_id'	=> 'numeric',
+										'usr_data_id'	=> 'numeric_empty',
 										'sec_config_id'	=> 'numeric_empty',
-										'name'			=> 'string_notempty',
+										'name'			=> 'string',
 										'mediatype'		=> 'numeric',
-										'description'	=> 'string',
-										'dirpath'		=> 'string',
+										'description'	=> 'string_empty',
+										'dirpath'		=> 'string_empty',
 										'is_default'	=> 'boolean',
 										'autothumb'		=> 'boolean',
 										'autothumb_h'	=> 'numeric_empty',
@@ -111,7 +111,7 @@ class MediaGallery_controller extends CRUD_controller {
 	*/
 	
 	/**
-	 * @see CRUD_controller::delete()
+	 * @see CRUD_Controller::delete()
 	 */
 	public function delete() {
 		parent::delete(0);

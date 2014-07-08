@@ -247,9 +247,9 @@ function smarty_function_html_select_date($params, $template)
         }
         
         if ($year_as_text) {
-            $_html_years = '<input type="text" name="' . $_name . '" value="' . $_year . '" size="4" maxlength="4"' . $_extra . $extra_attrs . ' />';
+            $_html_years = '<input type="text" name="' . $_name . '" id="' . $_name . '" value="' . $_year . '" size="4" maxlength="4"' . $_extra . $extra_attrs . ' />';
         } else {
-            $_html_years = '<select name="' . $_name . '"';
+            $_html_years = '<select name="' . $_name . '" id="' . $_name . '"';
             if ($year_id !== null || $all_id !== null) {
                 $_html_years .= ' id="' . smarty_function_escape_special_chars( 
                     $year_id !== null ? ( $year_id ? $year_id : $_name ) : ( $all_id ? ($all_id . $_name) : $_name ) 
@@ -287,7 +287,7 @@ function smarty_function_html_select_date($params, $template)
             $_extra .= ' ' . $month_extra;
         }
         
-        $_html_months = '<select name="' . $_name . '"';
+        $_html_months = '<select name="' . $_name . '" id="' . $_name . '"';
         if ($month_id !== null || $all_id !== null) {
             $_html_months .= ' id="' . smarty_function_escape_special_chars( 
                 $month_id !== null ? ( $month_id ? $month_id : $_name ) : ( $all_id ? ($all_id . $_name) : $_name ) 
@@ -326,7 +326,7 @@ function smarty_function_html_select_date($params, $template)
             $_extra .= ' ' . $day_extra;
         }
         
-        $_html_days = '<select name="' . $_name . '"';
+        $_html_days = '<select name="' . $_name . '" id="' . $_name . '"';
         if ($day_id !== null || $all_id !== null) {
             $_html_days .= ' id="' . smarty_function_escape_special_chars( 
                 $day_id !== null ? ( $day_id ? $day_id : $_name ) : ( $all_id ? ($all_id . $_name) : $_name ) 

@@ -36,7 +36,7 @@ if(strpos($_SERVER["HTTP_HOST"],URI_DOMAIN_DEVELOP) !== false) {
 	define('URI_DOMAIN'	,($_SERVER["HTTP_HOST"] == DIR_HOMOLOG.'.'.URI_DOMAIN_HOMOLOG ? DIR_HOMOLOG.'.'.URI_DOMAIN_HOMOLOG : URI_DOMAIN_HOMOLOG));
 	define('LOCAL_DIR'	,(URI_DOMAIN == DIR_HOMOLOG.'.'.URI_DOMAIN_HOMOLOG ? '' : '/' . DIR_HOMOLOG) . '/');
 
-	error_reporting(0);
+	error_reporting(E_ERROR);
 	
 	define('DB_HOST'	,DB_HOMOLOG_HOST);
 	define('DB_USER'	,DB_HOMOLOG_USER);

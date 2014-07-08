@@ -1,5 +1,5 @@
 <?php
-class Section_controller extends CRUD_controller {	
+class Section_controller extends CRUD_Controller {	
 	/**
 	 * 
 	 * ATENTION!
@@ -14,15 +14,15 @@ class Section_controller extends CRUD_controller {
 										'id'				=> 'numeric_empty',
 										'parent'			=> 'numeric_empty',
 										'sys_folder_id'		=> 'numeric_empty',
-										'name'				=> 'string_notempty',
-										'permalink'			=> 'string_notempty',
-										'table_name'		=> 'string_notempty',
+										'name'				=> 'string',
+										'permalink'			=> 'string',
+										'table_name'		=> 'string',
 										'website'			=> 'boolean',
 										'user_edit'			=> 'boolean',
 										'public'			=> 'boolean',
 										'home'				=> 'boolean',
 										'static'			=> 'boolean',
-										'static_filename'	=> 'string',
+										'static_filename'	=> 'string_empty',
 										'xml'				=> 'boolean',
 										'xml_items'			=> 'numeric_empty',
 										'rss'				=> 'boolean',
@@ -115,7 +115,7 @@ class Section_controller extends CRUD_controller {
 	}
 	
 	/**
-	 * @see CRUD_controller::delete()
+	 * @see CRUD_Controller::delete()
 	 */
 	public function delete() {
 		parent::delete(0);

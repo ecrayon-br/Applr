@@ -1,5 +1,5 @@
 <?php
-class Folder_controller extends CRUD_controller {
+class Folder_controller extends CRUD_Controller {
 	/**
 	 * 
 	 * ATENTION!
@@ -12,10 +12,10 @@ class Folder_controller extends CRUD_controller {
 	
 	protected	$arrFieldType	= array(
 										'id'			=> 'numeric_empty',
-										'usr_data_id'	=> 'numeric',
-										'name'			=> 'string_notempty',
-										'icon_filepath'	=> 'string',
-										'sys_filepath'	=> 'string',
+										'usr_data_id'	=> 'numeric_empty',
+										'name'			=> 'string',
+										'icon_filepath'	=> 'string_empty',
+										'sys_filepath'	=> 'string_empty',
 										'status'		=> 'boolean'
 									);
 		
@@ -25,7 +25,7 @@ class Folder_controller extends CRUD_controller {
 	protected	$arrWhereData	= array('sys_folder.id = {id}');
 	
 	/**
-	 * @see CRUD_controller::delete()
+	 * @see CRUD_Controller::delete()
 	 */
 	public function delete() {
 		parent::delete(0);

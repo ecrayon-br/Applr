@@ -1,5 +1,5 @@
 <?php
-class Language_controller extends CRUD_controller {
+class Language_controller extends CRUD_Controller {
 	/**
 	 * 
 	 * ATENTION!
@@ -12,8 +12,8 @@ class Language_controller extends CRUD_controller {
 	
 	protected	$arrFieldType	= array(
 										'id'			=> 'numeric_empty',
-										'name'			=> 'string_notempty',
-										'acronym'		=> 'string_notempty',
+										'name'			=> 'string',
+										'acronym'		=> 'string',
 										'status'		=> 'boolean'
 									);
 		
@@ -23,7 +23,7 @@ class Language_controller extends CRUD_controller {
 	protected	$arrWhereData	= array('sys_language.id = {id}');
 	
 	/**
-	 * @see CRUD_controller::delete()
+	 * @see CRUD_Controller::delete()
 	 */
 	public function delete() {
 		parent::delete(0);

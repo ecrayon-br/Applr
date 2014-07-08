@@ -1,5 +1,5 @@
 <?php
-class Media_controller extends CRUD_controller {	
+class Media_controller extends CRUD_Controller {	
 	/**
 	 * 
 	 * ATENTION!
@@ -13,14 +13,14 @@ class Media_controller extends CRUD_controller {
 	protected	$arrFieldType	= array(
 										'id'				=> 'numeric_empty',
 										'media_gallery_id'	=> 'numeric',
-										'usr_data_id'		=> 'numeric',
+										'usr_data_id'		=> 'numeric_empty',
 										'mediatype'			=> 'numeric',
-										'name'				=> 'string_notempty',
-										'author'			=> 'string',
-										'label'				=> 'string',
-										'filepath'			=> 'string_notempty',
-										'filepath_thumbnail'=> 'string',
-										'filepath_streaming'=> 'string'
+										'name'				=> 'string',
+										'author'			=> 'string_empty',
+										'label'				=> 'string_empty',
+										'filepath'			=> 'string',
+										'filepath_thumbnail'=> 'string_empty',
+										'filepath_streaming'=> 'string_empty'
 									);
 		
 	protected	$arrFieldList	= array('media_data.*','media_gallery.name AS media_gallery_name');
@@ -55,7 +55,7 @@ class Media_controller extends CRUD_controller {
 	}
 	
 	/**
-	 * @see CRUD_controller::delete()
+	 * @see CRUD_Controller::delete()
 	 */
 	public function delete() {
 		parent::delete(0);

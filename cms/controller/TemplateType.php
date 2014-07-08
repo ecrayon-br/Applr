@@ -1,5 +1,5 @@
 <?php
-class TemplateType_controller extends CRUD_controller {
+class TemplateType_controller extends CRUD_Controller {
 	/**
 	 * 
 	 * ATENTION!
@@ -12,7 +12,7 @@ class TemplateType_controller extends CRUD_controller {
 	
 	protected	$arrFieldType	= array(
 										'id'		=> 'numeric_empty',
-										'name'		=> 'string_notempty',
+										'name'		=> 'string',
 										'status'	=> 'boolean'
 									);
 		
@@ -22,7 +22,7 @@ class TemplateType_controller extends CRUD_controller {
 	protected	$arrWhereData	= array('sys_template_type.id = {id}');
 	
 	/**
-	 * @see CRUD_controller::delete()
+	 * @see CRUD_Controller::delete()
 	 */
 	public function delete() {
 		parent::delete(0);

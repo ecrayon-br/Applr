@@ -1,0 +1,57 @@
+{include file="struct/header.html"}
+
+{literal}
+<script type="text/javascript">
+	setDateEmpty = function(strField) {
+		if(document.getElementById(strField + '_Day'))		document.getElementById(strField + '_Day').selectedIndex	= 0;
+		if(document.getElementById(strField + '_Month'))	document.getElementById(strField + '_Month').selectedIndex	= 0;
+		if(document.getElementById(strField + '_Year'))		document.getElementById(strField + '_Year').selectedIndex	= 0;
+		if(document.getElementById(strField + '_Hour'))		document.getElementById(strField + '_Hour').selectedIndex	= 0;
+		if(document.getElementById(strField + '_Minute'))	document.getElementById(strField + '_Minute').selectedIndex	= 0;
+		if(document.getElementById(strField + '_Second'))	document.getElementById(strField + '_Second').selectedIndex	= 0;
+	}
+	
+	togglePwd = function(strField) {
+		if(document.getElementById(strField)) {
+			if(document.getElementById(strField + '_toggle').checked === true) {
+				document.getElementById(strField).type = 'text';
+			} else {
+				document.getElementById(strField).type = 'password';
+			}
+		}
+	}
+</script>
+{/literal}
+
+<form name="formContent" id="formContent" method="post" action="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/add/{$smarty.session.APPLR.URI_SEGMENT.4}" enctype="multipart/form-data">
+<input type="hidden" name="sec_config_id" id="sec_config_id" value="{$objSection->id}" />
+<input type="hidden" name="id" id="id" value="{$objData->id}" />
+<input type="hidden" name="sys_language_id" id="sys_language_id" value="{if !empty($objData->sys_language_id)}{$objData->sys_language_id}{else}{$smarty.const.LANGUAGE}{/if}" />
+<table border=1 width=700>
+	<caption>APPLR SECTION CONTENT</caption>
+	{include file="struct/menu-top.html"}
+	<tr>
+		<td colspan=2 align="center" bgcolor="#EEE">
+			CONTENT
+		</td>
+	</tr>
+	{foreach from=$objStruct name="listStruct" item="objTmp"}
+	<tr>
+		<td>{$objTmp->name}</td>
+		<td>
+			{APPLR_FormField field=$objTmp value=$objData->{$objTmp->field_name}}
+			{if !empty($evalAssign)}{eval var=$evalAssign}{/if}
+		</td>
+	</tr>
+	{/foreach}
+	{include file="struct/section-seo-info.html"}
+	{include file="struct/section-publish-info.html"}
+	<tr>
+		<td colspan=2 align=right>
+			<input type="submit" value="Save" />
+		</td>
+	</tr>
+</table>
+</form>
+
+{include file="struct/footer.html"}

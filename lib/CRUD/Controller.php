@@ -38,10 +38,11 @@ class CRUD_Controller extends Main_controller {
 		
 		$this->strModule 	= str_replace(array('_Controller','_controller'),'',get_class($this));
 		$strModelClass		= $this->strModule . '_model';
+		
 		if(class_exists($strModelClass)) {
 			$this->objModel = new $strModelClass($this->arrTable,$this->arrFieldType,$this->arrFieldList,$this->arrJoinList,$this->arrWhereList,$this->arrOrderList,$this->arrGroupList,$this->arrFieldData,$this->arrJoinData,$this->arrWhereData,$this->arrOrderData,$this->arrGroupData);
 		} else {
-			$this->objModel	= new Crud_Model($this->arrTable,$this->arrFieldType,$this->arrFieldList,$this->arrJoinList,$this->arrWhereList,$this->arrOrderList,$this->arrGroupList,$this->arrFieldData,$this->arrJoinData,$this->arrWhereData,$this->arrOrderData,$this->arrGroupData);
+			$this->objModel	= new CRUD_Model($this->arrTable,$this->arrFieldType,$this->arrFieldList,$this->arrJoinList,$this->arrWhereList,$this->arrOrderList,$this->arrGroupList,$this->arrFieldData,$this->arrJoinData,$this->arrWhereData,$this->arrOrderData,$this->arrGroupData);
 		}
 		
 		if($boolRenderTemplate) $this->_read();
@@ -174,11 +175,11 @@ class CRUD_Controller extends Main_controller {
 				$this->objSmarty->assign('ALERT_MSG','Data saved successfully!');
 			} else {
 				$this->objSmarty->assign('ERROR_MSG','There was an error while trying to save data! Please try again!');
-				return false;
+				if(!$boolRenderTemplate) return false;
 			}
 		} else {
 			$this->objSmarty->assign('ERROR_MSG','There was an error while validating "' . $strField . '" data! Please try again!');
-			return false;
+			if(!$boolRenderTemplate) return false;
 		}
 		
 		$this->objData	= (object) array_merge((array) $this->objData,$arrData);
@@ -186,9 +187,9 @@ class CRUD_Controller extends Main_controller {
 		if($boolRenderTemplate) {
 			$this->objSmarty->assign('objData',$this->objData);
 			$this->_create($intID);
+		} else {
+			return true;
 		}
-		
-		return true;
 	}
 	
 	/**

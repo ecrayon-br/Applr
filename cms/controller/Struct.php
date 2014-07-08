@@ -1,5 +1,5 @@
 <?php
-class Struct_controller extends CRUD_controller {
+class Struct_controller extends CRUD_Controller {
 	/**
 	 * 
 	 * ATENTION!
@@ -12,24 +12,25 @@ class Struct_controller extends CRUD_controller {
 	
 	protected	$arrFieldType	= array(
 										'id'			=> 'numeric_empty',
-										'name'			=> 'string_notempty',
-										'html'			=> 'string_notempty',
-										'suffix'		=> 'string',
+										'name'			=> 'string',
+										'html'			=> 'string',
+										'suffix'		=> 'string_empty',
 										'status'		=> 'boolean',
-										'fieldtype'		=> 'string_notempty',
+										'fieldtype'		=> 'string',
 										'length'		=> 'numeric_empty',
 										'is_unsigned'	=> 'boolean',
 										'notnull'		=> 'boolean',
-										'default_value'	=> 'string'
+										'default_value'	=> 'string_empty'
 									);
 		
 	protected	$arrFieldList	= array('sec_struct.*');
+	protected	$arrOrderList	= array('sec_struct.name ASC');
 	
 	protected	$arrFieldData	= array('sec_struct.*');
 	protected	$arrWhereData	= array('sec_struct.id = {id}');
 	
 	/**
-	 * @see CRUD_controller::delete()
+	 * @see CRUD_Controller::delete()
 	 */
 	public function delete() {
 		parent::delete(0);

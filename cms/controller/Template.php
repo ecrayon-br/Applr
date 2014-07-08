@@ -1,5 +1,5 @@
 <?php
-class Template_controller extends CRUD_controller {
+class Template_controller extends CRUD_Controller {
 	/**
 	 * 
 	 * ATENTION!
@@ -12,8 +12,8 @@ class Template_controller extends CRUD_controller {
 	
 	protected	$arrFieldType	= array(
 										'id'			=> 'numeric_empty',
-										'usr_data_id'	=> 'numeric',
-										'name'			=> 'string_notempty',
+										'usr_data_id'	=> 'numeric_empty',
+										'name'			=> 'string',
 										'filename'		=> 'string',
 										'status'		=> 'boolean'
 									);
@@ -81,7 +81,7 @@ class Template_controller extends CRUD_controller {
 	}
 	
 	/**
-	 * @see CRUD_controller::delete()
+	 * @see CRUD_Controller::delete()
 	 */
 	public function delete() {
 		parent::delete(0);

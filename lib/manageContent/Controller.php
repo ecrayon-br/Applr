@@ -22,7 +22,7 @@ class manageContent_Controller extends CRUD_Controller {
 	protected	$strTable			= 'sec_config';
 	protected	$arrTable			= array('sec_config');
 	
-	protected	$arrFieldList		= array('rel_sec_struct.*','sec_config_order.field_order','sec_config_order.type','sec_struct.name AS sec_struct_name');
+	protected	$arrFieldList		= array('rel_sec_struct.*','sec_config_order.field_order','sec_config_order.type','sec_struct.name AS sec_struct_name','sec_struct.html','sec_struct.fieldtype','sec_struct.suffix');
 	protected	$arrJoinList		= array('JOIN rel_sec_struct','JOIN sec_config_order','JOIN sec_struct');
 	protected	$arrWhereList		= array(
 											'rel_sec_struct.sec_config_id = sec_config.id',
@@ -32,7 +32,7 @@ class manageContent_Controller extends CRUD_Controller {
 	protected	$arrGroupList		= array('rel_sec_struct.id');
 	protected	$arrOrderList		= array('rel_sec_struct.id');
 	
-	protected	$arrFieldData		= array('rel_sec_struct.*','sec_config_order.field_order','sec_config_order.type','sec_struct.name AS sec_struct_name');
+	protected	$arrFieldData		= array('rel_sec_struct.*','sec_config_order.field_order','sec_config_order.type','sec_struct.name AS sec_struct_name','sec_struct.fieldtype','sec_struct.suffix');
 	protected	$arrJoinData		= array('JOIN rel_sec_struct','JOIN sec_config_order','JOIN sec_struct');
 	protected	$arrWhereData		= array(
 											'rel_sec_struct.sec_config_id = sec_config.id',
@@ -145,7 +145,13 @@ class manageContent_Controller extends CRUD_Controller {
 		if(empty($intSecID)) $intSecID = $this->intSecID;
 		
 		// Gets Struct Field list
+		$this->objModel->arrTable		= $this->arrTable;
+		$this->objModel->arrFieldList	= $this->arrFieldList;
+		$this->objModel->arrJoinList	= $this->arrJoinList;
+		$this->objModel->arrWhereList	= $this->arrWhereList;
 		$this->objModel->arrWhereList[]	= 'sec_config.id = ' . $intSecID;
+		$this->objModel->arrGroupList	= $this->arrGroupList;
+		$this->objModel->arrOrderList	= $this->arrOrderList;
 		$arrTempList = $this->objModel->getList();
 		
 		// Gets Relationship Field list
@@ -163,7 +169,7 @@ class manageContent_Controller extends CRUD_Controller {
 			$this->objData[$objData->field_order] = clone $objData;
 		}
 		ksort($this->objData);
-	
+		
 		return $this->objData;
 	}
 	
@@ -252,6 +258,7 @@ class manageContent_Controller extends CRUD_Controller {
 	 * @since 	2013-01-22
 	 * @author	Diego Flores <diego [at] gmail [dot] com>
 	 *
+	 * @todo	Verify $mxdData type array | object and otimize method data struct and verification
 	 */
 	public function setupFieldSufyx(&$mxdData,$objField = null,$intReturnMode = 0) {
 		if(!is_array($mxdData) && !is_object($mxdData)) return false;
@@ -259,41 +266,59 @@ class manageContent_Controller extends CRUD_Controller {
 		if(!is_numeric($intReturnMode) || $intReturnMode < 0 || $intReturnMode > 2) return false;
 		
 		// Forces $this->objField to assume method's $objField value
-		if(!is_null($objField)) $this->objField = $objField;
+		if(!is_null($objField)) $this->objField = (array) $objField;
 		
-		foreach($this->objField AS $mxdKey => $strField) {
+		// Reset data variables
+		$arrControl			= array();
+		$this->objData		= null;
+		$this->objPrintData	= null;
+		
+		foreach($this->objField AS $mxdKey => &$strField) {
 			$this->objData->$strField = (is_array($mxdData) ? (!empty($mxdData[$strField]) ? $mxdData[$strField] : '') : (!empty($mxdData->$strField) ? $mxdData->$strField : ''));
 			
 			$strTemp = end(explode('_',$strField));
 			switch($strTemp) {
-				case 'money':
+				case 'currency':
 					switch($this->objData->$strField) {
 						default:
+						case 0:
+							$this->objPrintData->$strField->intval		= 0;
+							$this->objPrintData->$strField->formatted	= 'R$';
+						break;
+						
 						case 1:
-							$this->objPrintData->$strField	= 'R$';
+							$this->objPrintData->$strField->intval		= 1;
+							$this->objPrintData->$strField->formatted	= 'USD';
 						break;
 						
 						case 2:
-							$this->objPrintData->$strField	= 'USD';
-						break;
-						
-						case 3:
-							$this->objPrintData->$strField	= 'EUR';
+							$this->objPrintData->$strField->intval		= 2;
+							$this->objPrintData->$strField->formatted	= 'EUR';
 						break;
 					}
 				break;
 				
 				case 'phone':
-					if(!empty($this->objData->$strField)) 	{
+					if((is_object($mxdData) && !empty($mxdData->$strField)) || (is_array($mxdData) && !empty($mxdData[$strField]))) 	{
 						$intPhone = $strField . '_ddd';
-						$intPhone = (is_array($mxdData) ? (!empty($mxdData[$intPhone]) ? $mxdData[$intPhone] : '') : (!empty($mxdData->$intPhone) ? $mxdData->$intPhone : '') );
 						
-						$this->objPrintData->$strField->intval		= Controller::onlyNumbers($intPhone . $this->objData->$strField);
-						$this->objPrintData->$strField->formatted	= (!empty($intPhone) ? '(' . $intPhone . ')' : '') . $this->objData->$strField;
-						$this->objPrintData->$strField->original	= array($intPhone,$this->objData->$strField);
-						$this->objData->$strField					= $this->objPrintData->$strField->intval;
+						if(is_object($mxdData)) {
+							$intPhone = $mxdData->$intPhone;
+							
+							$this->objPrintData->$strField->intval		= Controller::onlyNumbers($intPhone . $mxdData->$strField);
+							$this->objPrintData->$strField->formatted	= (!empty($intPhone) ? '(' . $intPhone . ')' : '') . $mxdData->$strField;
+							$this->objPrintData->$strField->original	= array($intPhone,$mxdData->$strField);
+						} else {
+							$intPhone = $mxdData[$intPhone];
+							
+							$this->objPrintData->$strField->intval		= Controller::onlyNumbers($intPhone . $mxdData[$strField]);
+							$this->objPrintData->$strField->formatted	= (!empty($intPhone) ? '(' . $intPhone . ')' : '') . $mxdData[$strField];
+							$this->objPrintData->$strField->original	= array($intPhone,$mxdData[$strField]);
+						}
+						
+						$this->objData->$strField						= $this->objPrintData->$strField->intval;
 					} else {
-						$this->objPrintData->$strField = '';
+						$this->objData->$strField = $this->objPrintData->$strField = '';
 					}
 				break;
 				
@@ -310,63 +335,74 @@ class manageContent_Controller extends CRUD_Controller {
 				case 'Day':
 				case 'Month':
 				case 'Year':
-					unset($this->objData->$strField);
 					$strField	= str_replace(array('_Day','_Month','_Year'),'',$strField);
 					
-					$intDay		= $strField . '_Day';
-					$intDay		= (is_array($mxdData) ? (!empty($mxdData[$intDay]) 		? $mxdData[$intDay]		: '00') 	: (!empty($mxdData->$intDay) 	? $mxdData->$intDay		: '00') );
-					$intMonth	= $strField . '_Month';
-					$intMonth	= (is_array($mxdData) ? (!empty($mxdData[$intMonth])	? $mxdData[$intMonth]	: '00') 	: (!empty($mxdData->$intMonth) 	? $mxdData->$intMonth	: '00') );
-					$intYear	= $strField . '_Year';
-					$intYear	= (is_array($mxdData) ? (!empty($mxdData[$intYear])		? $mxdData[$intYear]	: '0000') 	: (!empty($mxdData->$intYear) 	? $mxdData->$intYear	: '0000') );
-				
-					if($intDay > 0 || $intMonth > 0 || $intYear > 0) 	{
-						$intDay		= ($intDay	> 0 ? $intDay	: date('d'));
-						$intMonth	= ($intMonth> 0 ? $intMonth	: date('m'));
-						$intYear	= ($intYear	> 0 ? $intYear	: date('Y'));
-				
-						$this->objData->$strField 						= $intYear.'-'.$intMonth.'-'.$intDay;
-						$this->objPrintData->$strField->formatted		= (LANGUAGE != 1 ? date('Y-m-d',strtotime($this->objData->$strField)) : date('d/m/Y',strtotime($this->objData->$strField)));
-					} else {
-						$this->objData->$strField						= '0000-00-00';
-						$this->objPrintData->$strField->formatted		= (LANGUAGE != 1 ? '0000-00-00' : '00/00/0000');
+					if(!$arrControl[$strField]) {
+						$arrControl[$strField] = true;
+						
+						$strDay		= $strField . '_Day';
+						$intDay		= (is_array($mxdData) ? (!empty($mxdData[$strDay]) 		? $mxdData[$strDay]		: '00') 	: (!empty($mxdData->$strDay) 	? $mxdData->$strDay		: '00') );
+						$strMonth	= $strField . '_Month';
+						$intMonth	= (is_array($mxdData) ? (!empty($mxdData[$strMonth])	? $mxdData[$strMonth]	: '00') 	: (!empty($mxdData->$strMonth) 	? $mxdData->$strMonth	: '00') );
+						$strYear	= $strField . '_Year';
+						$intYear	= (is_array($mxdData) ? (!empty($mxdData[$strYear])		? $mxdData[$strYear]	: '0000') 	: (!empty($mxdData->$strYear) 	? $mxdData->$strYear	: '0000') );
+					
+						if($intDay > 0 || $intMonth > 0 || $intYear > 0) 	{
+							$intDay		= ($intDay	> 0 ? $intDay	: date('d'));
+							$intMonth	= ($intMonth> 0 ? $intMonth	: date('m'));
+							$intYear	= ($intYear	> 0 ? $intYear	: date('Y'));
+					
+							$this->objData->$strField 						= $intYear.'-'.$intMonth.'-'.$intDay;
+							$this->objPrintData->$strField->formatted		= (LANGUAGE != 1 ? date('Y-m-d',strtotime($this->objData->$strField)) : date('d/m/Y',strtotime($this->objData->$strField)));
+						} else {
+							$this->objData->$strField						= '0000-00-00';
+							$this->objPrintData->$strField->formatted		= (LANGUAGE != 1 ? '0000-00-00' : '00/00/0000');
+						}
+						$this->objPrintData->$strField->original->Day		= $intDay;
+						$this->objPrintData->$strField->original->Year		= $intMonth;
+						$this->objPrintData->$strField->original->Month		= $intYear;
+						$this->objPrintData->$strField->original->Timestamp	= $intYear . $intMonth . $intDay;
 					}
-					$this->objPrintData->$strField->original->Day		= $intDay;
-					$this->objPrintData->$strField->original->Year		= $intMonth;
-					$this->objPrintData->$strField->original->Month		= $intYear;
 				break;
 				
 				case 'hour':
-					unset($this->objData->$strField);
+				case 'Hour':
+				case 'Minute':
+				case 'Second':
 					$strField	= str_replace(array('_Hour','_Minute','_Second'),'',$strField);
+
+					if(!$arrControl[$strField]) {
+						unset($this->objData->$strField);
+						
+						$intSecond	= $strField . '_Second';
+						$intSecond	= (is_array($mxdData) ? (!empty($mxdData[$intSecond]) 		? $mxdData[$intSecond]		: '00') 	: (!empty($mxdData->$intSecond) 	? $mxdData->$intSecond		: '00') );
+						$intMinute	= $strField . '_Minute';
+						$intMinute	= (is_array($mxdData) ? (!empty($mxdData[$intMinute])	? $mxdData[$intMinute]	: '00') 	: (!empty($mxdData->$intMinute) 	? $mxdData->$intMinute	: '00') );
+						$intHour	= $strField . '_Hour';
+						$intHour	= (is_array($mxdData) ? (!empty($mxdData[$intHour])		? $mxdData[$intHour]	: '00') 	: (!empty($mxdData->$intHour) 	? $mxdData->$intHour	: '00') );
 					
-					$intSecond	= $strField . '_Hour';
-					$intSecond	= (is_array($mxdData) ? (!empty($mxdData[$intSecond]) 		? $mxdData[$intSecond]		: '00') 	: (!empty($mxdData->$intSecond) 	? $mxdData->$intSecond		: '00') );
-					$intMinute	= $strField . '_Minute';
-					$intMinute	= (is_array($mxdData) ? (!empty($mxdData[$intMinute])	? $mxdData[$intMinute]	: '00') 	: (!empty($mxdData->$intMinute) 	? $mxdData->$intMinute	: '00') );
-					$intHour	= $strField . '_Second';
-					$intHour	= (is_array($mxdData) ? (!empty($mxdData[$intHour])		? $mxdData[$intHour]	: '00') 	: (!empty($mxdData->$intHour) 	? $mxdData->$intHour	: '00') );
-				
-					if($intSecond > 0 || $intMinute > 0 || $intHour > 0) 	{
-						$intSecond		= ($intSecond	> 0 ? $intSecond	: date('H'));
-						$intMinute	= ($intMinute> 0 ? $intMinute	: date('i'));
-						$intHour	= ($intHour	> 0 ? $intHour	: date('s'));
-				
-						$this->objData->$strField 						= $intHour.':'.$intMinute.':'.$intSecond;
-						$this->objPrintData->$strField->formatted		= date('H:i:s',strtotime($this->objData->$strField));
-					} else {
-						$this->objData->$strField						= '00:00:00';
-						$this->objPrintData->$strField->formatted		= '00:00:00';
+						if($intSecond > 0 || $intMinute > 0 || $intHour > 0) 	{
+							$intSecond		= ($intSecond	> 0 ? $intSecond	: date('H'));
+							$intMinute	= ($intMinute> 0 ? $intMinute	: date('i'));
+							$intHour	= ($intHour	> 0 ? $intHour	: date('s'));
+					
+							$this->objData->$strField 						= $intHour.':'.$intMinute.':'.$intSecond;
+							$this->objPrintData->$strField->formatted		= date('H:i:s',strtotime($this->objData->$strField));
+						} else {
+							$this->objData->$strField						= '00:00:00';
+							$this->objPrintData->$strField->formatted		= '00:00:00';
+						}
+						$this->objPrintData->$strField->original->Hour		= $intHour;
+						$this->objPrintData->$strField->original->Minute	= $intMinute;
+						$this->objPrintData->$strField->original->Second	= $intSecond;
+						$this->objPrintData->$strField->original->Timestamp	= $intHour . $intMinute . $intSecond;
 					}
-					$this->objPrintData->$strField->original->Hour		= $intHour;
-					$this->objPrintData->$strField->original->Minute	= $intMinute;
-					$this->objPrintData->$strField->original->Second	= $intSecond;
 				break;
 				
 				case 'permalink':
 					// Sets permalink string
 					$strPermalink = Controller::permalinkSyntax($this->objData->$strField);
-					$objData = $this->objModel->select('permalink',$this->objSection->table,array(),'permalink LIKE "' . $strPermalink . '%" AND sys_language_id = "' . LANGUAGE . '"');
+					$objData = $this->objModel->select('permalink',$this->objSection->table_name,array(),'permalink LIKE "' . $strPermalink . '%" AND sys_language_id = "' . LANGUAGE . '"');
 					$intCount = 1;
 					foreach($objData AS $strCount) {
 						if(is_string($strCount) && $strCount != '') {
@@ -379,22 +415,14 @@ class manageContent_Controller extends CRUD_Controller {
 					$this->objData->$strField = $this->objPrintData->$strField = $strPermalink;
 				break;
 				
-				case 'multitext':
-					if(is_array($this->objData->$strField)) {
-						$this->objPrintData->$strField	= $this->objData->$strField;
-						$this->objData->$strField		= implode("#MULTITEXT#",$mxdData[$strField]);
-					} else {
-						$this->objData->$strField		= null;
-						$this->objPrintData->$strField	= '';
-					}
-				break;
-				
 				case 'upload':
+				case 'old':
+					$strField = str_replace('_old','',$strField);
 					if(isset($_FILES[$strField])) {
-						$objUpload = new uploadFile_Controller($strField,ROOT_UPLOAD . Controller::permalinkSyntax($this->objSection->table));
+						$objUpload = new uploadFile_Controller($strField,ROOT_UPLOAD . Controller::permalinkSyntax($this->objSection->name));
 						$this->objData->$strField = $this->objPrintData->$strField = $objUpload->uploadFile();
 					} else {
-						$this->objData->$strField = $this->objPrintData->$strField = $mxdData[$strField];
+						$this->objData->$strField = $this->objPrintData->$strField = (is_array($mxdData) ? $mxdData[$strField] : $mxdData->$strField);
 					}
 				break;
 				
@@ -449,7 +477,7 @@ class manageContent_Controller extends CRUD_Controller {
 						$this->objPrintData->$strField->path	= $objUpload->strPath;
 						$this->objPrintData->$strField->info	= $arrData;
 					} else {
-						$this->objData->$strField = $this->objPrintData->$strField = $mxdData[$strField];
+						$this->objData->$strField = $this->objPrintData->$strField = (is_array($mxdData) ? $mxdData[$strField] : $mxdData->$strField);
 					}
 				break;
 				
@@ -479,18 +507,29 @@ class manageContent_Controller extends CRUD_Controller {
 						$this->objPrintData->$strField->path	= $objUpload->strPath;
 						$this->objPrintData->$strField->info	= $arrData;
 					} else {
-						$this->objData->$strField = $this->objPrintData->$strField = $mxdData[$strField];
+						$this->objData->$strField = $this->objPrintData->$strField = (is_array($mxdData) ? $mxdData[$strField] : $mxdData->$strField);
 					}
 				break;
 				
 				default:
-					$this->objPrintData->$strField = $mxdData;
+					$this->objData->$strField = (is_array($mxdData) ? $mxdData[$strField] : $mxdData->$strField);
+					$this->objPrintData->$strField = (is_array($mxdData) ? $mxdData[$strField] : $mxdData->$strField);
 				break;
 				
 				/***********************************/
 				/* NEEDS APPLR! SYSTEM DEFINITIONS */
 				/***********************************/
 				
+				case 'multitext':
+					if(is_array($this->objData->$strField)) {
+						$this->objPrintData->$strField	= $this->objData->$strField;
+						$this->objData->$strField		= implode("#MULTITEXT#",(is_array($mxdData) ? $mxdData[$strField] : $mxdData->$strField));
+					} else {
+						$this->objData->$strField		= null;
+						$this->objPrintData->$strField	= '';
+					}
+				break;
+					
 				case 'thumbnail':
 				break;
 				
@@ -522,14 +561,14 @@ class manageContent_Controller extends CRUD_Controller {
 			break;
 			
 			case 1:
-				$objReturn 			= clone $this->objData;
+				$objReturn 			= clone (object) $this->objData;
 				$this->objData		= null;
 				
 				return $objReturn;
 			break;
 			
 			case 2:
-				$objReturn 			= clone $this->objPrintData;
+				$objReturn 			= clone (object) $this->objPrintData;
 				$this->objPrintData	= null;
 				
 				return $objReturn;

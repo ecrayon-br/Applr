@@ -16,9 +16,9 @@ define('DB_PROD_PWD',		'');
 /***												***/
 /***   HOMOLOG ENVIRONMENT CONFIG AND CREDENTIALS   ***/
 /***												***/
-define('URI_DOMAIN_HOMOLOG','projetos.ecrayon.com.br');
+define('URI_DOMAIN_HOMOLOG','ecrayon.com.br');
 define('DIR_HOMOLOG',		'applr');
-define('DB_HOMOLOG_HOST',	'localhost');
+define('DB_HOMOLOG_HOST',	'cpmy0041.servidorwebfacil.com');
 define('DB_HOMOLOG_DB',		'ecrayon_applr');
 define('DB_HOMOLOG_USER',	'ecrayon_projetos');
 define('DB_HOMOLOG_PWD',	'sys24ecrayon11');
@@ -29,7 +29,7 @@ define('DB_HOMOLOG_PWD',	'sys24ecrayon11');
 /***												***/
 /*** DEVELOPMENT ENVIRONMENT CONFIG AND CREDENTIALS ***/
 /***												***/
-define('URI_DOMAIN_DEVELOP','127.0.0.1');
+define('URI_DOMAIN_DEVELOP','localhost');
 define('DIR_DEVELOP',		'applr');
 define('DB_DEVELOP_HOST',	'localhost');
 define('DB_DEVELOP_DB',		'applr');

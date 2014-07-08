@@ -12,9 +12,9 @@ class SectionStruct_controller extends Section_controller {
 	
 	protected	$arrFieldType		= array(
 											'sec_config_id'		=> 'numeric',
-											'name'				=> 'string_notempty',
-											'field_name'		=> 'string_notempty',
-											'tooltip'			=> 'string',
+											'name'				=> 'string',
+											'field_name'		=> 'string',
+											'tooltip'			=> 'string_empty',
 											'mandatory'			=> 'boolean',
 											'admin'				=> 'boolean'
 										);
@@ -75,7 +75,7 @@ class SectionStruct_controller extends Section_controller {
 		}
 		
 		// Gets STRUCT list
-		$arrStruct	= $this->objModel->select(array('sec_struct.*'),'sec_struct',array(),array(),array(),array(),0,null,'All');
+		$arrStruct	= $this->objModel->select(array('sec_struct.*'),'sec_struct',array(),array(),array('sec_struct.name ASC'),array(),0,null,'All');
 		foreach($arrStruct AS $objTemp) {
 			$this->arrStruct[$objTemp->id] = clone $objTemp;
 		}
@@ -319,9 +319,9 @@ class SectionStruct_controller extends Section_controller {
 			// Sets specific field data to validate
 			$this->arrFieldType	= 	array_merge($this->arrFieldType,array(
 																		'child_id'		=> 'numeric',
-																		'field_rel'		=> 'string_notempty',
-																		'field_type'	=> 'numeric',
-																		'table_name'	=> 'string_notempty'
+																		'field_rel'		=> 'string',
+																		'fieldtype'		=> 'numeric',
+																		'table_name'	=> 'string'
 																	)
 									);
 			

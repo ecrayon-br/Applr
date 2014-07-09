@@ -135,14 +135,16 @@ class SectionContent_controller extends manageContent_Controller {
 	 */
 	public function _create($intID = 0) {
 		if($intID > 0) {
-			$this->objData = $this->objModel->getData($intID);
-			
+			$this->objRawData = $this->objModel->getData($intID);
+			 
 			foreach($this->arrRelContent AS $objRel) {
 				if($objRel->type == 2) {
-					$this->objData->{$objRel->field_name} = json_decode($this->objData->{$objRel->field_name});
+					$this->objRawData->{$objRel->field_name} = json_decode($this->objRawData->{$objRel->field_name});
 				}
 			}
-			$this->objSmarty->assign('objData',$this->objData);
+			$this->setupFieldSufyx($this->objRawData,array_keys((array) $this->objRawData),1);
+			#echo '<pre>'; print_r($this->objPrintData); die();
+			$this->objSmarty->assign('objData',$this->objPrintData);
 		}
 		
 		$this->renderTemplate(true,$this->strModule . '_form.html');

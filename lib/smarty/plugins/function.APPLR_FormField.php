@@ -28,60 +28,74 @@ function smarty_function_APPLR_FormField($params,$template) {
 	$strName	= $params['field']->field_name;
 	$strType	= $params['field']->fieldtype;
 	$strSuffix	= end(explode('_',$strName));
-
+	
 	$template->assign('evalAssign','');
-	switch($params['field']->sec_struct_id) {
+	switch($params['field']->suffix) {
 		// RICHTEXT
-		case 3:
-			smarty_function_APPLR_FCKeditor(array('name' => $strName, 'value' => $params['value']));
+		case 'richtext':
+			smarty_function_APPLR_FCKeditor(array('name' => $strName, 'value' => smarty_modifier_APPLR_html_entity_decode($params['value'])));
 			return;
 		break;
 		
 		// PHONE
-		case 6:
+		case 'phone':
 			$strField	= str_replace(array('name="','id="','_ddd" value="','value=""'),array('name="' . $strName, 'id="' . $strName, '_ddd" value="' . $params['value']->original[0], 'value="' . $params['value']->original[1] . '"'), $strHTML);
 			return $strField;
 		break;
 		
 		// UPLOAD
-		case 8:
+		case 'upload':
 			$strField	= str_replace(array('name="','id="','_old" value="'),array('name="' . $strName, 'id="' . $strName,'_old" value="' . $params['value']), $strHTML);
 			return $strField;
 		break;
 		
 		// SEX
-		case 7:
-		// BOOLEAN
-		case 9:
-		// CHECKBOX
-		case 13:
+		case 'sex':
 		// TREATMENT TITLE
-		case 14:
+		case 'title':
 		// DAY PERIOD
-		case 15:
+		case 'period':
+			$strField	= str_replace(array('name="','id="','value="' . $params['value']->intval),array('name="' . $strName, 'id="' . $strName, 'checked value="' . $params['value']->intval), $strHTML);
+			return $strField;
+		break;
+		
+		// PASSWORD
+		case 'pwd':
+			$strField	= str_replace(array('#name#','name="','id="','value="'),array($strName,'name="' . $strName, 'id="' . $strName, 'value="' . $params['value']->original), $strHTML);
+			return $strField;
+		break;
+			
+		// BOOLEAN
+		case 'bool':
+		// CHECKBOX
+		case 'check':
 			$strField	= str_replace(array('name="','id="','value="' . $params['value']),array('name="' . $strName, 'id="' . $strName, 'checked value="' . $params['value']), $strHTML);
 			return $strField;
 		break;
 		
 		// DATE
-		case 10: 
+		case 'date':
+			$strField	= str_replace(array('#name#','prefix="'),array($strName,'time=' . (empty($params['value']->original->Timestamp) ? 'null' : '"' . $params['value']->original->Timestamp . '000000"') . ' prefix="' . $strName), $strHTML);
+			$template->assign('evalAssign',$strField);
+			return;
+		break;
+		 
 		// TIME
-		case 11:
-			var_dump($params['value']->original->formatted);
-			$strField	= str_replace(array('#name#','prefix="'),array($strName,'time="' . (!empty($params['value']) ? $params['value']->original->Timestamp : null) . '" prefix="' . $strName), $strHTML);
+		case 'time':
+			$strField	= str_replace(array('#name#','prefix="'),array($strName,'time=' . (empty($params['value']->original->Timestamp) ? 'null' : '"' . date('Ymd') . $params['value']->original->Timestamp . '"') . ' prefix="' . $strName), $strHTML);
 			$template->assign('evalAssign',$strField);
 			return;
 		break;
 		
 		// CURRENCY
-		case 18:
+		case 'currency':
 			$strField	= str_replace(array('name="','id="','value="' . $params['value']->intval),array('name="' . $strName, 'id="' . $strName, 'checked value="' . $params['value']->intval), $strHTML);
 			return $strField;
 		break;
 		
 		// ZIPCODE
-		case 19:
-			$strField	= str_replace(array('name="','id="','value="'),array('name="' . $strName, 'id="' . $strName, 'value="' . $params['value']->original), $strHTML);
+		case 'zipcode':
+			$strField	= str_replace(array('name="','id="','value="'),array('name="' . $strName, 'id="' . $strName, 'value="' . $params['value']->formatted), $strHTML);
 			return $strField;
 		break;
 		

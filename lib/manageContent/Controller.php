@@ -268,15 +268,20 @@ class manageContent_Controller extends CRUD_Controller {
 		// Forces $this->objField to assume method's $objField value
 		if(!is_null($objField)) $this->objField = (array) $objField;
 		
+		#echo '<pre>'; var_dump($mxdData); var_dump($this->objField); die();
+		
 		// Reset data variables
 		$arrControl			= array();
 		$this->objData		= null;
 		$this->objPrintData	= null;
-		
 		foreach($this->objField AS $mxdKey => &$strField) {
 			$this->objData->$strField = (is_array($mxdData) ? (!empty($mxdData[$strField]) ? $mxdData[$strField] : '') : (!empty($mxdData->$strField) ? $mxdData->$strField : ''));
 			
-			$strTemp = end(explode('_',$strField));
+			if(in_array($strField,array('date_create','date_publish','date_expire'))) {
+				$strTemp = $strField;
+			} else {
+				$strTemp = end(explode('_',$strField));
+			}
 			switch($strTemp) {
 				case 'currency':
 					switch($this->objData->$strField) {
@@ -298,22 +303,105 @@ class manageContent_Controller extends CRUD_Controller {
 					}
 				break;
 				
+				case 'title':
+					switch($this->objData->$strField) {
+						default:
+						case 0:
+							$this->objPrintData->$strField->intval		= 0;
+							$this->objPrintData->$strField->formatted	= 'Sr.';
+						break;
+						
+						case 1:
+							$this->objPrintData->$strField->intval		= 1;
+							$this->objPrintData->$strField->formatted	= 'Mr.';
+						break;
+						
+						case 2:
+							$this->objPrintData->$strField->intval		= 2;
+							$this->objPrintData->$strField->formatted	= 'Mrs.';
+						break;
+						
+						case 3:
+							$this->objPrintData->$strField->intval		= 3;
+							$this->objPrintData->$strField->formatted	= 'Mss.';
+						break;
+					}
+				break;
+				
+				case 'period':
+					switch($this->objData->$strField) {
+						default:
+						case 0:
+							$this->objPrintData->$strField->intval		= 0;
+							$this->objPrintData->$strField->formatted	= 'Morning';
+						break;
+						
+						case 1:
+							$this->objPrintData->$strField->intval		= 1;
+							$this->objPrintData->$strField->formatted	= 'Afternoon';
+						break;
+						
+						case 2:
+							$this->objPrintData->$strField->intval		= 2;
+							$this->objPrintData->$strField->formatted	= 'Night';
+						break;
+					}
+				break;
+				
+				case 'sex':
+					switch($this->objData->$strField) {
+						default:
+						case 0:
+							$this->objPrintData->$strField->intval		= 0;
+							$this->objPrintData->$strField->formatted	= 'F';
+						break;
+						
+						case 1:
+							$this->objPrintData->$strField->intval		= 1;
+							$this->objPrintData->$strField->formatted	= 'M';
+						break;
+					}
+				break;
+				
+				case 'pwd':
+					$this->objPrintData->$strField->original	= $this->objData->$strField;
+					$this->objPrintData->$strField->md5			= md5($this->objData->$strField);
+				break;
+				
 				case 'phone':
 					if((is_object($mxdData) && !empty($mxdData->$strField)) || (is_array($mxdData) && !empty($mxdData[$strField]))) 	{
 						$intPhone = $strField . '_ddd';
 						
 						if(is_object($mxdData)) {
-							$intPhone = $mxdData->$intPhone;
-							
-							$this->objPrintData->$strField->intval		= Controller::onlyNumbers($intPhone . $mxdData->$strField);
-							$this->objPrintData->$strField->formatted	= (!empty($intPhone) ? '(' . $intPhone . ')' : '') . $mxdData->$strField;
-							$this->objPrintData->$strField->original	= array($intPhone,$mxdData->$strField);
+							if(!empty($mxdData->$intPhone)) {
+								$intPhone = $mxdData->$intPhone;
+	
+								$this->objPrintData->$strField->intval		= Controller::onlyNumbers($intPhone . $mxdData->$strField);
+								$this->objPrintData->$strField->formatted	= (!empty($intPhone) ? '(' . $intPhone . ')' : '') . $mxdData->$strField;
+								$this->objPrintData->$strField->original	= array($intPhone,$mxdData->$strField);
+							} else {
+								$intPhone = substr($mxdData->$strField,0,2);
+								$mxdData->$strField = substr($mxdData->$strField,2);
+	
+								$this->objPrintData->$strField->intval		= Controller::onlyNumbers($intPhone . $mxdData->$strField);
+								$this->objPrintData->$strField->formatted	= (!empty($intPhone) ? '(' . $intPhone . ')' : '') . $mxdData->$strField;
+								$this->objPrintData->$strField->original	= array($intPhone,$mxdData->$strField);
+							}
 						} else {
-							$intPhone = $mxdData[$intPhone];
-							
-							$this->objPrintData->$strField->intval		= Controller::onlyNumbers($intPhone . $mxdData[$strField]);
-							$this->objPrintData->$strField->formatted	= (!empty($intPhone) ? '(' . $intPhone . ')' : '') . $mxdData[$strField];
-							$this->objPrintData->$strField->original	= array($intPhone,$mxdData[$strField]);
+							if(!empty($mxdData->$intPhone)) {
+								$intPhone = $mxdData[$intPhone];
+								
+								$this->objPrintData->$strField->intval		= Controller::onlyNumbers($intPhone . $mxdData[$strField]);
+								$this->objPrintData->$strField->formatted	= (!empty($intPhone) ? '(' . $intPhone . ')' : '') . $mxdData[$strField];
+								$this->objPrintData->$strField->original	= array($intPhone,$mxdData[$strField]);
+							} else {
+								$intPhone = substr($mxdData[$strField],0,2);
+								$mxdData[$strField] = substr($mxdData[$strField],2);
+	
+								$this->objPrintData->$strField->intval		= Controller::onlyNumbers($intPhone . $mxdData[$strField]);
+								$this->objPrintData->$strField->formatted	= (!empty($intPhone) ? '(' . $intPhone . ')' : '') . $mxdData[$strField];
+								$this->objPrintData->$strField->original	= array($intPhone,$mxdData[$strField]);
+							}
 						}
 						
 						$this->objData->$strField						= $this->objPrintData->$strField->intval;
@@ -337,31 +425,35 @@ class manageContent_Controller extends CRUD_Controller {
 				case 'Year':
 					$strField	= str_replace(array('_Day','_Month','_Year'),'',$strField);
 					
-					if(!$arrControl[$strField]) {
+					if(empty($arrControl[$strField])) {
 						$arrControl[$strField] = true;
 						
 						$strDay		= $strField . '_Day';
-						$intDay		= (is_array($mxdData) ? (!empty($mxdData[$strDay]) 		? $mxdData[$strDay]		: '00') 	: (!empty($mxdData->$strDay) 	? $mxdData->$strDay		: '00') );
 						$strMonth	= $strField . '_Month';
-						$intMonth	= (is_array($mxdData) ? (!empty($mxdData[$strMonth])	? $mxdData[$strMonth]	: '00') 	: (!empty($mxdData->$strMonth) 	? $mxdData->$strMonth	: '00') );
 						$strYear	= $strField . '_Year';
-						$intYear	= (is_array($mxdData) ? (!empty($mxdData[$strYear])		? $mxdData[$strYear]	: '0000') 	: (!empty($mxdData->$strYear) 	? $mxdData->$strYear	: '0000') );
-					
+
+						$arrDate	= explode('-',$this->objData->$strField);
+						
+						$intDay		= (is_array($mxdData) ? (!empty($mxdData[$strDay]) 		? $mxdData[$strDay]		: '00') 	: (!empty($arrDate[2]) 	? $arrDate[2]	: '00') );
+						$intMonth	= (is_array($mxdData) ? (!empty($mxdData[$strMonth])	? $mxdData[$strMonth]	: '00') 	: (!empty($arrDate[1]) 	? $arrDate[1]	: '00') );
+						$intYear	= (is_array($mxdData) ? (!empty($mxdData[$strYear])		? $mxdData[$strYear]	: '0000') 	: (!empty($arrDate[0]) 	? $arrDate[0]	: '0000') );
+						
 						if($intDay > 0 || $intMonth > 0 || $intYear > 0) 	{
 							$intDay		= ($intDay	> 0 ? $intDay	: date('d'));
 							$intMonth	= ($intMonth> 0 ? $intMonth	: date('m'));
 							$intYear	= ($intYear	> 0 ? $intYear	: date('Y'));
 					
-							$this->objData->$strField 						= $intYear.'-'.$intMonth.'-'.$intDay;
-							$this->objPrintData->$strField->formatted		= (LANGUAGE != 1 ? date('Y-m-d',strtotime($this->objData->$strField)) : date('d/m/Y',strtotime($this->objData->$strField)));
+							$this->objData->$strField 							= $intYear.'-'.$intMonth.'-'.$intDay;
+							$this->objPrintData->$strField->formatted			= (LANGUAGE != 1 ? date('Y-m-d',strtotime($this->objData->$strField)) : date('d/m/Y',strtotime($this->objData->$strField)));
+							$this->objPrintData->$strField->original->Timestamp	= $intYear . $intMonth . $intDay;
 						} else {
-							$this->objData->$strField						= '0000-00-00';
-							$this->objPrintData->$strField->formatted		= (LANGUAGE != 1 ? '0000-00-00' : '00/00/0000');
+							$this->objData->$strField							= '0000-00-00';
+							$this->objPrintData->$strField->formatted			= (LANGUAGE != 1 ? '0000-00-00' : '00/00/0000');
+							$this->objPrintData->$strField->original->Timestamp	= null; #$intYear . $intMonth . $intDay;
 						}
 						$this->objPrintData->$strField->original->Day		= $intDay;
 						$this->objPrintData->$strField->original->Year		= $intMonth;
 						$this->objPrintData->$strField->original->Month		= $intYear;
-						$this->objPrintData->$strField->original->Timestamp	= $intYear . $intMonth . $intDay;
 					}
 				break;
 				
@@ -369,17 +461,21 @@ class manageContent_Controller extends CRUD_Controller {
 				case 'Hour':
 				case 'Minute':
 				case 'Second':
+				case 'time':
 					$strField	= str_replace(array('_Hour','_Minute','_Second'),'',$strField);
 
-					if(!$arrControl[$strField]) {
-						unset($this->objData->$strField);
+					if(empty($arrControl[$strField])) {
+						$arrControl[$strField] = true;
 						
 						$intSecond	= $strField . '_Second';
-						$intSecond	= (is_array($mxdData) ? (!empty($mxdData[$intSecond]) 		? $mxdData[$intSecond]		: '00') 	: (!empty($mxdData->$intSecond) 	? $mxdData->$intSecond		: '00') );
 						$intMinute	= $strField . '_Minute';
-						$intMinute	= (is_array($mxdData) ? (!empty($mxdData[$intMinute])	? $mxdData[$intMinute]	: '00') 	: (!empty($mxdData->$intMinute) 	? $mxdData->$intMinute	: '00') );
 						$intHour	= $strField . '_Hour';
-						$intHour	= (is_array($mxdData) ? (!empty($mxdData[$intHour])		? $mxdData[$intHour]	: '00') 	: (!empty($mxdData->$intHour) 	? $mxdData->$intHour	: '00') );
+
+						$arrTime	= explode(':',$this->objData->$strField);
+						
+						$intSecond	= (is_array($mxdData) ? (!empty($mxdData[$intSecond]) 	? $mxdData[$intSecond]	: '00') 	: (!empty($arrTime[2]) 	? $arrTime[2]	: '00') );
+						$intMinute	= (is_array($mxdData) ? (!empty($mxdData[$intMinute])	? $mxdData[$intMinute]	: '00') 	: (!empty($arrTime[1]) 	? $arrTime[1]	: '00') );
+						$intHour	= (is_array($mxdData) ? (!empty($mxdData[$intHour])		? $mxdData[$intHour]	: '00') 	: (!empty($arrTime[0]) 	? $arrTime[0]	: '00') );
 					
 						if($intSecond > 0 || $intMinute > 0 || $intHour > 0) 	{
 							$intSecond		= ($intSecond	> 0 ? $intSecond	: date('H'));
@@ -388,14 +484,41 @@ class manageContent_Controller extends CRUD_Controller {
 					
 							$this->objData->$strField 						= $intHour.':'.$intMinute.':'.$intSecond;
 							$this->objPrintData->$strField->formatted		= date('H:i:s',strtotime($this->objData->$strField));
+							$this->objPrintData->$strField->original->Timestamp	= $intHour . $intMinute . $intSecond;
 						} else {
 							$this->objData->$strField						= '00:00:00';
 							$this->objPrintData->$strField->formatted		= '00:00:00';
+							$this->objPrintData->$strField->original->Timestamp	= null; #$intHour . $intMinute . $intSecond;
 						}
 						$this->objPrintData->$strField->original->Hour		= $intHour;
 						$this->objPrintData->$strField->original->Minute	= $intMinute;
 						$this->objPrintData->$strField->original->Second	= $intSecond;
-						$this->objPrintData->$strField->original->Timestamp	= $intHour . $intMinute . $intSecond;
+					}
+				break;
+				
+				case 'date_create':
+				case 'date_publish':
+				case 'date_expire':
+					$arrTemp	= explode(' ',$this->objData->$strField);
+					$arrDate	= explode('-',$arrTemp[0]);
+					$arrTime	= explode(':',$arrTemp[1]);
+
+					if($arrDate[0] > 0 || $arrDate[1] > 0 || $arrDate[2] > 0) 	{
+						$this->objPrintData->$strField->formatted->date		= (LANGUAGE != 1 ? date('Y-m-d',strtotime($arrTemp[0])) : date('d/m/Y',strtotime($arrTemp[0])));
+						$this->objPrintData->$strField->original->date		= $arrTemp[0];
+						$this->objPrintData->$strField->original->time		= $arrTemp[1];
+						$this->objPrintData->$strField->original->Timestamp	= str_replace(array('-',':'),'',$arrTemp[0]) . str_replace(array('-',':'),'',$arrTemp[1]);
+					} else {
+						$this->objPrintData->$strField->formatted->date		= (LANGUAGE != 1 ? '0000-00-00' : '00/00/0000');
+						$this->objPrintData->$strField->original->date		= $arrTemp[0];
+						$this->objPrintData->$strField->original->time		= $arrTemp[1];
+						$this->objPrintData->$strField->original->Timestamp	= null; #$intYear . $intMonth . $intDay;
+					}
+					
+					if($arrTime[0] > 0 || $arrTime[1] > 0 || $arrTime[2] > 0) 	{
+						$this->objPrintData->$strField->formatted->time		= date('H:i:s',strtotime($arrTemp[1]));
+					} else {
+						$this->objPrintData->$strField->formatted->time		= '00:00:00';
 					}
 				break;
 				
@@ -553,7 +676,7 @@ class manageContent_Controller extends CRUD_Controller {
 				break;
 			}
 		}
-		
+		#echo '<pre>'; print_r($this->objData);
 		switch($intReturnMode) {
 			case 0:
 			default:

@@ -5,19 +5,19 @@
 	</tr>
 	<tr>
 		<td>Date Publish</td>
-		<td>{html_select_date prefix="date_publish_" time=$objData->date_publish->original->Timestamp start_year="-5" end_year="+5" day_value_format="%02d" month_value_format="%m" field_order="DMY" year_empty="YEAR" month_empty="MONTH" day_empty="DAY"}</td>
+		<td>{html_select_date prefix="date_publish" time=$objData->date_publish->original->Timestamp start_year="-5" end_year="+5" day_value_format="%02d" month_value_format="%m" field_order="DMY" year_empty="YEAR" month_empty="MONTH" day_empty="DAY"}</td>
 	</tr>
 	<tr>
 		<td>Time Publish</td>
-		<td>{html_select_time prefix="time_publish_" time=$objData->date_publish->original->Timestamp field_order="HMS" hour_empty="HOUR" minute_empty="MIN" second_empty="SEC"}</td>
+		<td>{html_select_time prefix="time_publish" time=$objData->date_publish->original->Timestamp field_order="HMS" hour_empty="HOUR" minute_empty="MIN" second_empty="SEC"}</td>
 	</tr>
 	<tr>
 		<td>Date Expire</td>
-		<td>{html_select_date prefix="date_expire_" time=$objData->date_expire->original->Timestamp start_year="-5" end_year="+5" day_value_format="%02d" month_value_format="%m" field_order="DMY" year_empty="YEAR" month_empty="MONTH" day_empty="DAY"}</td>
+		<td>{html_select_date prefix="date_expire" time=$objData->date_expire->original->Timestamp start_year="-5" end_year="+5" day_value_format="%02d" month_value_format="%m" field_order="DMY" year_empty="YEAR" month_empty="MONTH" day_empty="DAY"}</td>
 	</tr>
 	<tr>
 		<td>Time Expire</td>
-		<td>{html_select_time prefix="time_expire_" time=$objData->time_expire->original->Timestamp field_order="HMS" hour_empty="HOUR" minute_empty="MIN" second_empty="SEC"}</td>
+		<td>{html_select_time prefix="time_expire" time=$objData->time_expire->original->Timestamp field_order="HMS" hour_empty="HOUR" minute_empty="MIN" second_empty="SEC"}</td>
 	</tr>
 	<tr>
 		<td>Active</td>

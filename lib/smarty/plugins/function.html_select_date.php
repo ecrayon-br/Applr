@@ -179,18 +179,18 @@ function smarty_function_html_select_date($params, $template)
     // Note: date() is faster than strftime()
     // Note: explode(date()) is faster than date() date() date()
     if (isset($params['time']) && is_array($params['time'])) {
-        if (isset($params['time'][$prefix . 'Year'])) {
+        if (isset($params['time'][$prefix . '_Year'])) {
             // $_REQUEST[$field_array] given
-            foreach (array('Y' => 'Year',  'm' => 'Month', 'd' => 'Day') as $_elementKey => $_elementName) {
+            foreach (array('Y' => '_Year',  'm' => '_Month', 'd' => '_Day') as $_elementKey => $_elementName) {
                 $_variableName = '_' . strtolower($_elementName);
                 $$_variableName = isset($params['time'][$prefix . $_elementName])
                     ? $params['time'][$prefix . $_elementName]
                     : date($_elementKey);
             }
             $time = mktime(0, 0, 0, $_month, $_day, $_year);
-        } elseif (isset($params['time'][$field_array][$prefix . 'Year'])) {
+        } elseif (isset($params['time'][$field_array][$prefix . '_Year'])) {
             // $_REQUEST given
-            foreach (array('Y' => 'Year',  'm' => 'Month', 'd' => 'Day') as $_elementKey => $_elementName) {
+            foreach (array('Y' => '_Year',  'm' => '_Month', 'd' => '_Day') as $_elementKey => $_elementName) {
                 $_variableName = '_' . strtolower($_elementName);
                 $$_variableName = isset($params['time'][$field_array][$prefix . $_elementName])
                     ? $params['time'][$field_array][$prefix . $_elementName]
@@ -238,7 +238,7 @@ function smarty_function_html_select_date($params, $template)
     if ($display_years) {
         $_html_years = '';
         $_extra = '';
-        $_name = $field_array ? ($field_array . '[' . $prefix . 'Year]') : ($prefix . 'Year');
+        $_name = $field_array ? ($field_array . '[' . $prefix . '_Year]') : ($prefix . '_Year');
         if ($all_extra) {
             $_extra .= ' ' . $all_extra;
         } 
@@ -279,7 +279,7 @@ function smarty_function_html_select_date($params, $template)
     if ($display_months) {
         $_html_month = '';
         $_extra = '';
-        $_name = $field_array ? ($field_array . '[' . $prefix . 'Month]') : ($prefix . 'Month');
+        $_name = $field_array ? ($field_array . '[' . $prefix . '_Month]') : ($prefix . '_Month');
         if ($all_extra) {
             $_extra .= ' ' . $all_extra;
         } 
@@ -318,7 +318,7 @@ function smarty_function_html_select_date($params, $template)
     if ($display_days) {
         $_html_day = '';
         $_extra = '';
-        $_name = $field_array ? ($field_array . '[' . $prefix . 'Day]') : ($prefix . 'Day');
+        $_name = $field_array ? ($field_array . '[' . $prefix . '_Day]') : ($prefix . '_Day');
         if ($all_extra) {
             $_extra .= ' ' . $all_extra;
         } 

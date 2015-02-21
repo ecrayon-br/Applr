@@ -18,10 +18,10 @@
 	{else}
 	{foreach from=$objData name="listData" item="objTmp"}
 	<tr>
-		<td><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{$objTmp->id}">{$objTmp->name}</a></td>
-		<td><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{$objTmp->id}">{$objTmp->publish_date}</a></td>
-		<td><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{$objTmp->id}">{$objTmp->status}</a></td>
-		<td align="center"><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{$objTmp->id}">[ edit ]</a></td>
+		<td><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{if empty($smarty.session.APPLR.URI_SEGMENT.4)}{$smarty.session.APPLR.URI_SEGMENT.3}{else}{$smarty.session.APPLR.URI_SEGMENT.4}{/if}/{$objTmp->id}">{$objTmp->name}</a></td>
+		<td><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{if empty($smarty.session.APPLR.URI_SEGMENT.4)}{$smarty.session.APPLR.URI_SEGMENT.3}{else}{$smarty.session.APPLR.URI_SEGMENT.4}{/if}/{$objTmp->id}">{$objTmp->date_publish|date_format:"%d/%m/%Y %H:%M:%S"}</a></td>
+		<td><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{if empty($smarty.session.APPLR.URI_SEGMENT.4)}{$smarty.session.APPLR.URI_SEGMENT.3}{else}{$smarty.session.APPLR.URI_SEGMENT.4}{/if}/{$objTmp->id}">{$objTmp->active}</a></td>
+		<td align="center"><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{if empty($smarty.session.APPLR.URI_SEGMENT.4)}{$smarty.session.APPLR.URI_SEGMENT.3}{else}{$smarty.session.APPLR.URI_SEGMENT.4}{/if}/{$objTmp->id}">[ edit ]</a></td>
 		<td align="center"><input type="checkbox" name="delete[]" id="delete_{$objTmp->id}" value="{$objTmp->id}" /></td>
 	</tr>
 	{/foreach}

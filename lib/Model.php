@@ -376,6 +376,8 @@ class Model {
 			// Prepare query using MDB2::prepare
 			$objQuery = $this->objConn->extended->buildManipSQL($strTable,$arrField,MDB2_AUTOQUERY_INSERT);
 			$objQuery = $this->objConn->prepare( str_replace('INSERT INTO','REPLACE INTO',$objQuery) );
+			
+			#var_dump($objQuery); die();
 		}
 		
 		if(MDB2::isError($objQuery)) {
@@ -611,7 +613,7 @@ class Model {
 		
 		if($this->_boolDebug) { echo '<pre>'; var_dump($objQuery); echo '</pre>'; }
 		
-		if(MDB2::isError($objQuery)) { var_dump($objQuery);
+		if(MDB2::isError($objQuery)) { #var_dump($objQuery);
 			define('ERROR_MSG',"Error on Model::select->$arrFetch[$strFetchMode](): " . $objQuery->getMessage());
 			return false;
 		} else {
@@ -680,12 +682,13 @@ class Model {
 		
 		// Prepares and execute query
 		$objQuery = $this->prepareInsertQuery($strTable,$arrField,false);
+		#echo '<pre>'; print_r($objQuery); die();
 		if($objQuery !== false) {
 			// Treats UTF-8 and HTML SPECIAL CHARS
 			$this->prepareDataSyntax($arrField,false);
-			
+			#echo '<pre>'; print_r($arrField); die();
 			$objQuery = $this->objConn->extended->executeMultiple($objQuery,$arrField);
-			
+			#echo '<pre>'; print_r($objQuery); die();
 			#$this->objConn->free();
 			
 			if(MDB2::isError($objQuery)) {

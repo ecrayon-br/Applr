@@ -994,6 +994,9 @@ class Controller {
 	 * 
 	 */
 	public function validateParamsArray(&$arrValues,$arrDataType,$boolKeepOtherData = true) {
+		
+		#echo '<pre>'; print_r($arrDataType); die();
+		
 		if(!is_array($arrValues))															return false;
 		if(!is_array($arrDataType) 	|| count($arrDataType) 	== 0)							return false;
 		

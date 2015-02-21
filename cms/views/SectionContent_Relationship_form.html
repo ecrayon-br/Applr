@@ -1,0 +1,15 @@
+{if $objParams->fieldtype == 0}<select name="{$objParams->field_name}" id="{$objParams->field_name}"><option value="">Select value</option>{/if}
+
+{foreach from=$objList name="listStruct" item="objTmp"}
+
+	{if $objParams->fieldtype == 0} 	{* COMBO *}
+	<option value="{$objTmp->id}" {if in_array($objTmp->id,$arrMatch)}selected=selected{/if}>{$objTmp->name}</option>
+	{elseif $objParams->fieldtype == 1} {* RADIO *}
+	<input type="radio" {if in_array($objTmp->id,$arrMatch)}checked=checked{/if} name="{$objParams->field_name}" id="{$objParams->field_name}_{$objTmp->id}" value="{$objTmp->id}" /> <label for="{$objParams->field_name}_{$objTmp->id}">{$objTmp->name}</label><br />
+	{elseif $objParams->fieldtype == 2} {* CHECK *}
+	<input type="checkbox" {if in_array($objTmp->id,$arrMatch)}checked=checked{/if} name="{$objParams->field_name}[]" id="{$objParams->field_name}_{$objTmp->id}" value="{$objTmp->id}" /> <label for="{$objParams->field_name}_{$objTmp->id}">{$objTmp->name}</label><br />
+	{/if}
+
+{/foreach}
+
+{if $objParams->fieldtype == 0}</select>{/if}

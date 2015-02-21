@@ -47,12 +47,25 @@ class CRUD_Controller extends Main_controller {
 		
 		if($boolRenderTemplate) $this->_read();
 	}
+
+	/**
+	 * Get Contents LIST
+	 *
+	 * @param	integer	$intID	Content ID
+	 *
+	 * @return	void
+	 *
+	 * @since 	2013-02-08
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 *
+	 */
+	public function content() {
+		return $this->objModel->getList();
+	}
 	
 	/**
 	 * Shows INSERT interface
 	 * 
-	 * @param	integer	$intID	Content ID
-	 *
 	 * @return	void
 	 *
 	 * @since 	2013-02-08
@@ -143,7 +156,7 @@ class CRUD_Controller extends Main_controller {
 	 *
 	 */
 	protected function _read() {
-		$this->objData	= $this->objModel->getList();
+		$this->objData	= $this->content();
 		$this->objSmarty->assign('objData',$this->objData);
 		$this->renderTemplate();
 	}
@@ -165,25 +178,45 @@ class CRUD_Controller extends Main_controller {
 		
 		if(isset($this->arrFieldType['usr_data_id'])) $arrData['usr_data_id'] = $this->intUserID;
 		
+		#echo '<pre>'; print_r($arrData); print_r($this->arrFieldType); die();
+		
 		if(($strField = $this->validateParamsArray($arrData,$this->arrFieldType,false)) === true) {
+			#echo '<pre>'; print_r($arrData); die();
 			if(($intID = $this->objModel->replace($this->strTable,$arrData)) !== false) {
 				if(empty($arrData['id'])) {
 					$arrData['id']	= $intID;
 				} else {
 					$intID = $arrData['id'];
 				}
+				
+				// Insert relationship values
+				foreach($this->objStruct AS $objField) {
+					if($objField->type == 2) {
+						
+						// Format insert data array
+						$mxdContent = array();
+						foreach($arrData[$objField->field_name] AS $mxdData) {
+							$mxdContent[] = array('parent_id' => $intID, 'child_id' => $mxdData);
+						}
+						$this->objModel->insert($objField->table_name,$mxdContent);
+						
+						$arrData[$objField->field_name] = $objField->fieldtype;
+					}
+				}
+				
 				$this->objSmarty->assign('ALERT_MSG','Data saved successfully!');
 			} else {
 				$this->objSmarty->assign('ERROR_MSG','There was an error while trying to save data! Please try again!');
 				if(!$boolRenderTemplate) return false;
 			}
+			
 		} else {
 			$this->objSmarty->assign('ERROR_MSG','There was an error while validating "' . $strField . '" data! Please try again!');
 			if(!$boolRenderTemplate) return false;
 		}
 		
 		$this->objData	= (object) array_merge((array) $this->objData,$arrData);
-		
+		#echo '<pre>'; print_r($this->objData); die();
 		if($boolRenderTemplate) {
 			$this->objSmarty->assign('objData',$this->objData);
 			$this->_create($intID);

@@ -133,6 +133,11 @@ class Section_controller extends CRUD_Controller {
 	public function add() {
 		$this->unsecureGlobals();
 		
+		// Sets ORDER BY var
+		if(empty($_POST['orderby'])) {
+			$_POST['orderby'] = $_POST['applr_orderby'];
+		}
+		
 		// Sets TEMPLATE var
 		$arrInsertTPL	= array();
 		foreach($_POST['template'] AS $intType => $intTPL) {
@@ -178,17 +183,20 @@ class Section_controller extends CRUD_Controller {
 		$this->objData->hierarchy 	= (!is_null($_POST['sys_folder_id']) ? $_POST['sys_folder_id'] : 0) . '|' . (!is_null($_POST['parent']) ? $_POST['parent'] : 0);
 		
 		// Sets table name preffix
-		$_POST['table_name']		= 'sec_ctn_' . str_replace('-','_', Controller::permalinkSyntax($_POST['table_name']) );
+		$_POST['table_name']		= 'sec_ctn_' . str_replace(array('-','sec_ctn_'),array('_',''), Controller::permalinkSyntax($_POST['table_name']) );
 		
 		// Creates section table
-		if($this->createSectionTable($_POST['table_name'])) {
+		if(!empty($_POST['id']) || (empty($_POST['id']) && $this->createSectionTable($_POST['table_name']))) {
 			
 			// Saves data
 			if($this->_update($_POST,false)) {
 				
+				/**
+				 * @todo Os metodos abaixo estão previstos apenas para INSERT; é necessário prever CASE UPDATE
+				 */
 				// Insert rel_sec_struct for `name` field
-				if( ($intStructID = $this->objManage->objModel->insert('rel_sec_struct',array('sec_config_id' => $this->objData->id, 'sec_struct_id' => 1, 'field_name' => 'name', 'name' => 'Name', 'tooltip' => '', 'mandatory' => 1, 'admin' => 0),true)) !== false) {
-					$this->objManage->objModel->insert('sec_config_order',array('field_id' => $intStructID, 'order' => 1, 'type' => 1));
+				if( ($intStructID = $this->objModel->insert('rel_sec_struct',array('sec_config_id' => $this->objData->id, 'sec_struct_id' => 1, 'field_name' => 'name', 'name' => 'Name', 'tooltip' => '', 'mandatory' => 1, 'admin' => 0),true)) !== false) {
+					$this->objModel->insert('sec_config_order',array('field_id' => $intStructID, 'order' => 1, 'type' => 1));
 					
 					// Creates media directories and galleries
 					@mkdir(ROOT_IMAGE	. $_POST['permalink'],0755);
@@ -310,8 +318,8 @@ class Section_controller extends CRUD_Controller {
 												'create_html'		=> array('type' => 'boolean', 'notnull' => 1, 'default' => 0),
 												'active'			=> array('type' => 'boolean', 'notnull' => 1, 'default' => 1),
 												'deleted'			=> array('type' => 'boolean', 'notnull' => 1, 'default' => 0),
-												'seo_description'	=> array('type' => 'text'),
-												'seo_keywords'		=> array('type' => 'text', 'length' => 255, 'notnull' => 1),
+												'seo_description'	=> array('type' => 'text', 'notnull' => 0),
+												'seo_keywords'		=> array('type' => 'text', 'length' => 255, 'notnull' => 0),
 												'permalink'			=> array('type' => 'text', 'length' => 255, 'notnull' => 1),
 												'name' 				=> array('type' => 'text', 'length' => 255, 'notnull' => 1)
 												)

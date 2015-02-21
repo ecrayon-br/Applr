@@ -11,6 +11,7 @@ class manageContent_Controller extends CRUD_Controller {
 	
 	protected	$intSecID;
 	protected	$objRelParams;
+	protected	$objStruct;
 	
 	/**
 	 *
@@ -164,13 +165,13 @@ class manageContent_Controller extends CRUD_Controller {
 		$arrTempList = array_merge($arrTempList,$this->objModel->getList());
 	
 		// Merges and orders array data
-		$this->objData = array();
+		$this->objStruct = array();
 		foreach($arrTempList AS $objData) {
-			$this->objData[$objData->field_order] = clone $objData;
+			$this->objStruct[$objData->field_order] = clone $objData;
 		}
-		ksort($this->objData);
+		ksort($this->objStruct);
 		
-		return $this->objData;
+		return $this->objStruct;
 	}
 	
 	/**
@@ -250,7 +251,7 @@ class manageContent_Controller extends CRUD_Controller {
 	 * Checks field's sufyx and sets $arrData and $arrPrintData values
 	 * 
 	 * @param	mixed	$mxdData		POST / GET / other data object
-	 * @param	mixed	$objField		Array where key => DB fields and value => DB field's value OR null to get Applr SECTION defaults
+	 * @param	mixed	$objField		Array where array_value => DB field's name OR null to get Applr SECTION defaults
 	 * @param	integer	$intReturnMode	0 => boolean; 1 => $this->objData values; 2 => $this->objPrintData values. If 1 or 2, resets $this->objData ans $this->objPrintData values to NULL on return 
 	 * 
 	 * @return	boolean
@@ -260,7 +261,7 @@ class manageContent_Controller extends CRUD_Controller {
 	 *
 	 * @todo	Verify $mxdData type array | object and otimize method data struct and verification
 	 */
-	public function setupFieldSufyx(&$mxdData,$objField = null,$intReturnMode = 0) {
+	public function setupFieldSufyx($mxdData,$objField = null,$intReturnMode = 0) {
 		if(!is_array($mxdData) && !is_object($mxdData)) return false;
 		#if($this->objField === false) return false;
 		if(!is_numeric($intReturnMode) || $intReturnMode < 0 || $intReturnMode > 2) return false;
@@ -275,6 +276,8 @@ class manageContent_Controller extends CRUD_Controller {
 		$this->objData		= null;
 		$this->objPrintData	= null;
 		foreach($this->objField AS $mxdKey => &$strField) {
+			
+			#echo '<pre>'; var_dump($mxdData); var_dump($this->objField); die();
 			$this->objData->$strField = (is_array($mxdData) ? (!empty($mxdData[$strField]) ? $mxdData[$strField] : '') : (!empty($mxdData->$strField) ? $mxdData->$strField : ''));
 			
 			if(in_array($strField,array('date_create','date_publish','date_expire'))) {
@@ -282,6 +285,7 @@ class manageContent_Controller extends CRUD_Controller {
 			} else {
 				$strTemp = end(explode('_',$strField));
 			}
+			
 			switch($strTemp) {
 				case 'currency':
 					switch($this->objData->$strField) {
@@ -431,12 +435,18 @@ class manageContent_Controller extends CRUD_Controller {
 						$strDay		= $strField . '_Day';
 						$strMonth	= $strField . '_Month';
 						$strYear	= $strField . '_Year';
-
-						$arrDate	= explode('-',$this->objData->$strField);
 						
-						$intDay		= (is_array($mxdData) ? (!empty($mxdData[$strDay]) 		? $mxdData[$strDay]		: '00') 	: (!empty($arrDate[2]) 	? $arrDate[2]	: '00') );
-						$intMonth	= (is_array($mxdData) ? (!empty($mxdData[$strMonth])	? $mxdData[$strMonth]	: '00') 	: (!empty($arrDate[1]) 	? $arrDate[1]	: '00') );
-						$intYear	= (is_array($mxdData) ? (!empty($mxdData[$strYear])		? $mxdData[$strYear]	: '0000') 	: (!empty($arrDate[0]) 	? $arrDate[0]	: '0000') );
+						if(!empty($this->objData->$strField)) {
+							$arrDate	= explode('-',$this->objData->$strField);
+							
+							$intDay		= (!empty($arrDate[2]) 	? $arrDate[2]	: '00');
+							$intMonth	= (!empty($arrDate[1])	? $arrDate[1]	: '00');
+							$intYear	= (!empty($arrDate[0])	? $arrDate[0]	: '0000');
+						} else {
+							$intDay		= (is_array($mxdData) ? (!empty($mxdData[$strDay]) 		? $mxdData[$strDay]		: '00') 	: (!empty($mxdData->$strDay) 	? $mxdData->$strDay		: '00') );
+							$intMonth	= (is_array($mxdData) ? (!empty($mxdData[$strMonth])	? $mxdData[$strMonth]	: '00') 	: (!empty($mxdData->$strMonth) 	? $mxdData->$strMonth	: '00') );
+							$intYear	= (is_array($mxdData) ? (!empty($mxdData[$strYear])		? $mxdData[$strYear]	: '0000') 	: (!empty($mxdData->$strYear) 	? $mxdData->$strYear	: '0000') );
+						}
 						
 						if($intDay > 0 || $intMonth > 0 || $intYear > 0) 	{
 							$intDay		= ($intDay	> 0 ? $intDay	: date('d'));
@@ -470,25 +480,31 @@ class manageContent_Controller extends CRUD_Controller {
 						$intSecond	= $strField . '_Second';
 						$intMinute	= $strField . '_Minute';
 						$intHour	= $strField . '_Hour';
-
-						$arrTime	= explode(':',$this->objData->$strField);
 						
-						$intSecond	= (is_array($mxdData) ? (!empty($mxdData[$intSecond]) 	? $mxdData[$intSecond]	: '00') 	: (!empty($arrTime[2]) 	? $arrTime[2]	: '00') );
-						$intMinute	= (is_array($mxdData) ? (!empty($mxdData[$intMinute])	? $mxdData[$intMinute]	: '00') 	: (!empty($arrTime[1]) 	? $arrTime[1]	: '00') );
-						$intHour	= (is_array($mxdData) ? (!empty($mxdData[$intHour])		? $mxdData[$intHour]	: '00') 	: (!empty($arrTime[0]) 	? $arrTime[0]	: '00') );
-					
+						if(!empty($this->objData->$strField)) {
+							$arrTime	= explode(':',$this->objData->$strField);
+							
+							$intSecond	= (!empty($arrTime[2]) 	? $arrTime[2]	: '00');
+							$intMinute	= (!empty($arrTime[1])	? $arrTime[1]	: '00');
+							$intHour	= (!empty($arrTime[0])	? $arrTime[0]	: '00');
+						} else {
+							$intSecond	= (is_array($mxdData) ? (!empty($mxdData[$intSecond]) 	? $mxdData[$intSecond]	: '00') 	: (!empty($arrTime[2]) 	? $arrTime[2]	: '00') );
+							$intMinute	= (is_array($mxdData) ? (!empty($mxdData[$intMinute])	? $mxdData[$intMinute]	: '00') 	: (!empty($arrTime[1]) 	? $arrTime[1]	: '00') );
+							$intHour	= (is_array($mxdData) ? (!empty($mxdData[$intHour])		? $mxdData[$intHour]	: '00') 	: (!empty($arrTime[0]) 	? $arrTime[0]	: '00') );
+						}
+						
 						if($intSecond > 0 || $intMinute > 0 || $intHour > 0) 	{
 							$intSecond		= ($intSecond	> 0 ? $intSecond	: date('H'));
 							$intMinute	= ($intMinute> 0 ? $intMinute	: date('i'));
 							$intHour	= ($intHour	> 0 ? $intHour	: date('s'));
 					
-							$this->objData->$strField 						= $intHour.':'.$intMinute.':'.$intSecond;
-							$this->objPrintData->$strField->formatted		= date('H:i:s',strtotime($this->objData->$strField));
+							$this->objData->$strField 							= $intHour.':'.$intMinute.':'.$intSecond;
+							$this->objPrintData->$strField->formatted			= date('H:i:s',strtotime($this->objData->$strField));
 							$this->objPrintData->$strField->original->Timestamp	= $intHour . $intMinute . $intSecond;
 						} else {
-							$this->objData->$strField						= '00:00:00';
-							$this->objPrintData->$strField->formatted		= '00:00:00';
-							$this->objPrintData->$strField->original->Timestamp	= null; #$intHour . $intMinute . $intSecond;
+							$this->objData->$strField							= '00:00:00';
+							$this->objPrintData->$strField->formatted			= '00:00:00';
+							$this->objPrintData->$strField->original->Timestamp	= $intHour . $intMinute . $intSecond;
 						}
 						$this->objPrintData->$strField->original->Hour		= $intHour;
 						$this->objPrintData->$strField->original->Minute	= $intMinute;
@@ -811,7 +827,7 @@ class manageContent_Controller extends CRUD_Controller {
 	protected function updateRelContent($mxdData) {
 		if(!is_array($mxdData)) return false;
 		if($this->objRelField === false) return false;
-		
+		#echo '<pre>'; print_r($this->objRelField); die();
 		foreach($this->objRelField AS $mxdKey => $objRel) {
 			// Sets relationship params
 			if($this->setRelParams($objRel)) {

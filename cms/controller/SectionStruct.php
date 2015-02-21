@@ -416,6 +416,7 @@ class SectionStruct_controller extends Section_controller {
 			case true:
 			default:
 				// Sets RDBMS struct array
+				$arrStruct				= array();
 				$arrStruct['type'] 		= $this->arrStruct[$arrData['sec_struct_id']]->fieldtype;
 				$arrStruct['unsigned'] 	= $this->arrStruct[$arrData['sec_struct_id']]->is_unsigned;
 				$arrStruct['null'] 		= $this->arrStruct[$arrData['sec_struct_id']]->notnull;
@@ -447,7 +448,18 @@ class SectionStruct_controller extends Section_controller {
 						)
 				);
 				
-				return $this->objManage->createRelationTable($arrParent,$arrChild,$arrData['table_name']);
+				if($this->objManage->createRelationTable($arrParent,$arrChild,$arrData['table_name'])) {
+
+					// Sets RDBMS struct array
+					$arrStruct				= array();
+					$arrStruct['type'] 		= 'integer';
+					$arrStruct['null'] 		= 1;
+					$arrStruct['default'] 	= null;
+					
+					$arrDefaultFields 		= array('add' =>array($arrData['field_name'] => $arrStruct));
+					
+					return $this->objManage->alterTable($this->strSecTable,$arrDefaultFields);
+				}
 			break;
 		} return false;
 	}

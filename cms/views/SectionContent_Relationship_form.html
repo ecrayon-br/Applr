@@ -1,7 +1,10 @@
-{if $objParams->fieldtype == 0}<select name="{$objParams->field_name}" id="{$objParams->field_name}"><option value="">Select value</option>{/if}
+{if $objParams->fieldtype == 0}<select name="{$objParams->field_name}" id="{$objParams->field_name}"><option value="">Select value</option>
+{elseif count($objList) > 5}
+<div style="display: inline-block; padding: 10px; border-right: 1px solid #ccc; border-bottom: 2px solid black;">
+{/if}
 
 {foreach from=$objList name="listStruct" item="objTmp"}
-
+	
 	{if $objParams->fieldtype == 0} 	{* COMBO *}
 	<option value="{$objTmp->id}" {if in_array($objTmp->id,$arrMatch)}selected=selected{/if}>{$objTmp->name}</option>
 	{elseif $objParams->fieldtype == 1} {* RADIO *}
@@ -10,6 +13,8 @@
 	<input type="checkbox" {if in_array($objTmp->id,$arrMatch)}checked=checked{/if} name="{$objParams->field_name}[]" id="{$objParams->field_name}_{$objTmp->id}" value="{$objTmp->id}" /> <label for="{$objParams->field_name}_{$objTmp->id}">{$objTmp->name}</label><br />
 	{/if}
 
+	{if $smarty.foreach.listStruct.iteration % 5 == 0 && !$smarty.foreach.listStruct.last}</div><div style="display: inline-block; padding: 10px; border-right: 1px solid #ccc; border-bottom: 2px solid black;">{/if}
 {/foreach}
 
-{if $objParams->fieldtype == 0}</select>{/if}
+{if $objParams->fieldtype == 0}</select>
+{else}</div>{/if}

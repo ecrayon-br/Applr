@@ -163,14 +163,15 @@ class manageContent_Controller extends CRUD_Controller {
 		$this->objModel->arrGroupList	= $this->arrRelGroupData;
 		$this->objModel->arrOrderList	= $this->arrRelOrderData;
 		$arrTempList = array_merge($arrTempList,$this->objModel->getList());
-	
+
+		#echo '<pre>'; var_dump($arrTempList);
 		// Merges and orders array data
 		$this->objStruct = array();
 		foreach($arrTempList AS $objData) {
 			$this->objStruct[$objData->field_order] = clone $objData;
 		}
 		ksort($this->objStruct);
-		
+		#echo '<pre>'; var_dump($this->objStruct);
 		return $this->objStruct;
 	}
 	

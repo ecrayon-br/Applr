@@ -175,20 +175,19 @@ class CRUD_Controller extends Main_controller {
 	 */
 	protected function _update($arrData,$boolRenderTemplate = true) {
 		if(!is_bool($boolRenderView) && $boolRenderView !== 1 && $boolRenderView !== 0)	$boolRenderView = true;
+		if(!is_array($arrData)) $arrData = (array) $arrData;
 		
 		if(isset($this->arrFieldType['usr_data_id'])) $arrData['usr_data_id'] = $this->intUserID;
 		
-		#echo '<pre>'; print_r($arrData); print_r($this->arrFieldType); die();
-		
 		if(($strField = $this->validateParamsArray($arrData,$this->arrFieldType,false)) === true) {
-			#echo '<pre>'; print_r($arrData); die();
-			if(($intID = $this->objModel->replace($this->strTable,$arrData)) !== false) {
+			if(($intID = $this->objModel->replace($this->strTable,$arrData,true,(empty($arrData['id']) ? false : true))) !== false) {
+				
 				if(empty($arrData['id'])) {
 					$arrData['id']	= $intID;
 				} else {
 					$intID = $arrData['id'];
 				}
-				
+				#echo '<pre>'; var_dump($this->objStruct); die();
 				// Insert relationship values
 				foreach($this->objStruct AS $objField) {
 					if($objField->type == 2) {
@@ -216,7 +215,6 @@ class CRUD_Controller extends Main_controller {
 		}
 		
 		$this->objData	= (object) array_merge((array) $this->objData,$arrData);
-		#echo '<pre>'; print_r($this->objData); die();
 		if($boolRenderTemplate) {
 			$this->objSmarty->assign('objData',$this->objData);
 			$this->_create($intID);

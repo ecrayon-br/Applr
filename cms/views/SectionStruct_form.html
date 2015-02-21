@@ -65,7 +65,7 @@
 	<tr>
 		<td>Section</td>
 		<td>
-			<select name="child_id" id="child_id" size="5" onchange="alert(this.value)">
+			<select name="child_id" id="child_id" size="5">
 				{foreach from=$arrFld name="listFolder" item="arrTmpFld"}
 				<optgroup label="{$arrTmpFld->name}">
 					{foreach from=$arrSec.{$arrTmpFld->id} name="listSec" item="arrTmpSec"}

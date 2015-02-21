@@ -376,11 +376,10 @@ class Model {
 			// Prepare query using MDB2::prepare
 			$objQuery = $this->objConn->extended->buildManipSQL($strTable,$arrField,MDB2_AUTOQUERY_INSERT);
 			$objQuery = $this->objConn->prepare( str_replace('INSERT INTO','REPLACE INTO',$objQuery) );
-			
-			#var_dump($objQuery); die();
 		}
 		
 		if(MDB2::isError($objQuery)) {
+			echo '<pre>'; var_dump($objQuery); die();
 			define('ERROR_MSG','Error on Model::prepareInsertQuery(): ' . $objQuery->getMessage());
 			return false;
 		} else {
@@ -604,7 +603,7 @@ class Model {
 						'.(count($arrWhere) > 0 	? 'WHERE 	'.implode(' AND '	,$arrWhere)		: '').'
 						'.(count($arrGroupBy) > 0 	? 'GROUP BY	'.implode(' , '		,$arrGroupBy)	: '').'
 						'.(count($arrOrderBy) > 0 	? 'ORDER BY '.implode(' ,'		,$arrOrderBy) 	: '');
-		
+		#echo '<pre>'.$strQuery.'<hr>';
 		// Sets LIMIT
 		$this->objConn->setLimit($intLimit,$intOffSet);
 		
@@ -613,7 +612,7 @@ class Model {
 		
 		if($this->_boolDebug) { echo '<pre>'; var_dump($objQuery); echo '</pre>'; }
 		
-		if(MDB2::isError($objQuery)) { #var_dump($objQuery);
+		if(MDB2::isError($objQuery)) {
 			define('ERROR_MSG',"Error on Model::select->$arrFetch[$strFetchMode](): " . $objQuery->getMessage());
 			return false;
 		} else {
@@ -667,6 +666,7 @@ class Model {
 	 * @param	string	$strTable	Table name
 	 * @param	array	$arrField	Multi-dimension associative array with [n] => ([field_name] => field_value)
 	 * @param	boolean	$boolReturnId	Defines whether function returns MDB2_OK OR MDB2::getLastInsertID()
+	 * @param	boolean	$forceUpdateSyntax	Defines whether query's syntax MUST BE `UPDATE...` rather then `REPLACE...`
 	 *
 	 * @return	mixed
 	 *
@@ -674,31 +674,47 @@ class Model {
 	 * @author 	Diego Flores <diegotf [at] gmail dot com>
 	 * 
 	**/
-	public function replace($strTable,$arrField,$boolReturnId = true) {
+	public function replace($strTable,$arrField,$boolReturnId = true,$forceUpdateSyntax = false) {
 		if(is_array($strTable)) 						$strTable = reset($strTable);
 		if(!is_string($strTable) || empty($strTable))	return false;
 		if(empty($arrField)) 							return false;
 		if(!is_array(reset($arrField)))					$arrField 	= array($arrField);
 		
-		// Prepares and execute query
-		$objQuery = $this->prepareInsertQuery($strTable,$arrField,false);
-		#echo '<pre>'; print_r($objQuery); die();
-		if($objQuery !== false) {
-			// Treats UTF-8 and HTML SPECIAL CHARS
-			$this->prepareDataSyntax($arrField,false);
-			#echo '<pre>'; print_r($arrField); die();
-			$objQuery = $this->objConn->extended->executeMultiple($objQuery,$arrField);
-			#echo '<pre>'; print_r($objQuery); die();
-			#$this->objConn->free();
+		#echo '<pre>'; var_dump($forceUpdateSyntax); print_r($arrField); die();
+		
+		// UPDATE syntax
+		if($forceUpdateSyntax && !empty($arrField[0]['id'])) {
+			$arrField = reset($arrField);
+			$strWhere = $strTable . '.id = "' . $arrField['id'] . '"';
 			
-			if(MDB2::isError($objQuery)) {
-				define('ERROR_MSG','Error on Model::replace->executeMultiple(): ' . $objQuery->getMessage());
-				return false;
-			} else {
-				return ($boolReturnId ? $this->getLastInsertID($strTable) : $objQuery);
-			}
+			#echo '<pre>'; print_r($arrField); echo $strWhere; die();
+			
+			$this->update($strTable, $arrField, $strWhere);
+			
+		// REPLACE syntax
 		} else {
-			return false;
+			// Prepares and execute query
+			$objQuery = $this->prepareInsertQuery($strTable,$arrField,false);
+			
+			if($objQuery !== false) {
+				// Treats UTF-8 and HTML SPECIAL CHARS
+				$this->prepareDataSyntax($arrField,false);
+				$objQuery = $this->objConn->extended->executeMultiple($objQuery,$arrField);
+				#$this->objConn->free();
+				
+				if(MDB2::isError($objQuery)) {
+					#echo '<pre>'; var_dump($objQuery); die();
+					define('ERROR_MSG','Error on Model::replace->executeMultiple(): ' . $objQuery->getMessage());
+					return false;
+				} else {
+					return ($boolReturnId ? $this->getLastInsertID($strTable) : $objQuery);
+				}
+			} else {
+				#echo '<pre>'; var_dump($objQuery); die();
+					define('ERROR_MSG','Error on Model::replace->prepareInsertQuery(): ' . $objQuery->getMessage());
+				return false;
+			}
+			
 		}
 	}
 	

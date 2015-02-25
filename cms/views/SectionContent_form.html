@@ -1,7 +1,30 @@
 {include file="struct/header.html"}
 
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<script type="text/javascript" src="{$smarty.const.HTTP_TEMPLATE}scripts/core/jquery.DOMWindow.js"></script>
+
 {literal}
 <script type="text/javascript">
+
+$(document).ready(function(){
+	$('.upload-control-delete').click( function() {
+		var content = $('input[type=hidden]',$(this).parent()).val();
+		
+		$('.upload-control-undo').attr('data-content',content);
+		
+		$('input[type=hidden]',$(this).parent()).val('');
+		$('.upload-data img',$(this).parent()).hide(500);
+	});
+	$('.upload-control-undo').click( function() {
+		var content = $('.upload-control-undo').attr('data-content');
+		
+		if(content != '') {
+			$('input[type=hidden]',$(this).parent()).val(content);
+			$('.upload-data img',$(this).parent()).show(500);
+		}
+	});
+
 	setDateEmpty = function(strField) {
 		if(document.getElementById(strField + '_Day'))		document.getElementById(strField + '_Day').selectedIndex	= 0;
 		if(document.getElementById(strField + '_Month'))	document.getElementById(strField + '_Month').selectedIndex	= 0;
@@ -20,6 +43,7 @@
 			}
 		}
 	}
+});
 </script>
 {/literal}
 

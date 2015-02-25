@@ -20,7 +20,8 @@ class Struct_controller extends CRUD_Controller {
 										'length'		=> 'numeric_empty',
 										'is_unsigned'	=> 'boolean',
 										'notnull'		=> 'boolean',
-										'default_value'	=> 'string_empty'
+										'default_value'	=> 'string_empty',
+										'extra_field'	=> 'boolean'
 									);
 		
 	protected	$arrFieldList	= array('sec_struct.*');

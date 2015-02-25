@@ -18,9 +18,16 @@
 	<tr>
 		<td>Media Type</td>
 		<td>
-			<input type="radio" name="mediatype" value=2 {if $objData->mediatype == 2 || !isset($objData->mediatype)}checked{/if} /> Image<br />
-			<input type="radio" name="mediatype" value=1 {if $objData->mediatype == 1}checked{/if} /> Video<br />
-			<input type="radio" name="mediatype" value=0 {if isset($objData->mediatype) && $objData->mediatype == 0}checked{/if} /> Upload
+			<input type="radio" name="mediatype" id="mediatype_2" value=2 {if $objData->mediatype == 2 || !isset($objData->mediatype)}checked{/if} /> Image<br />
+			<input type="radio" name="mediatype" id="mediatype_1" value=1 {if $objData->mediatype == 1}checked{/if} /> Video<br />
+			<input type="radio" name="mediatype" id="mediatype_0" value=0 {if isset($objData->mediatype) && $objData->mediatype == 0}checked{/if} /> Upload
+		</td>
+	</tr>
+	<tr>
+		<td>Public</td>
+		<td>
+			<input type="radio" name="public" id="public_1" value=1 {if $objData->public == 1}checked{/if} /> Yes<br />
+			<input type="radio" name="public" id="public_0" value=0 {if empty($objData->public)}checked{/if} /> No
 		</td>
 	</tr>
 	<tr>
@@ -46,9 +53,8 @@
 		<td>
 			<select name="sec_config_id" id="sec_config_id" size="{if count($arrSec) < 5}1{else}5{/if}">
 				<option value="">N/R</option>
-				{*{if !in_array($arrSec.id,$objData->sec_config_id) && !empty($objData->sec_config_id)}<option value="{$objData->sec_config_id}" selected>{$objData->sec_config_name}</option>{/if}*}
 				{foreach from=$arrSec name="listSec" item="objSec"}
-				<option value="{$objSec.id}" {if $objData->sec_config_id == $objSec.id}selected{/if}>{$objSec.name}</option>
+				<option value="{$objSec->id}" {if $objData->sec_config_id == $objSec->id}selected{/if}>{$objSec->name}</option>
 				{/foreach}
 			</select>
 		</td>
@@ -76,8 +82,8 @@
 	<tr>
 		<td>Status</td>
 		<td>
-			<input type="radio" name="status" value=1 {if $objData->status == 1 || !isset($objData->status)}checked{/if} /> Active<br />
-			<input type="radio" name="status" value=0 {if $objData->status === 0}checked{/if} /> Inactive
+			<input type="radio" name="status" id="status_1" value=1 {if $objData->status == 1 || !isset($objData->status)}checked{/if} /> Active<br />
+			<input type="radio" name="status" id="status_0" value=0 {if $objData->status === 0}checked{/if} /> Inactive
 		</td>
 	</tr>
 	<tr>

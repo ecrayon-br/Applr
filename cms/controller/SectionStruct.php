@@ -142,7 +142,7 @@ class SectionStruct_controller extends Section_controller {
 	protected function _create() { 
 		if(is_numeric($this->intSecID) && $this->intSecID > 0) {
 			$this->getFieldList();
-			
+			#echo '<pre>'; print_r($this->objData); die();
 			$this->objSmarty->assign('objData',$this->objData);
 			$this->renderTemplate(true,$this->strModule . '_form.html');
 		} else {
@@ -173,17 +173,29 @@ class SectionStruct_controller extends Section_controller {
 			// Drops relationship table
 			$this->objManage->drop('Table',$this->objField->table_name);
 			
+			// Drops relationship field
+			$this->objManage->alterTable($this->strSecTable,array('remove' => array($this->objField->field_name => array())));
+			
 			// Deletes Applr Section info
 			$this->objModel->delete('rel_sec_sec','id = ' . $this->intFieldID);
 			$this->objModel->delete('sec_config_order','field_id = ' . $this->intFieldID);
 		// Struct field
 		} else {
+			$doDelete = true;
+			
+			// If has extra_field, deletes it
+			if($this->arrStruct[$this->objField->sec_struct_id]->extra_field) {
+				$strExtraFieldName = $this->objField->field_name . '_old';
+				$doDelete = $this->objManage->alterTable($this->strSecTable,array('remove' => array($strExtraFieldName => array())));
+			}
+			
 			// Drops field
-			if($this->objManage->alterTable($this->strSecTable,array('remove' => array($this->objField->field_name => array())))) {
-				
-				// Deletes Applr Section info
-				$this->objModel->delete('rel_sec_struct','id = ' . $this->intFieldID);
-				$this->objModel->delete('sec_config_order','field_id = ' . $this->intFieldID);
+			if($doDelete) {
+				if($this->objManage->alterTable($this->strSecTable,array('remove' => array($this->objField->field_name => array())))) {
+					// Deletes Applr Section info
+					$this->objModel->delete('rel_sec_struct','id = ' . $this->intFieldID);
+					$this->objModel->delete('sec_config_order','field_id = ' . $this->intFieldID);
+				}
 			}
 		}
 		
@@ -328,10 +340,10 @@ class SectionStruct_controller extends Section_controller {
 			// Defines rel table name
 			$strChildTable			= $this->objModel->recordExists('table_name','sec_config','id = ' . $_POST['child_id'],true);
 			if(!empty($strChildTable)) {
-				$_POST['table_name']	= 'sec_rel_' . str_replace('sec_ctn_','',$this->strSecTable) . ($this->strSecTable == $strChildTable ? '_parent' : '') . '_rel_' . str_replace('sec_ctn_','',$strChildTable) . ($this->strSecTable == $strChildTable ? '_child' : '');
+				$_POST['table_name']	= 'sec_rel_' . $this->strSecTable . ($this->strSecTable == $strChildTable ? '_parent' : '') . '_rel_' . $strChildTable . ($this->strSecTable == $strChildTable ? '_child' : '');
 			}
 			
-			// If is editing a field, sets rel_sec_struct.id param
+			// If is editing a field, sets id param
 			if(!empty($_POST['id'])) {
 				$this->arrFieldType['id']	= 'numeric';
 				$this->getFieldData();
@@ -363,23 +375,20 @@ class SectionStruct_controller extends Section_controller {
 						
 						// Creates new field in section's table
 						if(!$this->addField($_POST,($strTable == 'rel_sec_struct' ? true : false))) {
-							$this->objModel->delete('rel_sec_struct','id = ' . $intFieldID);
+							$this->objModel->delete($strTable,'id = ' . $intFieldID);
 							$this->objModel->delete('sec_config_order','field_id = ' . $intFieldID);
 							$this->objSmarty->assign('ERROR_MSG','There was an error while trying to create "' . $_POST['name'] . '" field in database! Please try again!');
 						}
+						
 					} else {
 						$this->objModel->delete('rel_sec_struct','id = ' . $intFieldID);
 						$this->objSmarty->assign('ERROR_MSG','There was an error while trying to save "' . $_POST['name'] . '" order data! Please try again!');
 					}
 				
 				// Else, if editing dynamic field
-				} elseif($strTable == 'rel_sec_struct') {
-					
-					// If field type is different from previous config
-					if($_POST['sec_struct_id'] != $this->objField->sec_struct_id) {
-						if(!$this->alterField($_POST,$this->objField->field_name)) {
-							$this->objSmarty->assign('ERROR_MSG','There was an error while trying to alter "' . $_POST['name'] . '" field in database! Please try again!');
-						}
+				} else { //if($strTable == 'rel_sec_struct') {
+					if(!$this->alterField($_POST,$this->objField->field_name)) {
+						$this->objSmarty->assign('ERROR_MSG','There was an error while trying to alter "' . $_POST['name'] . '" field in database! Please try again!');
 					}
 				}
 			} else {
@@ -427,7 +436,30 @@ class SectionStruct_controller extends Section_controller {
 				
 				$arrDefaultFields 		= array('add' =>array($arrData['field_name'] => $arrStruct));
 				
-				return $this->objManage->alterTable($this->strSecTable,$arrDefaultFields);
+				// If FIELD CONFIG defines extra_field
+				if($this->arrStruct[$arrData['sec_struct_id']]->extra_field) {
+					
+					// Creates extra field
+					$strExtraFieldName	= $arrData['field_name'] . '_old';
+					$arrExtraFields		= array('add' =>array($strExtraFieldName => $arrStruct));
+					if($this->objManage->alterTable($this->strSecTable,$arrExtraFields)) {
+						
+						// Creates main field
+						if($this->objManage->alterTable($this->strSecTable,$arrDefaultFields)) {
+							return true;
+						} else {
+							// If cannot create main field, drops extra field
+							$this->objManage->alterTable($this->strSecTable,array('remove' => array($strExtraFieldName => array())));
+						}
+						
+					} else {
+						return false;
+					}
+					
+				} else {
+					// Creates main field
+					return $this->objManage->alterTable($this->strSecTable,$arrDefaultFields);
+				}
 			break;
 			
 			// rel_sec_sec
@@ -478,22 +510,181 @@ class SectionStruct_controller extends Section_controller {
 	 *
 	 */
 	protected function alterField($arrData,$strFieldName) {
-		if(!is_array($arrData) || !isset($arrData['sec_struct_id']) || !isset($this->arrStruct[$arrData['sec_struct_id']])) $arrData['sec_struct_id'] = 1;
+		#if(!is_array($arrData) || !isset($arrData['sec_struct_id']) || !isset($this->arrStruct[$arrData['sec_struct_id']])) $arrData['sec_struct_id'] = 1;
+		if(!is_array($arrData)) return false;
 		if(!is_string($arrData['field_name']) || empty($arrData['field_name'])) return false;
 		if(!is_string($strFieldName) || empty($strFieldName)) return false;
 		
-		// Sets RDBMS struct array
-		$arrStruct['name']		= $arrData['field_name'];
-		$arrStruct['type'] 		= $this->arrStruct[$arrData['sec_struct_id']]->fieldtype;
-		$arrStruct['unsigned'] 	= $this->arrStruct[$arrData['sec_struct_id']]->is_unsigned;
-		$arrStruct['null'] 		= $this->arrStruct[$arrData['sec_struct_id']]->notnull;
-		$arrStruct['default'] 	= $this->arrStruct[$arrData['sec_struct_id']]->default_value;
-		if($this->arrStruct[$arrData['sec_struct_id']]->length > 0) {
-			$arrStruct['length']= $this->arrStruct[$arrData['sec_struct_id']]->length;
-		}
+		if(empty($this->objField)) $this->getFieldData();
 		
-		$arrDefaultFields 		= array('rename' => array($strFieldName => array('name' => $arrData['field_name'],'definition' => $arrStruct)));
-		 
-		return $this->objManage->alterTable($this->strSecTable,$arrDefaultFields);
+		#echo '<pre>'; print_r($arrData); die();
+		
+		// If new field is RELATIONSHIP
+		if(empty($arrData['sec_struct_id'])) {
+			
+			// If previous field is DYNAMIC and new one is RELATIONSHIP
+			if($this->objField->type == 1) {
+				$doAlter = true;
+
+				// Sets new field temp name
+				$strNewField_Name = $arrData['field_name'];
+				$arrData['field_name'] .= '_APPLR_TMP';
+				
+				/**
+				 * @TODO optimize continue / restore process
+				 */
+				// Creates new temp field and relationship table
+				if($this->addField($arrData,false)) {
+					
+					// Drops previous field
+					if($this->objManage->alterTable($this->strSecTable,array('remove' => array($strFieldName => array())))) {
+						// If previous field type requires extra_field
+						if($this->arrStruct[$this->objField->sec_struct_id]->extra_field) {
+							// Drops previous extra_field
+							$strExtraFieldName_Old 	= $strFieldName . '_old';
+							$this->objManage->alterTable($this->strSecTable,array('remove' => array($strExtraFieldName_Old => array())));
+						}
+						
+						// Renames temp field
+						$arrStruct				= array();
+						$arrStruct['name']		= $strNewField_Name;
+						$arrStruct['type'] 		= 'integer';
+						$arrStruct['null'] 		= 1;
+						$arrStruct['default'] 	= null;
+						$arrDefaultFields 		= array('rename' => array($arrData['field_name'] => array('name' => $strFieldName,'definition' => $arrStruct)));
+						
+						if($this->objManage->alterTable($this->strSecTable,$arrDefaultFields)) {
+							// Delete rel_sec_struct record
+							$this->objModel->delete('rel_sec_struct','rel_sec_struct.id = ' . $this->objField->id);
+							
+							// Updates sec_config_order.type
+							$this->objModel->update('sec_config_order',array('type' => 2),'field_id = ' . $arrData['id']);
+
+							/*
+							 * @TODO if delete or update fails, restore ALL previous configs
+							*/
+							return true;
+						} else {
+							/*
+							 * @TODO if rename temp field fails, restore ALL previous configs
+							 */
+							return false;
+						}
+						
+					} else {
+						// Drops relationship table
+						$this->objManage->drop('Table','rel_' . $this->strSecTable . '_' . $this->strChildTable);
+							
+						// Drops temp field
+						$this->objManage->alterTable($this->strSecTable,array('remove' => array($arrData['field_name'] => array())));
+							
+						return false;
+					}
+					
+				} else {
+					return false;
+				}
+				
+			// If both, previous and new field, are RELATIONSHIP
+			} else {
+				// Drops previous relationship table
+				if($this->objManage->drop('Table',$this->objField->table_name)) {
+					// Drops previous relationship field
+					$this->objManage->alterTable($this->strSecTable,array('remove' => array($this->objField->field_name => array())));
+						
+					// Adds new relationship field and table
+					if($this->addField($arrData,false)) {
+						// Delete rel_sec_struct previous record
+						$this->objModel->delete('rel_sec_sec','table_name = "' . $this->objField->table_name . '"');
+				
+						return true;
+					} else {
+						// Delete rel_sec_struct previous record
+						$this->objModel->delete('rel_sec_sec','table_name = "' . $arrData['table_name'] . '"');
+				
+						return false;
+					}
+				} else {
+					return false;
+				}
+				
+			}
+		// If new field is DYNAMIC
+		} else {
+			// If previous field is RELATIONSHIP and new one is DYNAMIC
+			if($this->objField->type == 2) {
+				// Delete rel_sec_sec record
+				$this->objModel->delete('rel_sec_sec','rel_sec_sec.id = ' . $this->objField->id);
+				
+				// Deletes all table records
+				$this->objModel->delete($this->objField->table_name);
+				
+				// Drops relationship table
+				$this->objManage->drop('Table',$this->objField->table_name);
+		
+				// Updates sec_config_order.type
+				$this->objModel->update('sec_config_order',array('type' => 1),'field_id = ' . $arrData['id']);
+			}
+			
+			// Sets RDBMS struct array
+			$arrStruct['name']		= $arrData['field_name'];
+			$arrStruct['type'] 		= $this->arrStruct[$arrData['sec_struct_id']]->fieldtype;
+			$arrStruct['unsigned'] 	= $this->arrStruct[$arrData['sec_struct_id']]->is_unsigned;
+			$arrStruct['null'] 		= $this->arrStruct[$arrData['sec_struct_id']]->notnull;
+			$arrStruct['default'] 	= $this->arrStruct[$arrData['sec_struct_id']]->default_value;
+			if($this->arrStruct[$arrData['sec_struct_id']]->length > 0) {
+				$arrStruct['length']= $this->arrStruct[$arrData['sec_struct_id']]->length;
+			}
+			$arrDefaultFields 		= array('rename' => array($strFieldName => array('name' => $arrData['field_name'],'definition' => $arrStruct)));
+	
+			// Sets RDBMS struct array for EXTRA FIELD
+			$strExtraFieldName_Old 	= $strFieldName . '_old';
+			$strExtraFieldName		= $arrData['field_name'] . '_old';
+			$arrExtraStruct			= $arrStruct;
+			$arrExtraStruct['name'] = $strExtraFieldName;
+			$arrExtraFields 		= array('rename' => array($strExtraFieldName_Old => array('name' => $strExtraFieldName,'definition' => $arrStruct)));
+	
+			// If field type is different from previous config
+			if($arrData['sec_struct_id'] != $this->objField->sec_struct_id) {
+				$doAlter = true;
+				
+				// If previous field type requires extra_field
+				if($doAlter && $this->arrStruct[$this->objField->sec_struct_id]->extra_field) {
+					// Deletes previous extra_field
+					$doAlter = $this->objManage->alterTable($this->strSecTable,array('remove' => array($strExtraFieldName_Old => array())));
+				}
+				
+				// If new field type requires extra_field
+				if($doAlter && $this->arrStruct[$arrData['sec_struct_id']]->extra_field) {
+					// Creates new extra_field
+					unset($arrExtraStruct['name']);
+					$arrExtraFields	= array('add' =>array($strExtraFieldName => $arrExtraStruct));
+					$doAlter		= $this->objManage->alterTable($this->strSecTable,$arrExtraFields);
+				}
+				
+				// Alters main field
+				if($doAlter) {
+					return $this->objManage->alterTable($this->strSecTable,$arrDefaultFields);
+				} else {
+					return false;
+				}
+				
+			} else {
+				
+				// If requires extra_field
+				if($this->arrStruct[$arrData['sec_struct_id']]->extra_field) {
+					// Alters extra_field
+					if($this->objManage->alterTable($this->strSecTable,$arrExtraFields)) {
+						return $this->objManage->alterTable($this->strSecTable,$arrDefaultFields);
+					} else {
+						return false;
+					}
+				} else {
+					// Alters main field
+					return $this->objManage->alterTable($this->strSecTable,$arrDefaultFields);
+				}
+				
+			}
+		}
 	}
 }

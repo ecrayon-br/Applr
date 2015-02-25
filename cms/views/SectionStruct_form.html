@@ -1,5 +1,32 @@
 {include file="struct/header.html"}
 
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+
+{literal}
+<script type="text/javascript">
+var SecStruct = {};
+SecStruct.sec_field = JSON.parse('{/literal}{json_encode($arrSec)}{literal}');
+
+console.log(SecStruct.sec_field);
+
+SecStruct.fillCombo = function() {
+	var combo		= $($('#child_id')[0].selectedOptions[0].parentElement);
+	var folder_id 	= combo.attr('folder');
+	var child_id 	= $('#child_id').val();
+	
+	var fields		= SecStruct.sec_field[folder_id][child_id].fields;
+	
+	$('#field_rel option').remove();
+	$.each(fields, function(index,obj) {
+	    $('#field_rel').append(
+	        $('<option></option>').val(obj.field_name).html(obj.name)
+	    );
+	});
+}
+</script>
+{/literal}
+
 <form name="formConfig" id="formConfig" method="post" action="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/add">
 <input type="hidden" name="sec_config_id" id="sec_config_id" value="{$intSecID}" />
 <input type="hidden" name="id" id="id" value="{$objField->id}" />
@@ -65,9 +92,9 @@
 	<tr>
 		<td>Section</td>
 		<td>
-			<select name="child_id" id="child_id" size="5">
+			<select name="child_id" id="child_id" size="5" onclick="SecStruct.fillCombo();">
 				{foreach from=$arrFld name="listFolder" item="arrTmpFld"}
-				<optgroup label="{$arrTmpFld->name}">
+				<optgroup label="{$arrTmpFld->name}" folder="{$arrTmpFld->id}">
 					{foreach from=$arrSec.{$arrTmpFld->id} name="listSec" item="arrTmpSec"}
 					<option value="{$arrTmpSec->id}"  {if $arrTmpSec->id == $objField->child_id}selected{/if}>--| {$arrTmpSec->name}</option>
 					{/foreach}
@@ -80,9 +107,11 @@
 		<td>Refered Section's Field to Exhibit</td>
 		<td>
 			<select name="field_rel" id="field_rel" size="5">
+			{*
 				{foreach from=$arrSec.1.1->fields name="listStruct" item="arrTmp"}
 					<option value="{$arrTmp->field_name}" {if $arrTmp->field_name == $objField->field_rel}selected{/if}>{$arrTmp->name}</option>
 				{/foreach}
+			*}
 			</select>
 		</td>
 	</tr>
@@ -121,7 +150,7 @@
 	<tr>
 		<td>{$objTmp->name}</td>
 		<td>{$objTmp->field_name}</td>
-		<td>{if !empty($objTmp->sec_struct_name)}{$objTmp->sec_struct_name}{else}Relationship{/if}</td>
+		<td>{if !empty($objTmp->sec_struct_name)}{$objTmp->sec_struct_name}{else}Relationship with <b>{$objTmp->child_name}</b>{/if}</td>
 		<td>{if $objTmp->mandatory}Yes{else}No{/if}</td>
 		<td>{if $objTmp->admin}Yes{else}No{/if}</td>
 		<td align="center">{if !$smarty.foreach.listFields.first}<a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/order-up/{$intSecID}/{$objTmp->id}" title="">[ up ]</a>{/if}</td>

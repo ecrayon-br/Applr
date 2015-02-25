@@ -185,9 +185,9 @@ class CRUD_Controller extends Main_controller {
 				if(empty($arrData['id'])) {
 					$arrData['id']	= $intID;
 				} else {
-					$intID = $arrData['id'];
+					$intID = intval($arrData['id']);
 				}
-				#echo '<pre>'; var_dump($this->objStruct); die();
+				
 				// Insert relationship values
 				foreach($this->objStruct AS $objField) {
 					if($objField->type == 2) {
@@ -197,6 +197,11 @@ class CRUD_Controller extends Main_controller {
 						foreach($arrData[$objField->field_name] AS $mxdData) {
 							$mxdContent[] = array('parent_id' => $intID, 'child_id' => $mxdData);
 						}
+						
+						// Delete previous relationships
+						$this->objModel->delete($objField->table_name,'parent_id = ' . $intID);
+						
+						// Insert new relationships
 						$this->objModel->insert($objField->table_name,$mxdContent);
 						
 						$arrData[$objField->field_name] = $objField->fieldtype;

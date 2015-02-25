@@ -43,11 +43,12 @@ class manageContent_Controller extends CRUD_Controller {
 	protected	$arrGroupData		= array('rel_sec_struct.id');
 	protected	$arrOrderData		= array('rel_sec_struct.id');
 	
-	protected	$arrRelFieldData	= array('rel_sec_sec.*','sec_config_order.field_order','sec_config_order.type');
-	protected	$arrRelJoinData		= array('JOIN rel_sec_sec','JOIN sec_config_order');
+	protected	$arrRelFieldData	= array('rel_sec_sec.*','sec_config_order.field_order','sec_config_order.type', 'rel_sec_language.name AS child_name');
+	protected	$arrRelJoinData		= array('JOIN rel_sec_sec','JOIN sec_config_order', 'JOIN rel_sec_language');
 	protected	$arrRelWhereData	= array(
 											'rel_sec_sec.sec_config_id = sec_config.id',
-											'rel_sec_sec.id = sec_config_order.field_id'
+											'rel_sec_sec.id = sec_config_order.field_id',
+											'rel_sec_sec.child_id = rel_sec_language.sec_config_id'
 										);
 	protected	$arrRelGroupData	= array('rel_sec_sec.id');
 	protected	$arrRelOrderData	= array('rel_sec_sec.id');
@@ -187,8 +188,11 @@ class manageContent_Controller extends CRUD_Controller {
 	public function getFieldData($intFieldID = 0) {
 		if(empty($intFieldID)) $intFieldID = $this->intFieldID;
 		
+		// Defines field type DYNAMIC || RELATIONSHIP
+		$intType = $this->objModel->recordExists('type','sec_config_order','field_id = "' . $intFieldID . '"',true);
+		
 		// Relationship field
-		if($intFieldID >= 200000) {
+		if($intType == 2) {
 			$this->objModel->arrFieldData	= $this->arrRelFieldData;
 			$this->objModel->arrJoinData	= $this->arrRelJoinData;
 			$this->objModel->arrWhereData	= $this->arrRelWhereData;
@@ -270,15 +274,10 @@ class manageContent_Controller extends CRUD_Controller {
 		// Forces $this->objField to assume method's $objField value
 		if(!is_null($objField)) $this->objField = (array) $objField;
 		
-		#echo '<pre>'; var_dump($mxdData); var_dump($this->objField); die();
-		
 		// Reset data variables
-		$arrControl			= array();
 		$this->objData		= null;
 		$this->objPrintData	= null;
 		foreach($this->objField AS $mxdKey => &$strField) {
-			
-			#echo '<pre>'; var_dump($mxdData); var_dump($this->objField); die();
 			$this->objData->$strField = (is_array($mxdData) ? (!empty($mxdData[$strField]) ? $mxdData[$strField] : '') : (!empty($mxdData->$strField) ? $mxdData->$strField : ''));
 			
 			if(in_array($strField,array('date_create','date_publish','date_expire'))) {
@@ -374,44 +373,26 @@ class manageContent_Controller extends CRUD_Controller {
 				break;
 				
 				case 'phone':
-					if((is_object($mxdData) && !empty($mxdData->$strField)) || (is_array($mxdData) && !empty($mxdData[$strField]))) 	{
-						$intPhone = $strField . '_ddd';
+					if(!empty($this->objData->$strField)) 	{
+						$idxDDD = $strField . '_ddd';
+						$intDDD = (is_array($mxdData) ? $mxdData[$idxDDD] : $mxdData->$idxDDD);
 						
-						if(is_object($mxdData)) {
-							if(!empty($mxdData->$intPhone)) {
-								$intPhone = $mxdData->$intPhone;
-	
-								$this->objPrintData->$strField->intval		= Controller::onlyNumbers($intPhone . $mxdData->$strField);
-								$this->objPrintData->$strField->formatted	= (!empty($intPhone) ? '(' . $intPhone . ')' : '') . $mxdData->$strField;
-								$this->objPrintData->$strField->original	= array($intPhone,$mxdData->$strField);
-							} else {
-								$intPhone = substr($mxdData->$strField,0,2);
-								$mxdData->$strField = substr($mxdData->$strField,2);
-	
-								$this->objPrintData->$strField->intval		= Controller::onlyNumbers($intPhone . $mxdData->$strField);
-								$this->objPrintData->$strField->formatted	= (!empty($intPhone) ? '(' . $intPhone . ')' : '') . $mxdData->$strField;
-								$this->objPrintData->$strField->original	= array($intPhone,$mxdData->$strField);
-							}
+						if(!empty($intDDD)) {
+							$this->objPrintData->$strField->intval		= Controller::onlyNumbers($intDDD . $this->objData->$strField);
+							$this->objPrintData->$strField->formatted	= '(' . $intDDD . ')' . $this->objData->$strField;
+							$this->objPrintData->$strField->original	= array($intDDD,$this->objData->$strField);
 						} else {
-							if(!empty($mxdData->$intPhone)) {
-								$intPhone = $mxdData[$intPhone];
-								
-								$this->objPrintData->$strField->intval		= Controller::onlyNumbers($intPhone . $mxdData[$strField]);
-								$this->objPrintData->$strField->formatted	= (!empty($intPhone) ? '(' . $intPhone . ')' : '') . $mxdData[$strField];
-								$this->objPrintData->$strField->original	= array($intPhone,$mxdData[$strField]);
-							} else {
-								$intPhone = substr($mxdData[$strField],0,2);
-								$mxdData[$strField] = substr($mxdData[$strField],2);
-	
-								$this->objPrintData->$strField->intval		= Controller::onlyNumbers($intPhone . $mxdData[$strField]);
-								$this->objPrintData->$strField->formatted	= (!empty($intPhone) ? '(' . $intPhone . ')' : '') . $mxdData[$strField];
-								$this->objPrintData->$strField->original	= array($intPhone,$mxdData[$strField]);
-							}
+							$intDDD 	= substr($this->objData->$strField,0,2);
+							$intPhone 	= substr($this->objData->$strField,2);
+
+							$this->objPrintData->$strField->intval		= Controller::onlyNumbers($intDDD . $intPhone);
+							$this->objPrintData->$strField->formatted	= (!empty($intDDD) ? '(' . $intDDD . ')' : '') . $intPhone;
+							$this->objPrintData->$strField->original	= array($intDDD,$intPhone);
 						}
 						
 						$this->objData->$strField						= $this->objPrintData->$strField->intval;
 					} else {
-						$this->objData->$strField = $this->objPrintData->$strField = '';
+						$this->objPrintData->$strField = '';
 					}
 				break;
 				
@@ -430,8 +411,8 @@ class manageContent_Controller extends CRUD_Controller {
 				case 'Year':
 					$strField	= str_replace(array('_Day','_Month','_Year'),'',$strField);
 					
-					if(empty($arrControl[$strField])) {
-						$arrControl[$strField] = true;
+					if(empty($this->arrControl[$strField])) {
+						$this->arrControl[$strField] = true;
 						
 						$strDay		= $strField . '_Day';
 						$strMonth	= $strField . '_Month';
@@ -475,8 +456,8 @@ class manageContent_Controller extends CRUD_Controller {
 				case 'time':
 					$strField	= str_replace(array('_Hour','_Minute','_Second'),'',$strField);
 
-					if(empty($arrControl[$strField])) {
-						$arrControl[$strField] = true;
+					if(empty($this->arrControl[$strField])) {
+						$this->arrControl[$strField] = true;
 						
 						$intSecond	= $strField . '_Second';
 						$intMinute	= $strField . '_Minute';
@@ -555,17 +536,6 @@ class manageContent_Controller extends CRUD_Controller {
 					$this->objData->$strField = $this->objPrintData->$strField = $strPermalink;
 				break;
 				
-				case 'upload':
-				case 'old':
-					$strField = str_replace('_old','',$strField);
-					if(isset($_FILES[$strField])) {
-						$objUpload = new uploadFile_Controller($strField,ROOT_UPLOAD . Controller::permalinkSyntax($this->objSection->name));
-						$this->objData->$strField = $this->objPrintData->$strField = $objUpload->uploadFile();
-					} else {
-						$this->objData->$strField = $this->objPrintData->$strField = (is_array($mxdData) ? $mxdData[$strField] : $mxdData->$strField);
-					}
-				break;
-				
 				case 'check':
 				case 'checkbox':
 					if(empty($this->objData->$strField)) {
@@ -590,70 +560,113 @@ class manageContent_Controller extends CRUD_Controller {
 					$this->objData->$strField					= $this->objPrintData->$strField->intval;
 				break;
 				
+				case 'upload':
+				case 'old':
+					$strField = str_replace('_old','',$strField);
+					
+					if(empty($this->arrControl[$strField])) {
+						$this->arrControl[$strField] = true;
+						
+						if(isset($_FILES[$strField]) && !empty($_FILES[$strField]['name'])) {
+							$objUpload = new uploadFile_Controller($strField,ROOT_UPLOAD . Controller::permalinkSyntax($this->objSection->name));
+							$objReturn = $objUpload->uploadFile();
+							
+							$this->objData->$strField 					= $objReturn;
+							
+							$this->objPrintData->$strField->original 	= $objReturn;
+							$this->objPrintData->$strField->uri 		= HTTP . $this->objPrintData->$strField->original;
+						} else {
+							$strOldField = $strField.'_old';
+							
+							$this->objData->$strField = (is_array($mxdData) ? $mxdData[$strOldField] : $mxdData->$strOldField);
+							if(empty($this->objData->$strField)) {
+								$this->objData->$strField = (is_array($mxdData) ? $mxdData[$strField] : $mxdData->$strField);
+							}
+							
+							$this->objPrintData->$strField->original 	= (empty($this->objData->$strField) ? '' : $this->objData->$strField);
+							$this->objPrintData->$strField->uri 		= (empty($this->objPrintData->$strField->original) ? '' : HTTP . $this->objPrintData->$strField->original);
+						}
+					} else {
+						$this->objPrintData->$strField->original	= str_replace(HTTP,'',$this->objData->$strField);
+						$this->objPrintData->$strField->uri 		= (empty($this->objPrintData->$strField->original) ? '' : HTTP . $this->objPrintData->$strField->original);
+					}
+				break;
+				
 				case 'img':
 				case 'image':
-					if(isset($_FILES[$strField])) {
-						// Uploads file
-						$objUpload = new uploadFile_Controller($strField,ROOT_IMAGE . Controller::permalinkSyntax($this->objSection->table));
-						$this->objData->$strField['file'] = $objUpload->uploadFile();
+					if(empty($this->arrControl[$strField])) {
+						$this->arrControl[$strField] = true;
 						
-						// Inserts DB registry
-						$arrData = array(
-										'media_gallery_id'		=> null,
-										'usr_data_id'			=> $this->intUserID,
-										'type'					=> true,
-										'name'					=> $this->objData->$strField['name'],
-										'author'				=> $this->objData->$strField['author'],
-										'label'					=> $this->objData->$strField['label'],
-										'filepath'				=> $this->objData->$strField['file'],
-										'filepath_thumbnail'	=> $this->objData->$strField['file'],
-										'filepath_streaming'	=> null
-									);
-						$objInsert = $this->objModel->insert('media_data',$arrData,true);
-						
-						// Sets sys vars
-						$this->objPrintData->$strField->id		= $objInsert;
-						$this->objPrintData->$strField->file	= $this->objData->$strField['file'];
-						$this->objPrintData->$strField->path	= $objUpload->strPath;
-						$this->objPrintData->$strField->info	= $arrData;
+						if(isset($_FILES[$strField]) && !empty($_FILES[$strField]['name'])) {
+							// Uploads file
+							$objUpload = new uploadFile_Controller($strField,ROOT_IMAGE . Controller::permalinkSyntax($this->objSection->table));
+							$this->objData->$strField['file'] = $objUpload->uploadFile();
+							
+							// Inserts DB registry
+							$arrData = array(
+											'media_gallery_id'		=> null,
+											'usr_data_id'			=> $this->intUserID,
+											'type'					=> true,
+											'name'					=> $this->objData->$strField['name'],
+											'author'				=> $this->objData->$strField['author'],
+											'label'					=> $this->objData->$strField['label'],
+											'filepath'				=> $this->objData->$strField['file'],
+											'filepath_thumbnail'	=> $this->objData->$strField['file'],
+											'filepath_streaming'	=> null
+										);
+							$objInsert = $this->objModel->insert('media_data',$arrData,true);
+							
+							// Sets sys vars
+							$this->objPrintData->$strField->id		= $objInsert;
+							$this->objPrintData->$strField->file	= $this->objData->$strField['file'];
+							$this->objPrintData->$strField->path	= $objUpload->strPath;
+							$this->objPrintData->$strField->info	= $arrData;
+						} else {
+							$this->objPrintData->$strField = $this->objData->$strField;
+						}
 					} else {
-						$this->objData->$strField = $this->objPrintData->$strField = (is_array($mxdData) ? $mxdData[$strField] : $mxdData->$strField);
+						$this->objPrintData->$strField = $this->objData->$strField;
 					}
 				break;
 				
 				case 'video':
-					if(isset($_FILES[$strField])) {
-						// Uploads file
-						$objUpload = new uploadFile_Controller($strField,ROOT_VIDEO . Controller::permalinkSyntax($this->objSection->table));
-						$this->objData->$strField['file'] = $objUpload->uploadFile();
+					if(empty($this->arrControl[$strField])) {
+						$this->arrControl[$strField] = true;
 						
-						// Inserts DB registry
-						$arrData = array(
-										'media_gallery_id'		=> null,
-										'usr_data_id'			=> $this->intUserID,
-										'type'					=> false,
-										'name'					=> $this->objData->$strField['name'],
-										'author'				=> $this->objData->$strField['author'],
-										'label'					=> $this->objData->$strField['label'],
-										'filepath'				=> $this->objData->$strField['file'],
-										'filepath_thumbnail'	=> null,
-										'filepath_streaming'	=> $this->objData->$strField['file']
-									);
-						$objInsert = $this->objModel->insert('media_data',$arrData,true);
-						
-						// Sets sys vars
-						$this->objPrintData->$strField->id		= $objInsert;
-						$this->objPrintData->$strField->file	= $this->objData->$strField['file'];
-						$this->objPrintData->$strField->path	= $objUpload->strPath;
-						$this->objPrintData->$strField->info	= $arrData;
+						if(isset($_FILES[$strField]) && !empty($_FILES[$strField]['name'])) {
+							// Uploads file
+							$objUpload = new uploadFile_Controller($strField,ROOT_VIDEO . Controller::permalinkSyntax($this->objSection->table));
+							$this->objData->$strField['file'] = $objUpload->uploadFile();
+							
+							// Inserts DB registry
+							$arrData = array(
+											'media_gallery_id'		=> null,
+											'usr_data_id'			=> $this->intUserID,
+											'type'					=> false,
+											'name'					=> $this->objData->$strField['name'],
+											'author'				=> $this->objData->$strField['author'],
+											'label'					=> $this->objData->$strField['label'],
+											'filepath'				=> $this->objData->$strField['file'],
+											'filepath_thumbnail'	=> null,
+											'filepath_streaming'	=> $this->objData->$strField['file']
+										);
+							$objInsert = $this->objModel->insert('media_data',$arrData,true);
+							
+							// Sets sys vars
+							$this->objPrintData->$strField->id		= $objInsert;
+							$this->objPrintData->$strField->file	= $this->objData->$strField['file'];
+							$this->objPrintData->$strField->path	= $objUpload->strPath;
+							$this->objPrintData->$strField->info	= $arrData;
+						} else {
+							$this->objPrintData->$strField = $this->objData->$strField;
+						}
 					} else {
-						$this->objData->$strField = $this->objPrintData->$strField = (is_array($mxdData) ? $mxdData[$strField] : $mxdData->$strField);
+						$this->objPrintData->$strField = $this->objData->$strField;
 					}
 				break;
 				
 				default:
-					$this->objData->$strField = (is_array($mxdData) ? $mxdData[$strField] : $mxdData->$strField);
-					$this->objPrintData->$strField = (is_array($mxdData) ? $mxdData[$strField] : $mxdData->$strField);
+					$this->objPrintData->$strField = $this->objData->$strField;
 				break;
 				
 				/***********************************/
@@ -693,7 +706,7 @@ class manageContent_Controller extends CRUD_Controller {
 				break;
 			}
 		}
-		#echo '<pre>'; print_r($this->objData);
+		
 		switch($intReturnMode) {
 			case 0:
 			default:

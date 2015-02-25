@@ -1,0 +1,14 @@
+{include file="struct/header.html"}
+
+<table>
+	<tr><th>{$objData.0->name}</th></tr>
+	<tr>
+		{foreach from=$objData item="objMedia" name="listMedia"}
+		<td>
+			<a href="{$objMedia->media_filepath}" title="{$objMedia->media_name}"><img src="{$objMedia->media_thumbnail}" alt="{$objMedia->media_name}" width=250 /></a>
+		</td>
+		{/foreach}
+	</tr>
+</table>
+
+{include file="struct/footer.html"}

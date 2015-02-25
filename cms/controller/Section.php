@@ -14,6 +14,7 @@ class Section_controller extends CRUD_Controller {
 										'id'				=> 'numeric_empty',
 										'parent'			=> 'numeric_empty',
 										'sys_folder_id'		=> 'numeric_empty',
+										'sys_sec_type_id'	=> 'numeric',
 										'name'				=> 'string',
 										'permalink'			=> 'string',
 										'table_name'		=> 'string',
@@ -35,20 +36,23 @@ class Section_controller extends CRUD_Controller {
 										'autothumb_w'		=> 'numeric_empty'
 									);
 		
-	protected	$arrFieldList	= array('sec_config.*','sec_parent.name AS sec_parent_name','sys_folder.name AS sys_folder_name');
+	protected	$arrFieldList	= array('sec_config.*','sec_parent.name AS sec_parent_name','sys_folder.name AS sys_folder_name','sys_sec_type.name AS sys_sec_type_name','sys_sec_type.prefix AS sys_sec_type_prefix');
 	protected	$arrJoinList	= array(
 										'LEFT JOIN sec_config AS sec_parent ON sec_config.parent = sec_parent.id',
-										'LEFT JOIN sys_folder ON sec_config.sys_folder_id = sys_folder.id'
+										'LEFT JOIN sys_folder ON sec_config.sys_folder_id = sys_folder.id',
+										'LEFT JOIN sys_sec_type ON sec_config.sys_sec_type_id = sys_sec_type.id'
 										);
 	
-	protected	$arrFieldData	= array('sec_config.*','sec_parent.name AS sec_parent_name','sys_folder.name AS sys_folder_name');
+	protected	$arrFieldData	= array('sec_config.*','sec_parent.name AS sec_parent_name','sys_folder.name AS sys_folder_name','sys_sec_type.name AS sys_sec_type_name','sys_sec_type.prefix AS sys_sec_type_prefix');
 	protected	$arrJoinData	= array(
 										'LEFT JOIN sec_config AS sec_parent ON sec_config.parent = sec_parent.id',
-										'LEFT JOIN sys_folder ON sec_config.sys_folder_id = sys_folder.id'
+										'LEFT JOIN sys_folder ON sec_config.sys_folder_id = sys_folder.id',
+										'LEFT JOIN sys_sec_type ON sec_config.sys_sec_type_id = sys_sec_type.id'
 										);
 	protected	$arrWhereData	= array('sec_config.id = {id}');
 	
 	protected	$intSecID		= 0;
+	protected	$arrTypeList	= array();
 	protected	$arrFldList		= array();
 	protected	$arrSecList		= array();
 	protected	$arrLangList	= array();
@@ -92,6 +96,9 @@ class Section_controller extends CRUD_Controller {
 		// Gets LANGUAGES list
 		$this->arrLangList	= $this->objModel->select(array('id','name'),'sys_language',array(),array(),array(),array(),0,null,'All');
 		
+		// Gets SECTION TYPE list
+		$this->arrTypeList	= $this->objModel->select(array('id','name','prefix'),'sys_sec_type',array(),array(),array(),array(),0,null,'All');
+		
 		// Gets FOLDER list
 		$this->arrFldList	= $this->objModel->select(array('id','name'),'sys_folder',array(),array(),array(),array(),0,null,'All');
 		
@@ -104,6 +111,7 @@ class Section_controller extends CRUD_Controller {
 		
 		// Sets SMARTY vars
 		$this->objSmarty->assign('intSecID',$this->intSecID);
+		$this->objSmarty->assign('arrType',$this->arrTypeList);
 		$this->objSmarty->assign('arrFld',$this->arrFldList);
 		$this->objSmarty->assign('arrSec',$this->arrSecList);
 		$this->objSmarty->assign('arrLang',$this->arrLangList);
@@ -167,9 +175,21 @@ class Section_controller extends CRUD_Controller {
 			$this->objSectionData->sys_folder_id = null;
 		}
 		$this->objData->hierarchy 	= (!is_null($this->objSectionData->sys_folder_id) ? $this->objSectionData->sys_folder_id : 0) . '|' . (!is_null($this->objSectionData->parent) ? $this->objSectionData->parent : 0);
+
+
+		// Sets Content Type variables
+		$arrType = explode('|',$this->objSectionData->sys_sec_type_id);
+		if(!isset($arrType[0]) || empty($arrType[0]) || !is_numeric($arrType[0]) || $arrType[0] <= 1) {
+			$strTblPrefix							= 'data';
+			$this->objSectionData->sys_sec_type_id 	= 1;
+		}  else {
+			$strTblPrefix							= $arrType[1];
+			$this->objSectionData->sys_sec_type_id 	= $arrType[0];
+		}
+		$this->objData->sys_sec_type_id 		= $this->objSectionData->sys_sec_type_id;
 		
 		// Sets table name preffix
-		$this->objSectionData->table_name		= 'sec_ctn_' . str_replace(array('-','sec_ctn_'),array('_',''), Controller::permalinkSyntax($this->objSectionData->table_name) );
+		$this->objSectionData->table_name		= $strTblPrefix . '_' . str_replace(array('-',$strTblPrefix),array('_',''), Controller::permalinkSyntax($strTblPrefix . $this->objSectionData->table_name) );
 		
 		// CASE INSERT
 		if(empty($this->objSectionData->id)) {

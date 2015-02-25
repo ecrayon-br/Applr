@@ -34,11 +34,7 @@ function smarty_function_APPLR_FormField($params,$template) {
 		
 		$objSection = new SectionContent_controller(false,$params['field']->child_id);
 		$objList	= $objSection->content();
-		/*
-		foreach($objList AS &$mxdContent) {
-			$mxdContent = $objSection->setupFieldSufyx($mxdContent,array_keys((array) $mxdContent),2);
-		}
-		*/
+		
 		foreach($params['value'] AS &$mxdValue) {
 			$mxdValue = $mxdValue->id;
 		}
@@ -67,7 +63,7 @@ function smarty_function_APPLR_FormField($params,$template) {
 			
 			// UPLOAD
 			case 'upload':
-				$strField	= str_replace(array('name="','id="','_old" value="'),array('name="' . $strName, 'id="' . $strName,'_old" value="' . $params['value']), $strHTML);
+				$strField	= str_replace(array('name="','id="','_old" value="','#content#'),array('name="' . $strName, 'id="' . $strName, '_old" value="' . $params['value']->original, $params['value']->uri), $strHTML);
 				return $strField;
 			break;
 			

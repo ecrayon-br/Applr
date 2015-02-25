@@ -14,6 +14,7 @@ class MediaGallery_controller extends CRUD_Controller {
 										'id'			=> 'numeric_empty',
 										'usr_data_id'	=> 'numeric_empty',
 										'sec_config_id'	=> 'numeric_empty',
+										'public'		=> 'numeric',
 										'name'			=> 'string',
 										'mediatype'		=> 'numeric',
 										'description'	=> 'string_empty',
@@ -74,11 +75,12 @@ class MediaGallery_controller extends CRUD_Controller {
 			}
 			closedir($objHandle);
 		}
+		
 		$arrMediaDir		= (array) $this->objModel->select('dirpath',$this->strTable,array(),array(),array(),array(),0,null,'Col');
 		$this->arrDirList	= array_diff($this->arrDirList,$arrMediaDir);
 		
 		// Gets SECTION list
-		$this->arrSecList	= (array) $this->objModel->select(array('id','name'),'sec_config',array(),array(),array(),array(),0,null,'Col');
+		$this->arrSecList	= $this->objModel->select(array('id','name'),'sec_config',array(),array(),array(),array(),0,null,'All');
 		
 		$this->objSmarty->assign('arrDir',$this->arrDirList);
 		$this->objSmarty->assign('arrSec',$this->arrSecList);
@@ -86,29 +88,6 @@ class MediaGallery_controller extends CRUD_Controller {
 		// Shows default interface
 		if($boolRenderTemplate) $this->_read();
 	}
-	
-	/**
-	 * Shows INSERT / UPDATE form interface
-	 *
-	 * @param	integer	$intID			Content ID
-	 *
-	 * @return	void
-	 *
-	 * @since 	2013-02-08
-	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
-	 *
-	 */
-	/*
-	protected function _create($intID = 0) {
-		if($intID > 0) {
-			$this->objData = $this->objModel->getData($intID);
-			if(is_numeric($objData->sec_config_id) && $objData->sec_config_id > 0) $this->objData->sec_config_name = $this->objModel->recordExists('name','sec_config','id = ' . $objData->sec_config_id,true);
-			$this->objSmarty->assign('objData',$this->objData);
-		}
-	
-		$this->renderTemplate(true,$this->strModule . '_form.html');
-	}
-	*/
 	
 	/**
 	 * @see CRUD_Controller::delete()
@@ -182,5 +161,41 @@ class MediaGallery_controller extends CRUD_Controller {
 		$this->_update($_POST);
 		
 		$this->secureGlobals();
+	}
+	
+	/**
+	 * Shows CONTENT interface
+	 * 
+	 * @param	integer	$intID	Content ID
+	 *
+	 * @return	void
+	 *
+	 * @since 	2013-02-08
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 *
+	 */
+	public function gallery($intID = 0,$strTPL = '') {
+		if(!is_numeric($intID) || $intID <= 0) { 
+			$intID = intval($_SESSION[self::$strProjectName]['URI_SEGMENT'][4]); 
+		}
+		if(!is_numeric($intID) || $intID <= 0) {
+			$this->objSmarty->assign('ALERT_MSG','You must choose an item to show!');
+			$this->_read(); exit();
+		}
+		if(!is_string($strTPL) || empty($strTPL)) $strTPL = $this->strModule . '_gallery.html';
+
+		$this->objModel->arrFieldList	= array('media_gallery.*','media_data.id AS media_id','media_data.mediatype AS media_mediatype','media_data.name AS media_name','media_data.author AS media_author','media_data.label AS media_label','CONCAT("'.HTTP.'",media_data.filepath) AS media_filepath','CONCAT("'.HTTP.'",media_data.filepath_thumbnail) AS media_thumbnail','CONCAT("'.HTTP.'",media_data.filepath_streaming) AS media_streaming');
+		$this->objModel->arrJoinList	= array('LEFT JOIN media_data ON media_data.media_gallery_id = media_gallery.id');
+		$this->objModel->arrWhereList	= array('media_gallery.id = ' . $intID);
+		$this->objModel->arrOrderList	= array('media_gallery.name ASC');
+		$this->objModel->arrGroupList	= array('media_data.id');
+
+		if($intID > 0) {
+			$this->objData = $this->objModel->getList();
+			$this->objSmarty->assign('objData',$this->objData);
+		}
+		
+		#echo '<pre>'; var_dump($this->objData);
+		$this->renderTemplate(true,$strTPL);
 	}
 }

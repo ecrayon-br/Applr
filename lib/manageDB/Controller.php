@@ -141,12 +141,11 @@ class manageDB_Controller extends Controller {
 		if($this->objModel->objConn->createTable($strTable,$arrDataDef,$arrTableOpt) === 0) {
 			// Sets foreign keys
 			if(
-				$this->setForeignKey( $strTable, $arrParent['table'], array($arrParent['field']['name'] => array()), array($arrParent['field']['reference'] => array()), 'CASCADE', 'CASCADE', 'FULL', $arrParent['table'] . '_parent_FK' ) &&
-				$this->setForeignKey( $strTable, $arrChild['table'], array($arrChild['field']['name'] => array()), array($arrChild['field']['reference'] => array()), 'CASCADE', 'CASCADE', 'FULL', $arrParent['table'] . '_child_FK' )
+				$this->setForeignKey( $strTable, $arrParent['table'], array($arrParent['field']['name'] => array()), array($arrParent['field']['reference'] => array()), 'CASCADE', 'CASCADE', 'FULL', time() . '_parent_FK' ) &&
+				$this->setForeignKey( $strTable, $arrChild['table'], array($arrChild['field']['name'] => array()), array($arrChild['field']['reference'] => array()), 'CASCADE', 'CASCADE', 'FULL', time() . '_child_FK' )
 			) {
 				return true;
 			}
-
 			// If error on creating constraint
 			$this->drop('Table',$strTable);
 		}
@@ -365,7 +364,8 @@ class manageDB_Controller extends Controller {
 		if(!empty($arrAlterParams['change']))	$arrChangesDef['change']	= $arrAlterParams['change'];
 		if(!empty($arrAlterParams['rename']))	$arrChangesDef['rename']	= $arrAlterParams['rename'];
 		
-		if($this->objModel->objConn->alterTable($strTable,$arrChangesDef,$boolCheck) === 0) {
+		#echo '--'; $test = $this->objModel->objConn->alterTable($strTable,$arrChangesDef,$boolCheck); var_dump($test); echo '--';
+		if(!MDB2::isError($this->objModel->objConn->alterTable($strTable,$arrChangesDef,$boolCheck))) {
 			return true;
 		}
 		return false;

@@ -35,7 +35,13 @@
 	<tr>
 		<td>Table</td>
 		<td>
-			<input type="text" maxlength="60" value="{$objData->table_name}" size="40" name="table_name" id="table_name" />
+			<select name="sys_sec_type_id" id="sys_sec_type_id">
+				<option value="1|data">Default</option>
+				{foreach from=$arrType name="listSectionType" item="arrTmpType"}
+				<option value="{$arrTmpType->id}|{$arrTmpType->prefix}"  {if $arrTmpType->id == $objData->sys_sec_type_id}{assign var="tblPrefix" value="`$arrTmpType->prefix`_"}selected{/if}>{$arrTmpType->prefix}_</option>
+				{/foreach}
+			</select>
+			<input type="text" maxlength="60" value="{$objData->table_name|replace:$tblPrefix:''}" size="20" name="table_name" id="table_name" />
 		</td>
 	</tr>
 	<tr>

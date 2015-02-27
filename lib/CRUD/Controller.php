@@ -1,5 +1,5 @@
 <?php
-class CRUD_Controller extends Main_controller {
+class CRUD_Controller extends Controller {
 	protected 	$objModel;
 
 	protected	$strModule		= '';
@@ -32,7 +32,7 @@ class CRUD_Controller extends Main_controller {
 	 *
 	 */
 	public function __construct($boolRenderTemplate = true) {
-		parent::__construct(false);
+		parent::__construct(false,SYS_ROOT . 'cms/views/');
 		
 		if(!DEBUG) authUser_Controller::isLoggedIn(true,'Login.html');
 		

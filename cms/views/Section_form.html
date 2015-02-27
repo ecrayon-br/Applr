@@ -12,13 +12,11 @@
 	<tr>
 		<td>Hierarchy</td>
 		<td>
-			<select name="hierarchy" id="hierarchy" size="5">
-				{foreach from=$arrFld name="listFolder" item="arrTmpFld"}
-				<optgroup label="{$arrTmpFld->name}">
-					<option value="{$arrTmpFld->id}|0" {if $arrTmpFld->id == $objData->sys_folder_id && empty($objData->parent)}selected{/if}>-| Root level</option>
-					{foreach from=$arrSec.{$arrTmpFld->id} name="listSec" item="arrTmpSec"}
-					<option value="{$arrTmpFld->id}|{$arrTmpSec->id}"  {if $arrTmpFld->id == $objData->sys_folder_id && $arrTmpSec->id == $objData->parent}selected{/if}>-| {$arrTmpSec->name}</option>
-					{/foreach}
+			<select name="hierarchy" id="hierarchy" size="10">
+				{foreach from=$arrFld name="listFolder" item="objFolder"}
+				<optgroup label="{$objFolder->name}">
+					<option value="{$objFolder->id}|0" {if empty($objData) || ($objFolder->id == $objData->sys_folder_id && empty($objData->parent))}selected{/if}>-| Root level</option>
+					{APPLR_printSectionHierarchy spacer="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" tpl="struct/section-form-iteration.html"}
 				</optgroup>
 				{/foreach}
 			</select>

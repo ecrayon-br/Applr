@@ -42,6 +42,7 @@ class Section_controller extends CRUD_Controller {
 										'LEFT JOIN sys_folder ON sec_config.sys_folder_id = sys_folder.id',
 										'LEFT JOIN sys_sec_type ON sec_config.sys_sec_type_id = sys_sec_type.id'
 										);
+	protected	$arrOrderList	= array('sys_folder_id ASC, parent ASC, name ASC');
 	
 	protected	$arrFieldData	= array('sec_config.*','sec_parent.name AS sec_parent_name','sys_folder.name AS sys_folder_name','sys_sec_type.name AS sys_sec_type_name','sys_sec_type.prefix AS sys_sec_type_prefix');
 	protected	$arrJoinData	= array(
@@ -54,7 +55,7 @@ class Section_controller extends CRUD_Controller {
 	protected	$intSecID		= 0;
 	protected	$arrTypeList	= array();
 	protected	$arrFldList		= array();
-	protected	$arrSecList		= array();
+	#protected	$arrSecList		= array();
 	protected	$arrLangList	= array();
 	protected	$arrTPLTypeList	= array();
 	protected	$arrTPLList		= array();
@@ -63,6 +64,7 @@ class Section_controller extends CRUD_Controller {
 	protected	$objSectionData;
 	protected	$arrInsertLang;
 	protected	$arrInsertTPL;
+	protected	$objHierarchy;
 	
 	/**
 	 * Class constructor
@@ -103,17 +105,14 @@ class Section_controller extends CRUD_Controller {
 		$this->arrFldList	= $this->objModel->select(array('id','name'),'sys_folder',array(),array(),array(),array(),0,null,'All');
 		
 		// Gets SECTION list
-		$this->arrSecList	= array();
-		$arrTempSec			= $this->objModel->select(array('id','name','sys_folder_id'),'sec_config',array(),array('sec_config.id <> ' . $this->intSecID),array(),array(),0,null,'All');
-		foreach($arrTempSec AS $intKey => $objTemp) {
-			$this->arrSecList[$objTemp->sys_folder_id][] = $objTemp;
-		}
+		$this->getHierarchy();
+		#$this->arrSecList	= $this->getHierarchy();
 		
 		// Sets SMARTY vars
 		$this->objSmarty->assign('intSecID',$this->intSecID);
 		$this->objSmarty->assign('arrType',$this->arrTypeList);
 		$this->objSmarty->assign('arrFld',$this->arrFldList);
-		$this->objSmarty->assign('arrSec',$this->arrSecList);
+		#$this->objSmarty->assign('arrSec',$this->arrSecList);
 		$this->objSmarty->assign('arrLang',$this->arrLangList);
 		$this->objSmarty->assign('arrTPL',$this->arrTPLList);
 		$this->objSmarty->assign('arrTPLType',$this->arrTPLTypeList);
@@ -122,7 +121,55 @@ class Section_controller extends CRUD_Controller {
 		$this->objManage	= new manageDB_Controller();
 		
 		// Shows default interface
-		if($boolRenderTemplate) $this->_read();
+		if($boolRenderTemplate) $this->renderTemplate();
+	}
+	
+	/**
+	 * Gets SECTION HIERARCHY and setups $this->objHierarchy
+	 *
+	 * @return	void
+	 *
+	 * @since 	2015-02-25
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 *
+	 */
+	protected function getHierarchy() {
+		$this->objHierarchy = array();
+		
+		// Gets DB sections
+		$arrContent	= $this->content();
+
+		foreach($arrContent AS $intKey => $objSection) {
+			$this->searchHierarchy($this->objHierarchy,$objSection);
+		}
+		#echo '<pre>'; print_r($this->objHierarchy);
+		$this->objSmarty->assign('objHierarchy',$this->objHierarchy);
+	}
+	
+	/**
+	 * Searcher for hierarchy position to $objNeedle->parent on $arrHaystack
+	 *
+	 * @return	void
+	 *
+	 * @since 	2015-02-25
+	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 *
+	 */
+	protected function searchHierarchy(&$arrHaystack,$objNeedle,$boolRecursive = false) {
+		if(!$boolRecursive && empty($objNeedle->parent)) $objNeedle->parent = 0;
+		if(!$boolRecursive && $objNeedle->parent == 0) {
+			$arrHaystack[$objNeedle->id] = $objNeedle;
+			$arrHaystack[$objNeedle->id]->child = array();
+		}
+		
+		foreach($arrHaystack AS $intKey => &$objTemp) {
+			if($objNeedle->parent == $intKey) {
+				$objTemp->child[$objNeedle->id] = $objNeedle;
+				$objTemp->child[$objNeedle->id]->child = array();
+			} else {
+				$this->searchHierarchy($objTemp->child,$objNeedle,true);
+			}
+		}
 	}
 	
 	/**
@@ -172,11 +219,10 @@ class Section_controller extends CRUD_Controller {
 			$this->objSectionData->sys_folder_id = $arrHierarchy[0];
 		}  else{
 			$this->objSectionData->parent = $arrHierarchy[1];
-			$this->objSectionData->sys_folder_id = null;
+			$this->objSectionData->sys_folder_id = $arrHierarchy[0];
 		}
 		$this->objData->hierarchy 	= (!is_null($this->objSectionData->sys_folder_id) ? $this->objSectionData->sys_folder_id : 0) . '|' . (!is_null($this->objSectionData->parent) ? $this->objSectionData->parent : 0);
-
-
+		
 		// Sets Content Type variables
 		$arrType = explode('|',$this->objSectionData->sys_sec_type_id);
 		if(!isset($arrType[0]) || empty($arrType[0]) || !is_numeric($arrType[0]) || $arrType[0] <= 1) {
@@ -194,13 +240,16 @@ class Section_controller extends CRUD_Controller {
 		// CASE INSERT
 		if(empty($this->objSectionData->id)) {
 			$this->_createSection();
+		
+			// Shows interface
+			$this->_create();
 		// CASE UPDATE
 		} else {
 			$this->_updateSection();
-		}
 		
-		// Shows interface
-		$this->_create($this->objData->id);
+			// Shows interface
+			$this->_create($this->objData->id);
+		}
 		
 		$this->secureGlobals();
 	}

@@ -30,7 +30,7 @@ class Media_controller extends CRUD_Controller {
 	protected	$arrWhereData	= array('media_gallery.id = media_data.media_gallery_id','media_data.id = {id}');
 	
 	private		$arrGallList	= array();
-	
+
 	/**
 	 * Class constructor
 	 *
@@ -43,7 +43,7 @@ class Media_controller extends CRUD_Controller {
 	 *
 	 */
 	public function __construct($boolRenderTemplate = true) {
-		parent::__construct(false);
+		parent::__construct($boolRenderTemplate,true,CMS_ROOT_TEMPLATE);
 		
 		// Gets GALLERY list
 		$this->arrGallList	= (array) $this->objModel->select(array('id','name','dirpath'),'media_gallery',array(),array(),array(),array(),0,null,'All');

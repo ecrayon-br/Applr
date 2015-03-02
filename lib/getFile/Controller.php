@@ -64,7 +64,7 @@ class getFile_Controller extends Controller {
 	public function getFile($strField) {
 		if(empty($strField) || !is_string($strField)) return false;
 		
-		if( ($strFile = $this->objModel->recordExists($strField,$this->objSection->table,SYS_WHERE . ' AND sys_language_id = ' . LANGUAGE . ' AND content_id = ' . $this->intContent,true)) !== false && is_file($this->strDirPath . $strFile)) {
+		if( ($strFile = $this->objModel->recordExists($strField,$this->objSection->table,str_replace('#table#',$this->objSection->table.'.',SYS_WHERE) . ' AND sys_language_id = ' . LANGUAGE . ' AND content_id = ' . $this->intContent,true)) !== false && is_file($this->strDirPath . $strFile)) {
 			// Send the necessary headers to browser
 			header("Content-Type: application/unknown");
 			header("Content-Disposition: filename=" . $strFile);

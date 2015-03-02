@@ -40,7 +40,7 @@ class MediaGallery_controller extends CRUD_Controller {
 	
 	private		$arrDirList		= array();
 	private		$arrSecList		= array();
-	
+
 	/**
 	 * Class constructor
 	 *
@@ -53,7 +53,7 @@ class MediaGallery_controller extends CRUD_Controller {
 	 *
 	 */
 	public function __construct($boolRenderTemplate = true) {
-		parent::__construct(false);
+		parent::__construct($boolRenderTemplate,true,CMS_ROOT_TEMPLATE);
 	
 		// Read ROOT_IMAGE files and create Smarty variable to SELECT box
 		$this->arrDirList = array();

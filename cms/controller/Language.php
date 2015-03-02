@@ -21,6 +21,10 @@ class Language_controller extends CRUD_Controller {
 	
 	protected	$arrFieldData	= array('sys_language.*');
 	protected	$arrWhereData	= array('sys_language.id = {id}');
+
+	public function __construct($boolRenderTemplate = true) {
+		parent::__construct($boolRenderTemplate,true,CMS_ROOT_TEMPLATE);
+	}
 	
 	/**
 	 * @see CRUD_Controller::delete()

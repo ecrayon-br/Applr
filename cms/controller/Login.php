@@ -1,7 +1,7 @@
 <?php
 class Login_controller extends Main_controller {
 	private $objAuth;
-	
+
 	/**
 	 * Class constructor
 	 *

@@ -10,11 +10,13 @@ class Main_controller extends Controller {
 	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
 	 *
 	 */
-	public function __construct() {
-		parent::__construct(false,SYS_ROOT . 'cms/views/');
+	public function __construct($boolRenderTemplate = true) {
+		parent::__construct(false,CMS_ROOT_TEMPLATE);
 		
 		$this->objSection_Menu = new Section_controller(false);
+		
 		$this->objSmarty->assign('objHierarchy',$this->objSection_Menu->objSmarty->getTemplateVars('objHierarchy'));
-		$this->renderTemplate();
+		
+		if($boolRenderTemplate) $this->renderTemplate();
 	}
 }

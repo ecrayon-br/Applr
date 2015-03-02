@@ -24,6 +24,8 @@ class CRUD_Controller extends Controller {
 	 * Class constructor
 	 *
 	 * @param	boolean	$boolRenderTemplate	Defines whether to show default's interface
+	 * @param	boolean	$checkAuth
+	 * @param	string	$strTemplateDir	Sets SMARTY template dir path
 	 *
 	 * @return	void
 	 *
@@ -31,10 +33,10 @@ class CRUD_Controller extends Controller {
 	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
 	 *
 	 */
-	public function __construct($boolRenderTemplate = true) {
-		parent::__construct(false,SYS_ROOT . 'cms/views/');
+	public function __construct($boolRenderTemplate = true,$checkAuth = true,$strTemplateDir = ROOT_TEMPLATE) {
+		parent::__construct(false,$strTemplateDir);
 		
-		if(!DEBUG) authUser_Controller::isLoggedIn(true,'Login.html');
+		if(!DEBUG && $checkAuth) authUser_Controller::isLoggedIn(true,'Login.html');
 		
 		$this->strModule 	= str_replace(array('_Controller','_controller'),'',get_class($this));
 		$strModelClass		= $this->strModule . '_model';

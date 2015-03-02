@@ -78,8 +78,9 @@ class Section_controller extends CRUD_Controller {
 	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
 	 *
 	 */
+	
 	public function __construct($boolRenderTemplate = true,$intSecID = 0) {
-		parent::__construct(false);
+		parent::__construct(false,false,CMS_ROOT_TEMPLATE);
 		
 		// Sets editing Section ID
 		if(!empty($intSecID)) {
@@ -106,13 +107,11 @@ class Section_controller extends CRUD_Controller {
 		
 		// Gets SECTION list
 		$this->getHierarchy();
-		#$this->arrSecList	= $this->getHierarchy();
 		
 		// Sets SMARTY vars
 		$this->objSmarty->assign('intSecID',$this->intSecID);
 		$this->objSmarty->assign('arrType',$this->arrTypeList);
 		$this->objSmarty->assign('arrFld',$this->arrFldList);
-		#$this->objSmarty->assign('arrSec',$this->arrSecList);
 		$this->objSmarty->assign('arrLang',$this->arrLangList);
 		$this->objSmarty->assign('arrTPL',$this->arrTPLList);
 		$this->objSmarty->assign('arrTPLType',$this->arrTPLTypeList);

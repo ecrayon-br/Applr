@@ -29,6 +29,10 @@ class Struct_controller extends CRUD_Controller {
 	
 	protected	$arrFieldData	= array('sec_struct.*');
 	protected	$arrWhereData	= array('sec_struct.id = {id}');
+
+	public function __construct($boolRenderTemplate = true) {
+		parent::__construct($boolRenderTemplate,true,CMS_ROOT_TEMPLATE);
+	}
 	
 	/**
 	 * @see CRUD_Controller::delete()

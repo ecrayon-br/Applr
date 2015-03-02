@@ -4,18 +4,19 @@
 /***												***/
 /*** 			CLIENT AND PROJECT CONFIG			***/
 /***												***/
-define('FRAME_VIEW'		,false);
-define('FRAME_URL'		,'url/do/frame/de/suporte.php');
+define('FRAME_VIEW'			,false);
+define('FRAME_URL'			,'url/do/frame/de/suporte.php');
 
-define('CLIENT'			,'ECRAYON');
-define('PROJECT'		,'APPLR');
-define('PROJECT_ID'		,1);
-define('CLIENT_EMAIL'	,'contato@ecrayon.com.br');
+define('CLIENT'				,'ECRAYON');
+define('PROJECT'			,'APPLR');
+define('PROJECT_ID'			,1);
+define('CLIENT_EMAIL'		,'contato@ecrayon.com.br');
 
-define('MAIN_SECTION'	,21);
-define('MAIN_LANGUAGE'	,1);
+define('MAIN_SECTION'		,1);
+define('MAIN_LANGUAGE'		,1);
+define('CMS_ROOT_TEMPLATE'	,SYS_ROOT . 'cms/views/');
 
-define('DEBUG'			,false);
+define('DEBUG'				,false);
 
 
 /******************************************************/

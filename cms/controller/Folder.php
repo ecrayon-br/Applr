@@ -23,6 +23,10 @@ class Folder_controller extends CRUD_Controller {
 	
 	protected	$arrFieldData	= array('sys_folder.*');
 	protected	$arrWhereData	= array('sys_folder.id = {id}');
+
+	public function __construct($boolRenderTemplate = true) {
+		parent::__construct($boolRenderTemplate,true,CMS_ROOT_TEMPLATE);
+	}
 	
 	/**
 	 * @see CRUD_Controller::delete()

@@ -18,8 +18,9 @@ class SectionContent_controller extends manageContent_Controller {
 	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
 	 *
 	 */
+	
 	public function __construct($boolRenderTemplate = true,$intSecID = 0) {
-		parent::__construct();
+		parent::__construct($intSecID,true,CMS_ROOT_TEMPLATE);
 		
 		// Gets Section ID from Section Permalink
 		if(!empty($intSecID)) {
@@ -37,7 +38,6 @@ class SectionContent_controller extends manageContent_Controller {
 			}
 		}
 		$this->objSmarty->assign('strPermalink',$strSection);
-		#echo '<pre>'; var_dump($this->intSecID); die();
 		
 		// Sets Section vars
 		$this->setSection($this->intSecID);
@@ -47,11 +47,8 @@ class SectionContent_controller extends manageContent_Controller {
 		// Gets Section Fields list
 		$this->getFieldList();
 		$this->objSmarty->assign('objStruct',$this->objStruct);
-		#echo '<pre>'; print_r($this->objStruct); die();
-		#echo '<pre>'; print_r($this->arrRelContent); die();
 		
 		$this->setFieldType();
-		#echo '<pre>'; print_r($this->objStruct); die();
 		
 		// Sets Content List vars
 		$this->objModel->strTable		= $this->objSection->table_name;
@@ -70,73 +67,8 @@ class SectionContent_controller extends manageContent_Controller {
 		$this->objModel->arrOrderData	= array($this->objModel->strTable . '.date_publish DESC');
 		$this->objModel->arrGroupData	= array($this->objModel->strTable . '.id');
 		
-		/*
-		// Sets FCKEditor object class
-		$this->objFCK = new FCKeditor('APPLR');
-		$this->objFCK->BasePath = HTTP . 'lib/FCKeditor/';
-		$this->objFCK->ToolbarSet = 'APPLR';
-		$this->objFCK->Height = '400';
-		$this->objSmarty->assign('objFCK',$this->objFCK);
-		*/
-		
 		// Shows default interface
 		if($boolRenderTemplate) $this->_read();
-	}
-	
-	private function setFieldType() {
-		// Sets $arrFieldType
-		foreach($this->objStruct AS $objField) {
-			switch($objField->fieldtype) {
-				case 'clob':
-				case 'text|fixed':
-				case 'text':
-				case 'blob':
-				case 'char':
-				case 'varchar':
-				case 'enum':
-					$strType = ($objField->suffix == 'mail' ? 'email' : 'string');
-					break;
-		
-				case 'boolean':
-					$strType = 'boolean';
-					break;
-		
-				case 'integer':
-				case 'decimal':
-				case 'float':
-				case 'tinyint':
-				case 'bigint':
-				case 'double':
-				case 'year':
-					$strType = 'numeric_clearchar';
-					break;
-		
-				case '0':
-				case '1':
-					$strType 				= 'numeric_clearchar';
-					$this->arrRelContent[] 	= clone $objField;
-					break;
-		
-				case '2':
-					$strType 				= 'array';
-					$this->arrRelContent[] 	= clone $objField;
-					break;
-		
-				case 'time':
-					$strType = '';
-					break;
-		
-				case 'timestamp':
-				case 'datetime':
-				case 'date':
-					$strType = 'date';
-					break;
-			}
-				
-			if($objField->mandatory == 0) $strType .= '_empty';
-				
-			$this->arrFieldType[$objField->field_name] = $strType;
-		}
 	}
 	
 	/**
@@ -153,7 +85,7 @@ class SectionContent_controller extends manageContent_Controller {
 	public function _create($intID = 0) {
 		if($intID > 0) {
 			$this->objRawData = $this->objModel->getData($intID);
-			 
+			
 			foreach($this->arrRelContent AS $objRel) {
 				if($objRel->type == 2) {
 					$this->objRawData->{$objRel->field_name} = json_decode($this->objRawData->{$objRel->field_name});

@@ -111,8 +111,9 @@ function APPLR_autoload($strPackage) {
 		if(count($arrFolder) == 1) $arrFolder[] = $arrFolder[0];
 		
 		// Defines APPLR dir
-		$strApplrDir = reset(explode('/',str_replace(array(SYS_DIR),'',$_SERVER['REQUEST_URI']))) . '/';
-		
+		$strApplrDir = explode('/', str_replace(array(SYS_DIR,'main'),array('','site'),$_SERVER['REQUEST_URI']) );
+		$strApplrDir = ($strApplrDir[0] == 'cms' ? 'cms/' : 'site/');
+				
 		// Defines Package's File Path
 		$strPath	= SYS_ROOT . $strApplrDir . implode('/',$arrFolder) . '.php';
 		

@@ -24,6 +24,10 @@ class Template_controller extends CRUD_Controller {
 	protected	$arrWhereData	= array('sys_template.id = {id}');
 	
 	private		$arrFileList	= array();
+
+	public function __construct($boolRenderTemplate = true) {
+		parent::__construct($boolRenderTemplate,true,CMS_ROOT_TEMPLATE);
+	}
 	
 	/**
 	 * Class constructor

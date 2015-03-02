@@ -57,6 +57,7 @@ class manageContent_Controller extends CRUD_Controller {
 	 * Class constructor, sets $this->intSecID and instantiates $this->objConn
 	 * 
 	 * @param	integer	$intSecID	Section ID
+	 * @param	string	$strTemplateDir	Sets SMARTY template dir path
 	 *
 	 * @return	void
 	 *
@@ -73,8 +74,8 @@ class manageContent_Controller extends CRUD_Controller {
 	 * @todo	Sets $this->configContentLink MEDIA GALLERY link
 	 *
 	 */
-	public function __construct($intSecID = 0) {
-		parent::__construct(false);
+	public function __construct($intSecID = 0,$checkAuth = true,$strTemplateDir = ROOT_TEMPLATE) {
+		parent::__construct(false,$checkAuth,$strTemplateDir);
 		
 		$this->objSection	= $this->objModel->getSectionConfig($intSecID);
 		
@@ -257,7 +258,8 @@ class manageContent_Controller extends CRUD_Controller {
 	 * 
 	 * @param	mixed	$mxdData		POST / GET / other data object
 	 * @param	mixed	$objField		Array where array_value => DB field's name OR null to get Applr SECTION defaults
-	 * @param	integer	$intReturnMode	0 => boolean; 1 => $this->objData values; 2 => $this->objPrintData values. If 1 or 2, resets $this->objData ans $this->objPrintData values to NULL on return 
+	 * @param	integer	$intReturnMode	0 => boolean; 1 => $this->objData values; 2 => $this->objPrintData values. If 1 or 2, resets $this->objData ans $this->objPrintData values to NULL on return
+	 * @param	boolean	$boolReturnList	Defines if $objReturn is content specific or data list 
 	 * 
 	 * @return	boolean
 	 *
@@ -266,447 +268,458 @@ class manageContent_Controller extends CRUD_Controller {
 	 *
 	 * @todo	Verify $mxdData type array | object and otimize method data struct and verification
 	 */
-	public function setupFieldSufyx($mxdData,$objField = null,$intReturnMode = 0) {
-		if(!is_array($mxdData) && !is_object($mxdData)) return false;
-		#if($this->objField === false) return false;
+	public function setupFieldSufyx($mxdContent,$objField = null,$intReturnMode = 0,$boolReturnList = false) {
+		if(!is_array($mxdContent) && !is_object($mxdContent)) return false;
+		$mxdFirstChild = reset($mxdContent);
+		if( empty($mxdFirstChild) || (!is_array($mxdFirstChild) && !is_object($mxdFirstChild)) ) $mxdContent = array($mxdContent);
 		if(!is_numeric($intReturnMode) || $intReturnMode < 0 || $intReturnMode > 2) return false;
 		
 		// Forces $this->objField to assume method's $objField value
 		if(!is_null($objField)) $this->objField = (array) $objField;
 		
 		// Reset data variables
-		$this->objData		= null;
-		$this->objPrintData	= null;
-		foreach($this->objField AS $mxdKey => &$strField) {
-			$this->objData->$strField = (is_array($mxdData) ? (!empty($mxdData[$strField]) ? $mxdData[$strField] : '') : (!empty($mxdData->$strField) ? $mxdData->$strField : ''));
-			
-			if(in_array($strField,array('date_create','date_publish','date_expire'))) {
-				$strTemp = $strField;
-			} else {
-				$strTemp = end(explode('_',$strField));
-			}
-			
-			switch($strTemp) {
-				case 'currency':
-					switch($this->objData->$strField) {
-						default:
-						case 0:
-							$this->objPrintData->$strField->intval		= 0;
-							$this->objPrintData->$strField->formatted	= 'R$';
-						break;
-						
-						case 1:
-							$this->objPrintData->$strField->intval		= 1;
-							$this->objPrintData->$strField->formatted	= 'USD';
-						break;
-						
-						case 2:
-							$this->objPrintData->$strField->intval		= 2;
-							$this->objPrintData->$strField->formatted	= 'EUR';
-						break;
-					}
-				break;
-				
-				case 'title':
-					switch($this->objData->$strField) {
-						default:
-						case 0:
-							$this->objPrintData->$strField->intval		= 0;
-							$this->objPrintData->$strField->formatted	= 'Sr.';
-						break;
-						
-						case 1:
-							$this->objPrintData->$strField->intval		= 1;
-							$this->objPrintData->$strField->formatted	= 'Mr.';
-						break;
-						
-						case 2:
-							$this->objPrintData->$strField->intval		= 2;
-							$this->objPrintData->$strField->formatted	= 'Mrs.';
-						break;
-						
-						case 3:
-							$this->objPrintData->$strField->intval		= 3;
-							$this->objPrintData->$strField->formatted	= 'Mss.';
-						break;
-					}
-				break;
-				
-				case 'period':
-					switch($this->objData->$strField) {
-						default:
-						case 0:
-							$this->objPrintData->$strField->intval		= 0;
-							$this->objPrintData->$strField->formatted	= 'Morning';
-						break;
-						
-						case 1:
-							$this->objPrintData->$strField->intval		= 1;
-							$this->objPrintData->$strField->formatted	= 'Afternoon';
-						break;
-						
-						case 2:
-							$this->objPrintData->$strField->intval		= 2;
-							$this->objPrintData->$strField->formatted	= 'Night';
-						break;
-					}
-				break;
-				
-				case 'sex':
-					switch($this->objData->$strField) {
-						default:
-						case 0:
-							$this->objPrintData->$strField->intval		= 0;
-							$this->objPrintData->$strField->formatted	= 'F';
-						break;
-						
-						case 1:
-							$this->objPrintData->$strField->intval		= 1;
-							$this->objPrintData->$strField->formatted	= 'M';
-						break;
-					}
-				break;
-				
-				case 'pwd':
-					$this->objPrintData->$strField->original	= $this->objData->$strField;
-					$this->objPrintData->$strField->md5			= md5($this->objData->$strField);
-				break;
-				
-				case 'phone':
-					if(!empty($this->objData->$strField)) 	{
-						$idxDDD = $strField . '_ddd';
-						$intDDD = (is_array($mxdData) ? $mxdData[$idxDDD] : $mxdData->$idxDDD);
-						
-						if(!empty($intDDD)) {
-							$this->objPrintData->$strField->intval		= Controller::onlyNumbers($intDDD . $this->objData->$strField);
-							$this->objPrintData->$strField->formatted	= '(' . $intDDD . ')' . $this->objData->$strField;
-							$this->objPrintData->$strField->original	= array($intDDD,$this->objData->$strField);
-						} else {
-							$intDDD 	= substr($this->objData->$strField,0,2);
-							$intPhone 	= substr($this->objData->$strField,2);
-
-							$this->objPrintData->$strField->intval		= Controller::onlyNumbers($intDDD . $intPhone);
-							$this->objPrintData->$strField->formatted	= (!empty($intDDD) ? '(' . $intDDD . ')' : '') . $intPhone;
-							$this->objPrintData->$strField->original	= array($intDDD,$intPhone);
-						}
-						
-						$this->objData->$strField						= $this->objPrintData->$strField->intval;
-					} else {
-						$this->objPrintData->$strField = '';
-					}
-				break;
-				
-				case 'number':
-				case 'cpf':
-				case 'rg':
-				case 'cnpj':
-					$this->objPrintData->$strField->original	= $this->objData->$strField;
-					$this->objPrintData->$strField->intval		= Controller::onlyNumbers($this->objData->$strField); 
-					$this->objData->$strField					= $this->objPrintData->$strField->intval;
-				break;
-				
-				case 'date':
-				case 'Day':
-				case 'Month':
-				case 'Year':
-					$strField	= str_replace(array('_Day','_Month','_Year'),'',$strField);
-					
-					if(empty($this->arrControl[$strField])) {
-						$this->arrControl[$strField] = true;
-						
-						$strDay		= $strField . '_Day';
-						$strMonth	= $strField . '_Month';
-						$strYear	= $strField . '_Year';
-						
-						if(!empty($this->objData->$strField)) {
-							$arrDate	= explode('-',$this->objData->$strField);
+		$this->objData		= array();
+		$this->objPrintData	= array();
+		
+		foreach($mxdContent AS $intDataKey => $mxdData) {
+			foreach($this->objField AS $mxdKey => &$strField) {
+				$this->objData[$intDataKey]->$strField = (is_array($mxdData) ? (!empty($mxdData[$strField]) ? $mxdData[$strField] : '') : (!empty($mxdData->$strField) ? $mxdData->$strField : ''));
+				#var_dump($this->objData[$intDataKey]->$strField).'<br>';
+				if(in_array($strField,array('date_create','date_publish','date_expire'))) {
+					$strTemp = $strField;
+				} else {
+					$strTemp = end(explode('_',$strField));
+				}
+				#var_dump($strTemp);	
+				switch($strTemp) {
+					case 'currency':
+						switch($this->objData[$intDataKey]->$strField) {
+							default:
+							case 0:
+								$this->objPrintData[$intDataKey]->$strField->intval		= 0;
+								$this->objPrintData[$intDataKey]->$strField->formatted	= 'R$';
+							break;
 							
-							$intDay		= (!empty($arrDate[2]) 	? $arrDate[2]	: '00');
-							$intMonth	= (!empty($arrDate[1])	? $arrDate[1]	: '00');
-							$intYear	= (!empty($arrDate[0])	? $arrDate[0]	: '0000');
-						} else {
-							$intDay		= (is_array($mxdData) ? (!empty($mxdData[$strDay]) 		? $mxdData[$strDay]		: '00') 	: (!empty($mxdData->$strDay) 	? $mxdData->$strDay		: '00') );
-							$intMonth	= (is_array($mxdData) ? (!empty($mxdData[$strMonth])	? $mxdData[$strMonth]	: '00') 	: (!empty($mxdData->$strMonth) 	? $mxdData->$strMonth	: '00') );
-							$intYear	= (is_array($mxdData) ? (!empty($mxdData[$strYear])		? $mxdData[$strYear]	: '0000') 	: (!empty($mxdData->$strYear) 	? $mxdData->$strYear	: '0000') );
-						}
-						
-						if($intDay > 0 || $intMonth > 0 || $intYear > 0) 	{
-							$intDay		= ($intDay	> 0 ? $intDay	: date('d'));
-							$intMonth	= ($intMonth> 0 ? $intMonth	: date('m'));
-							$intYear	= ($intYear	> 0 ? $intYear	: date('Y'));
-					
-							$this->objData->$strField 							= $intYear.'-'.$intMonth.'-'.$intDay;
-							$this->objPrintData->$strField->formatted			= (LANGUAGE != 1 ? date('Y-m-d',strtotime($this->objData->$strField)) : date('d/m/Y',strtotime($this->objData->$strField)));
-							$this->objPrintData->$strField->original->Timestamp	= $intYear . $intMonth . $intDay;
-						} else {
-							$this->objData->$strField							= '0000-00-00';
-							$this->objPrintData->$strField->formatted			= (LANGUAGE != 1 ? '0000-00-00' : '00/00/0000');
-							$this->objPrintData->$strField->original->Timestamp	= null; #$intYear . $intMonth . $intDay;
-						}
-						$this->objPrintData->$strField->original->Day		= $intDay;
-						$this->objPrintData->$strField->original->Year		= $intMonth;
-						$this->objPrintData->$strField->original->Month		= $intYear;
-					}
-				break;
-				
-				case 'hour':
-				case 'Hour':
-				case 'Minute':
-				case 'Second':
-				case 'time':
-					$strField	= str_replace(array('_Hour','_Minute','_Second'),'',$strField);
-
-					if(empty($this->arrControl[$strField])) {
-						$this->arrControl[$strField] = true;
-						
-						$intSecond	= $strField . '_Second';
-						$intMinute	= $strField . '_Minute';
-						$intHour	= $strField . '_Hour';
-						
-						if(!empty($this->objData->$strField)) {
-							$arrTime	= explode(':',$this->objData->$strField);
+							case 1:
+								$this->objPrintData[$intDataKey]->$strField->intval		= 1;
+								$this->objPrintData[$intDataKey]->$strField->formatted	= 'USD';
+							break;
 							
-							$intSecond	= (!empty($arrTime[2]) 	? $arrTime[2]	: '00');
-							$intMinute	= (!empty($arrTime[1])	? $arrTime[1]	: '00');
-							$intHour	= (!empty($arrTime[0])	? $arrTime[0]	: '00');
-						} else {
-							$intSecond	= (is_array($mxdData) ? (!empty($mxdData[$intSecond]) 	? $mxdData[$intSecond]	: '00') 	: (!empty($arrTime[2]) 	? $arrTime[2]	: '00') );
-							$intMinute	= (is_array($mxdData) ? (!empty($mxdData[$intMinute])	? $mxdData[$intMinute]	: '00') 	: (!empty($arrTime[1]) 	? $arrTime[1]	: '00') );
-							$intHour	= (is_array($mxdData) ? (!empty($mxdData[$intHour])		? $mxdData[$intHour]	: '00') 	: (!empty($arrTime[0]) 	? $arrTime[0]	: '00') );
+							case 2:
+								$this->objPrintData[$intDataKey]->$strField->intval		= 2;
+								$this->objPrintData[$intDataKey]->$strField->formatted	= 'EUR';
+							break;
 						}
-						
-						if($intSecond > 0 || $intMinute > 0 || $intHour > 0) 	{
-							$intSecond		= ($intSecond	> 0 ? $intSecond	: date('H'));
-							$intMinute	= ($intMinute> 0 ? $intMinute	: date('i'));
-							$intHour	= ($intHour	> 0 ? $intHour	: date('s'));
+					break;
 					
-							$this->objData->$strField 							= $intHour.':'.$intMinute.':'.$intSecond;
-							$this->objPrintData->$strField->formatted			= date('H:i:s',strtotime($this->objData->$strField));
-							$this->objPrintData->$strField->original->Timestamp	= $intHour . $intMinute . $intSecond;
-						} else {
-							$this->objData->$strField							= '00:00:00';
-							$this->objPrintData->$strField->formatted			= '00:00:00';
-							$this->objPrintData->$strField->original->Timestamp	= $intHour . $intMinute . $intSecond;
+					case 'title':
+						switch($this->objData[$intDataKey]->$strField) {
+							default:
+							case 0:
+								$this->objPrintData[$intDataKey]->$strField->intval		= 0;
+								$this->objPrintData[$intDataKey]->$strField->formatted	= 'Sr.';
+							break;
+							
+							case 1:
+								$this->objPrintData[$intDataKey]->$strField->intval		= 1;
+								$this->objPrintData[$intDataKey]->$strField->formatted	= 'Mr.';
+							break;
+							
+							case 2:
+								$this->objPrintData[$intDataKey]->$strField->intval		= 2;
+								$this->objPrintData[$intDataKey]->$strField->formatted	= 'Mrs.';
+							break;
+							
+							case 3:
+								$this->objPrintData[$intDataKey]->$strField->intval		= 3;
+								$this->objPrintData[$intDataKey]->$strField->formatted	= 'Mss.';
+							break;
 						}
-						$this->objPrintData->$strField->original->Hour		= $intHour;
-						$this->objPrintData->$strField->original->Minute	= $intMinute;
-						$this->objPrintData->$strField->original->Second	= $intSecond;
-					}
-				break;
-				
-				case 'date_create':
-				case 'date_publish':
-				case 'date_expire':
-					$arrTemp	= explode(' ',$this->objData->$strField);
-					$arrDate	= explode('-',$arrTemp[0]);
-					$arrTime	= explode(':',$arrTemp[1]);
-
-					if($arrDate[0] > 0 || $arrDate[1] > 0 || $arrDate[2] > 0) 	{
-						$this->objPrintData->$strField->formatted->date		= (LANGUAGE != 1 ? date('Y-m-d',strtotime($arrTemp[0])) : date('d/m/Y',strtotime($arrTemp[0])));
-						$this->objPrintData->$strField->original->date		= $arrTemp[0];
-						$this->objPrintData->$strField->original->time		= $arrTemp[1];
-						$this->objPrintData->$strField->original->Timestamp	= str_replace(array('-',':'),'',$arrTemp[0]) . str_replace(array('-',':'),'',$arrTemp[1]);
-					} else {
-						$this->objPrintData->$strField->formatted->date		= (LANGUAGE != 1 ? '0000-00-00' : '00/00/0000');
-						$this->objPrintData->$strField->original->date		= $arrTemp[0];
-						$this->objPrintData->$strField->original->time		= $arrTemp[1];
-						$this->objPrintData->$strField->original->Timestamp	= null; #$intYear . $intMonth . $intDay;
-					}
+					break;
 					
-					if($arrTime[0] > 0 || $arrTime[1] > 0 || $arrTime[2] > 0) 	{
-						$this->objPrintData->$strField->formatted->time		= date('H:i:s',strtotime($arrTemp[1]));
-					} else {
-						$this->objPrintData->$strField->formatted->time		= '00:00:00';
-					}
-				break;
-				
-				case 'permalink':
-					// Sets permalink string
-					$strPermalink = Controller::permalinkSyntax($this->objData->$strField);
-					$objData = $this->objModel->select('permalink',$this->objSection->table_name,array(),'permalink LIKE "' . $strPermalink . '%" AND sys_language_id = "' . LANGUAGE . '"');
-					$intCount = 1;
-					foreach($objData AS $strCount) {
-						if(is_string($strCount) && $strCount != '') {
-							$strTemp = substr_replace($strCount,'',strrpos($strCount,'-'));
-							if($strPermalink == $strCount || $strPermalink == $strTemp) $intCount++;
+					case 'period':
+						switch($this->objData[$intDataKey]->$strField) {
+							default:
+							case 0:
+								$this->objPrintData[$intDataKey]->$strField->intval		= 0;
+								$this->objPrintData[$intDataKey]->$strField->formatted	= 'Morning';
+							break;
+							
+							case 1:
+								$this->objPrintData[$intDataKey]->$strField->intval		= 1;
+								$this->objPrintData[$intDataKey]->$strField->formatted	= 'Afternoon';
+							break;
+							
+							case 2:
+								$this->objPrintData[$intDataKey]->$strField->intval		= 2;
+								$this->objPrintData[$intDataKey]->$strField->formatted	= 'Night';
+							break;
 						}
-					}
-					if($intCount > 1) $strPermalink .= '-'.$intCount;
+					break;
 					
-					$this->objData->$strField = $this->objPrintData->$strField = $strPermalink;
-				break;
-				
-				case 'check':
-				case 'checkbox':
-					if(empty($this->objData->$strField)) {
-						$this->objData->$strField 		= null;
-						$this->objPrintData->$strField 	= false;
-					} else {
-						$this->objPrintData->$strField 	= $this->objData->$strField;
-					}
-				break;
-				
-				case 'rel':
-				case 'link':
-					$this->objPrintData->$strField->original	= $this->objData->$strField;
-					$this->objPrintData->$strField->url 		= $this->configContentLink($this->objData->$strField);
-				break;
-				
-				case 'cep':
-				case 'zipcode':
-					$this->objPrintData->$strField->original	= $this->objData->$strField;
-					$this->objPrintData->$strField->intval		= Controller::onlyNumbers($this->objData->$strField); 
-					$this->objPrintData->$strField->formatted	= (!empty($this->objData->$strField) ? substr($this->objData->$strField,0,5) . '-' . substr($this->objData->$strField,5,3) : '');
-					$this->objData->$strField					= $this->objPrintData->$strField->intval;
-				break;
-				
-				case 'upload':
-				case 'old':
-					$strField = str_replace('_old','',$strField);
+					case 'sex':
+						switch($this->objData[$intDataKey]->$strField) {
+							default:
+							case 0:
+								$this->objPrintData[$intDataKey]->$strField->intval		= 0;
+								$this->objPrintData[$intDataKey]->$strField->formatted	= 'F';
+							break;
+							
+							case 1:
+								$this->objPrintData[$intDataKey]->$strField->intval		= 1;
+								$this->objPrintData[$intDataKey]->$strField->formatted	= 'M';
+							break;
+						}
+					break;
 					
-					if(empty($this->arrControl[$strField])) {
-						$this->arrControl[$strField] = true;
-						
-						if(isset($_FILES[$strField]) && !empty($_FILES[$strField]['name'])) {
-							$objUpload = new uploadFile_Controller($strField,ROOT_UPLOAD . Controller::permalinkSyntax($this->objSection->name));
-							$objReturn = $objUpload->uploadFile();
+					case 'pwd':
+						$this->objPrintData[$intDataKey]->$strField->original	= $this->objData[$intDataKey]->$strField;
+						$this->objPrintData[$intDataKey]->$strField->md5			= md5($this->objData[$intDataKey]->$strField);
+					break;
+					
+					case 'phone':
+						if(!empty($this->objData[$intDataKey]->$strField)) 	{
+							$idxDDD = $strField . '_ddd';
+							$intDDD = (is_array($mxdData) ? $mxdData[$idxDDD] : $mxdData->$idxDDD);
 							
-							$this->objData->$strField 					= $objReturn;
-							
-							$this->objPrintData->$strField->original 	= $objReturn;
-							$this->objPrintData->$strField->uri 		= HTTP . $this->objPrintData->$strField->original;
-						} else {
-							$strOldField = $strField.'_old';
-							
-							$this->objData->$strField = (is_array($mxdData) ? $mxdData[$strOldField] : $mxdData->$strOldField);
-							if(empty($this->objData->$strField)) {
-								$this->objData->$strField = (is_array($mxdData) ? $mxdData[$strField] : $mxdData->$strField);
+							if(!empty($intDDD)) {
+								$this->objPrintData[$intDataKey]->$strField->intval		= Controller::onlyNumbers($intDDD . $this->objData[$intDataKey]->$strField);
+								$this->objPrintData[$intDataKey]->$strField->formatted	= '(' . $intDDD . ')' . $this->objData[$intDataKey]->$strField;
+								$this->objPrintData[$intDataKey]->$strField->original	= array($intDDD,$this->objData[$intDataKey]->$strField);
+							} else {
+								$intDDD 	= substr($this->objData[$intDataKey]->$strField,0,2);
+								$intPhone 	= substr($this->objData[$intDataKey]->$strField,2);
+	
+								$this->objPrintData[$intDataKey]->$strField->intval		= Controller::onlyNumbers($intDDD . $intPhone);
+								$this->objPrintData[$intDataKey]->$strField->formatted	= (!empty($intDDD) ? '(' . $intDDD . ')' : '') . $intPhone;
+								$this->objPrintData[$intDataKey]->$strField->original	= array($intDDD,$intPhone);
 							}
 							
-							$this->objPrintData->$strField->original 	= (empty($this->objData->$strField) ? '' : $this->objData->$strField);
-							$this->objPrintData->$strField->uri 		= (empty($this->objPrintData->$strField->original) ? '' : HTTP . $this->objPrintData->$strField->original);
-						}
-					} else {
-						$this->objPrintData->$strField->original	= str_replace(HTTP,'',$this->objData->$strField);
-						$this->objPrintData->$strField->uri 		= (empty($this->objPrintData->$strField->original) ? '' : HTTP . $this->objPrintData->$strField->original);
-					}
-				break;
-				
-				case 'img':
-				case 'image':
-					if(empty($this->arrControl[$strField])) {
-						$this->arrControl[$strField] = true;
-						
-						if(isset($_FILES[$strField]) && !empty($_FILES[$strField]['name'])) {
-							// Uploads file
-							$objUpload = new uploadFile_Controller($strField,ROOT_IMAGE . Controller::permalinkSyntax($this->objSection->table));
-							$this->objData->$strField['file'] = $objUpload->uploadFile();
-							
-							// Inserts DB registry
-							$arrData = array(
-											'media_gallery_id'		=> null,
-											'usr_data_id'			=> $this->intUserID,
-											'type'					=> true,
-											'name'					=> $this->objData->$strField['name'],
-											'author'				=> $this->objData->$strField['author'],
-											'label'					=> $this->objData->$strField['label'],
-											'filepath'				=> $this->objData->$strField['file'],
-											'filepath_thumbnail'	=> $this->objData->$strField['file'],
-											'filepath_streaming'	=> null
-										);
-							$objInsert = $this->objModel->insert('media_data',$arrData,true);
-							
-							// Sets sys vars
-							$this->objPrintData->$strField->id		= $objInsert;
-							$this->objPrintData->$strField->file	= $this->objData->$strField['file'];
-							$this->objPrintData->$strField->path	= $objUpload->strPath;
-							$this->objPrintData->$strField->info	= $arrData;
+							$this->objData[$intDataKey]->$strField						= $this->objPrintData[$intDataKey]->$strField->intval;
 						} else {
-							$this->objPrintData->$strField = $this->objData->$strField;
+							$this->objPrintData[$intDataKey]->$strField = '';
 						}
-					} else {
-						$this->objPrintData->$strField = $this->objData->$strField;
-					}
-				break;
-				
-				case 'video':
-					if(empty($this->arrControl[$strField])) {
-						$this->arrControl[$strField] = true;
-						
-						if(isset($_FILES[$strField]) && !empty($_FILES[$strField]['name'])) {
-							// Uploads file
-							$objUpload = new uploadFile_Controller($strField,ROOT_VIDEO . Controller::permalinkSyntax($this->objSection->table));
-							$this->objData->$strField['file'] = $objUpload->uploadFile();
-							
-							// Inserts DB registry
-							$arrData = array(
-											'media_gallery_id'		=> null,
-											'usr_data_id'			=> $this->intUserID,
-											'type'					=> false,
-											'name'					=> $this->objData->$strField['name'],
-											'author'				=> $this->objData->$strField['author'],
-											'label'					=> $this->objData->$strField['label'],
-											'filepath'				=> $this->objData->$strField['file'],
-											'filepath_thumbnail'	=> null,
-											'filepath_streaming'	=> $this->objData->$strField['file']
-										);
-							$objInsert = $this->objModel->insert('media_data',$arrData,true);
-							
-							// Sets sys vars
-							$this->objPrintData->$strField->id		= $objInsert;
-							$this->objPrintData->$strField->file	= $this->objData->$strField['file'];
-							$this->objPrintData->$strField->path	= $objUpload->strPath;
-							$this->objPrintData->$strField->info	= $arrData;
-						} else {
-							$this->objPrintData->$strField = $this->objData->$strField;
-						}
-					} else {
-						$this->objPrintData->$strField = $this->objData->$strField;
-					}
-				break;
-				
-				default:
-					$this->objPrintData->$strField = $this->objData->$strField;
-				break;
-				
-				/***********************************/
-				/* NEEDS APPLR! SYSTEM DEFINITIONS */
-				/***********************************/
-				
-				case 'multitext':
-					if(is_array($this->objData->$strField)) {
-						$this->objPrintData->$strField	= $this->objData->$strField;
-						$this->objData->$strField		= implode("#MULTITEXT#",(is_array($mxdData) ? $mxdData[$strField] : $mxdData->$strField));
-					} else {
-						$this->objData->$strField		= null;
-						$this->objPrintData->$strField	= '';
-					}
-				break;
+					break;
 					
-				case 'thumbnail':
-				break;
-				
-				case 'poll':
-				break;
-				
-				case 'quiz':
-				break;
-				
-				case 'mediagal':
-				case 'mediagallery':
-				break;
-				
-				case 'country':
-				break;
-				
-				case 'state':
-				break;
-				
-				case 'city':
-				break;
+					case 'number':
+					case 'cpf':
+					case 'rg':
+					case 'cnpj':
+						$this->objPrintData[$intDataKey]->$strField->original	= $this->objData[$intDataKey]->$strField;
+						$this->objPrintData[$intDataKey]->$strField->intval		= Controller::onlyNumbers($this->objData[$intDataKey]->$strField); 
+						$this->objData[$intDataKey]->$strField					= $this->objPrintData[$intDataKey]->$strField->intval;
+					break;
+					
+					case 'date':
+					case 'Day':
+					case 'Month':
+					case 'Year':
+						$strField	= str_replace(array('_Day','_Month','_Year'),'',$strField);
+						
+						if(empty($this->arrControl[$strField])) {
+							$this->arrControl[$strField] = true;
+							
+							$strDay		= $strField . '_Day';
+							$strMonth	= $strField . '_Month';
+							$strYear	= $strField . '_Year';
+							
+							if(!empty($this->objData[$intDataKey]->$strField)) {
+								$arrDate	= explode('-',$this->objData[$intDataKey]->$strField);
+								
+								$intDay		= (!empty($arrDate[2]) 	? $arrDate[2]	: '00');
+								$intMonth	= (!empty($arrDate[1])	? $arrDate[1]	: '00');
+								$intYear	= (!empty($arrDate[0])	? $arrDate[0]	: '0000');
+							} else {
+								$intDay		= (is_array($mxdData) ? (!empty($mxdData[$strDay]) 		? $mxdData[$strDay]		: '00') 	: (!empty($mxdData->$strDay) 	? $mxdData->$strDay		: '00') );
+								$intMonth	= (is_array($mxdData) ? (!empty($mxdData[$strMonth])	? $mxdData[$strMonth]	: '00') 	: (!empty($mxdData->$strMonth) 	? $mxdData->$strMonth	: '00') );
+								$intYear	= (is_array($mxdData) ? (!empty($mxdData[$strYear])		? $mxdData[$strYear]	: '0000') 	: (!empty($mxdData->$strYear) 	? $mxdData->$strYear	: '0000') );
+							}
+							
+							if($intDay > 0 || $intMonth > 0 || $intYear > 0) 	{
+								$intDay		= ($intDay	> 0 ? $intDay	: date('d'));
+								$intMonth	= ($intMonth> 0 ? $intMonth	: date('m'));
+								$intYear	= ($intYear	> 0 ? $intYear	: date('Y'));
+						
+								$this->objData[$intDataKey]->$strField 							= $intYear.'-'.$intMonth.'-'.$intDay;
+								$this->objPrintData[$intDataKey]->$strField->formatted			= (LANGUAGE != 1 ? date('Y-m-d',strtotime($this->objData[$intDataKey]->$strField)) : date('d/m/Y',strtotime($this->objData[$intDataKey]->$strField)));
+								$this->objPrintData[$intDataKey]->$strField->original->Timestamp	= $intYear . $intMonth . $intDay;
+							} else {
+								$this->objData[$intDataKey]->$strField							= '0000-00-00';
+								$this->objPrintData[$intDataKey]->$strField->formatted			= (LANGUAGE != 1 ? '0000-00-00' : '00/00/0000');
+								$this->objPrintData[$intDataKey]->$strField->original->Timestamp	= null; #$intYear . $intMonth . $intDay;
+							}
+							$this->objPrintData[$intDataKey]->$strField->original->Day		= $intDay;
+							$this->objPrintData[$intDataKey]->$strField->original->Year		= $intMonth;
+							$this->objPrintData[$intDataKey]->$strField->original->Month		= $intYear;
+						}
+						
+						unset($this->objData[$intDataKey]->$strDay,$this->objData[$intDataKey]->$strMonth,$this->objData[$intDataKey]->$strYear);
+					break;
+					
+					case 'hour':
+					case 'Hour':
+					case 'Minute':
+					case 'Second':
+					case 'time':
+						$strField	= str_replace(array('_Hour','_Minute','_Second'),'',$strField);
+	
+						if(empty($this->arrControl[$strField])) {
+							$this->arrControl[$strField] = true;
+							
+							$strSecond	= $strField . '_Second';
+							$strMinute	= $strField . '_Minute';
+							$strHour	= $strField . '_Hour';
+							
+							if(!empty($this->objData[$intDataKey]->$strField)) {
+								$arrTime	= explode(':',$this->objData[$intDataKey]->$strField);
+								
+								$intSecond	= (!empty($arrTime[2]) 	? $arrTime[2]	: '00');
+								$intMinute	= (!empty($arrTime[1])	? $arrTime[1]	: '00');
+								$intHour	= (!empty($arrTime[0])	? $arrTime[0]	: '00');
+							} else {
+								$intSecond	= (is_array($mxdData) ? (!empty($mxdData[$strSecond]) 	? $mxdData[$strSecond]	: '00') 	: (!empty($arrTime[2]) 	? $arrTime[2]	: '00') );
+								$intMinute	= (is_array($mxdData) ? (!empty($mxdData[$strMinute])	? $mxdData[$strMinute]	: '00') 	: (!empty($arrTime[1]) 	? $arrTime[1]	: '00') );
+								$intHour	= (is_array($mxdData) ? (!empty($mxdData[$strHour])		? $mxdData[$strHour]	: '00') 	: (!empty($arrTime[0]) 	? $arrTime[0]	: '00') );
+							}
+							
+							if($intSecond > 0 || $intMinute > 0 || $intHour > 0) 	{
+								$intSecond		= ($intSecond	> 0 ? $intSecond	: date('H'));
+								$intMinute	= ($intMinute> 0 ? $intMinute	: date('i'));
+								$intHour	= ($intHour	> 0 ? $intHour	: date('s'));
+						
+								$this->objData[$intDataKey]->$strField 							= $intHour.':'.$intMinute.':'.$intSecond;
+								$this->objPrintData[$intDataKey]->$strField->formatted			= date('H:i:s',strtotime($this->objData[$intDataKey]->$strField));
+								$this->objPrintData[$intDataKey]->$strField->original->Timestamp	= $intHour . $intMinute . $intSecond;
+							} else {
+								$this->objData[$intDataKey]->$strField							= '00:00:00';
+								$this->objPrintData[$intDataKey]->$strField->formatted			= '00:00:00';
+								$this->objPrintData[$intDataKey]->$strField->original->Timestamp	= $intHour . $intMinute . $intSecond;
+							}
+							$this->objPrintData[$intDataKey]->$strField->original->Hour		= $intHour;
+							$this->objPrintData[$intDataKey]->$strField->original->Minute	= $intMinute;
+							$this->objPrintData[$intDataKey]->$strField->original->Second	= $intSecond;
+						}
+						
+						unset($this->objData[$intDataKey]->$strSecond,$this->objData[$intDataKey]->$strMinute,$this->objData[$intDataKey]->$strHour);
+					break;
+					
+					case 'date_create':
+					case 'date_publish':
+					case 'date_expire':
+						$arrTemp	= explode(' ',$this->objData[$intDataKey]->$strField);
+						$arrDate	= explode('-',$arrTemp[0]);
+						$arrTime	= explode(':',$arrTemp[1]);
+	
+						if($arrDate[0] > 0 || $arrDate[1] > 0 || $arrDate[2] > 0) 	{
+							$this->objPrintData[$intDataKey]->$strField->formatted->date		= (LANGUAGE != 1 ? date('Y-m-d',strtotime($arrTemp[0])) : date('d/m/Y',strtotime($arrTemp[0])));
+							$this->objPrintData[$intDataKey]->$strField->original->date		= $arrTemp[0];
+							$this->objPrintData[$intDataKey]->$strField->original->time		= $arrTemp[1];
+							$this->objPrintData[$intDataKey]->$strField->original->Timestamp	= str_replace(array('-',':'),'',$arrTemp[0]) . str_replace(array('-',':'),'',$arrTemp[1]);
+						} else {
+							$this->objPrintData[$intDataKey]->$strField->formatted->date		= (LANGUAGE != 1 ? '0000-00-00' : '00/00/0000');
+							$this->objPrintData[$intDataKey]->$strField->original->date		= $arrTemp[0];
+							$this->objPrintData[$intDataKey]->$strField->original->time		= $arrTemp[1];
+							$this->objPrintData[$intDataKey]->$strField->original->Timestamp	= null; #$intYear . $intMonth . $intDay;
+						}
+						
+						if($arrTime[0] > 0 || $arrTime[1] > 0 || $arrTime[2] > 0) 	{
+							$this->objPrintData[$intDataKey]->$strField->formatted->time		= date('H:i:s',strtotime($arrTemp[1]));
+						} else {
+							$this->objPrintData[$intDataKey]->$strField->formatted->time		= '00:00:00';
+						}
+					break;
+					
+					case 'permalink':
+						// Sets permalink string
+						$strPermalink = Controller::permalinkSyntax($this->objData[$intDataKey]->$strField);
+						$objData = $this->objModel->select('permalink',$this->objSection->table_name,array(),'permalink LIKE "' . $strPermalink . '%" AND sys_language_id = "' . LANGUAGE . '"');
+						$intCount = 1;
+						foreach($objData AS $strCount) {
+							if(is_string($strCount) && $strCount != '') {
+								$strTemp = substr_replace($strCount,'',strrpos($strCount,'-'));
+								if($strPermalink == $strCount || $strPermalink == $strTemp) $intCount++;
+							}
+						}
+						if($intCount > 1) $strPermalink .= '-'.$intCount;
+						
+						$this->objData[$intDataKey]->$strField = $this->objPrintData[$intDataKey]->$strField = $strPermalink;
+					break;
+					
+					case 'check':
+					case 'checkbox':
+						if(empty($this->objData[$intDataKey]->$strField)) {
+							$this->objData[$intDataKey]->$strField 		= null;
+							$this->objPrintData[$intDataKey]->$strField 	= false;
+						} else {
+							$this->objPrintData[$intDataKey]->$strField 	= $this->objData[$intDataKey]->$strField;
+						}
+					break;
+					
+					case 'rel':
+					case 'link':
+						$this->objPrintData[$intDataKey]->$strField->original	= $this->objData[$intDataKey]->$strField;
+						$this->objPrintData[$intDataKey]->$strField->url 		= $this->configContentLink($this->objData[$intDataKey]->$strField);
+					break;
+					
+					case 'cep':
+					case 'zipcode':
+						$this->objPrintData[$intDataKey]->$strField->original	= $this->objData[$intDataKey]->$strField;
+						$this->objPrintData[$intDataKey]->$strField->intval		= Controller::onlyNumbers($this->objData[$intDataKey]->$strField); 
+						$this->objPrintData[$intDataKey]->$strField->formatted	= (!empty($this->objData[$intDataKey]->$strField) ? substr($this->objData[$intDataKey]->$strField,0,5) . '-' . substr($this->objData[$intDataKey]->$strField,5,3) : '');
+						$this->objData[$intDataKey]->$strField					= $this->objPrintData[$intDataKey]->$strField->intval;
+					break;
+					
+					case 'upload':
+					case 'old':
+						$strField 	= str_replace('_old','',$strField);
+						$strOld		= $strField . '_old';
+						
+						if(empty($this->arrControl[$strField])) {
+							$this->arrControl[$strField] = true;
+							
+							if(isset($_FILES[$strField]) && !empty($_FILES[$strField]['name'])) {
+								$objUpload = new uploadFile_Controller($strField,ROOT_UPLOAD . Controller::permalinkSyntax($this->objSection->name));
+								$objReturn = $objUpload->uploadFile();
+								
+								$this->objData[$intDataKey]->$strField 					= $objReturn;
+								
+								$this->objPrintData[$intDataKey]->$strField->original 	= $objReturn;
+								$this->objPrintData[$intDataKey]->$strField->uri 		= HTTP . $this->objPrintData[$intDataKey]->$strField->original;
+							} else {
+								$strOldField = $strField.'_old';
+								
+								$this->objData[$intDataKey]->$strField = (is_array($mxdData) ? $mxdData[$strOldField] : $mxdData->$strOldField);
+								if(empty($this->objData[$intDataKey]->$strField)) {
+									$this->objData[$intDataKey]->$strField = (is_array($mxdData) ? $mxdData[$strField] : $mxdData->$strField);
+								}
+								
+								$this->objPrintData[$intDataKey]->$strField->original 	= (empty($this->objData[$intDataKey]->$strField) ? '' : $this->objData[$intDataKey]->$strField);
+								$this->objPrintData[$intDataKey]->$strField->uri 		= (empty($this->objPrintData[$intDataKey]->$strField->original) ? '' : HTTP . $this->objPrintData[$intDataKey]->$strField->original);
+							}
+						} else {
+							$this->objPrintData[$intDataKey]->$strField->original	= str_replace(HTTP,'',$this->objData[$intDataKey]->$strField);
+							$this->objPrintData[$intDataKey]->$strField->uri 		= (empty($this->objPrintData[$intDataKey]->$strField->original) ? '' : HTTP . $this->objPrintData[$intDataKey]->$strField->original);
+						}
+						
+						unset($this->objData[$intDataKey]->$strOld);
+					break;
+					
+					case 'img':
+					case 'image':
+						if(empty($this->arrControl[$strField])) {
+							$this->arrControl[$strField] = true;
+							
+							if(isset($_FILES[$strField]) && !empty($_FILES[$strField]['name'])) {
+								// Uploads file
+								$objUpload = new uploadFile_Controller($strField,ROOT_IMAGE . Controller::permalinkSyntax($this->objSection->table));
+								$this->objData[$intDataKey]->$strField['file'] = $objUpload->uploadFile();
+								
+								// Inserts DB registry
+								$arrData = array(
+												'media_gallery_id'		=> null,
+												'usr_data_id'			=> $this->intUserID,
+												'type'					=> true,
+												'name'					=> $this->objData[$intDataKey]->$strField['name'],
+												'author'				=> $this->objData[$intDataKey]->$strField['author'],
+												'label'					=> $this->objData[$intDataKey]->$strField['label'],
+												'filepath'				=> $this->objData[$intDataKey]->$strField['file'],
+												'filepath_thumbnail'	=> $this->objData[$intDataKey]->$strField['file'],
+												'filepath_streaming'	=> null
+											);
+								$objInsert = $this->objModel->insert('media_data',$arrData,true);
+								
+								// Sets sys vars
+								$this->objPrintData[$intDataKey]->$strField->id		= $objInsert;
+								$this->objPrintData[$intDataKey]->$strField->file	= $this->objData[$intDataKey]->$strField['file'];
+								$this->objPrintData[$intDataKey]->$strField->path	= $objUpload->strPath;
+								$this->objPrintData[$intDataKey]->$strField->info	= $arrData;
+							} else {
+								$this->objPrintData[$intDataKey]->$strField = $this->objData[$intDataKey]->$strField;
+							}
+						} else {
+							$this->objPrintData[$intDataKey]->$strField = $this->objData[$intDataKey]->$strField;
+						}
+					break;
+					
+					case 'video':
+						if(empty($this->arrControl[$strField])) {
+							$this->arrControl[$strField] = true;
+							
+							if(isset($_FILES[$strField]) && !empty($_FILES[$strField]['name'])) {
+								// Uploads file
+								$objUpload = new uploadFile_Controller($strField,ROOT_VIDEO . Controller::permalinkSyntax($this->objSection->table));
+								$this->objData[$intDataKey]->$strField['file'] = $objUpload->uploadFile();
+								
+								// Inserts DB registry
+								$arrData = array(
+												'media_gallery_id'		=> null,
+												'usr_data_id'			=> $this->intUserID,
+												'type'					=> false,
+												'name'					=> $this->objData[$intDataKey]->$strField['name'],
+												'author'				=> $this->objData[$intDataKey]->$strField['author'],
+												'label'					=> $this->objData[$intDataKey]->$strField['label'],
+												'filepath'				=> $this->objData[$intDataKey]->$strField['file'],
+												'filepath_thumbnail'	=> null,
+												'filepath_streaming'	=> $this->objData[$intDataKey]->$strField['file']
+											);
+								$objInsert = $this->objModel->insert('media_data',$arrData,true);
+								
+								// Sets sys vars
+								$this->objPrintData[$intDataKey]->$strField->id		= $objInsert;
+								$this->objPrintData[$intDataKey]->$strField->file	= $this->objData[$intDataKey]->$strField['file'];
+								$this->objPrintData[$intDataKey]->$strField->path	= $objUpload->strPath;
+								$this->objPrintData[$intDataKey]->$strField->info	= $arrData;
+							} else {
+								$this->objPrintData[$intDataKey]->$strField = $this->objData[$intDataKey]->$strField;
+							}
+						} else {
+							$this->objPrintData[$intDataKey]->$strField = $this->objData[$intDataKey]->$strField;
+						}
+					break;
+					
+					default:
+						$this->objPrintData[$intDataKey]->$strField = $this->objData[$intDataKey]->$strField;
+					break;
+					
+					/***********************************/
+					/* NEEDS APPLR! SYSTEM DEFINITIONS */
+					/***********************************/
+					
+					case 'multitext':
+						if(is_array($this->objData[$intDataKey]->$strField)) {
+							$this->objPrintData[$intDataKey]->$strField	= $this->objData[$intDataKey]->$strField;
+							$this->objData[$intDataKey]->$strField		= implode("#MULTITEXT#",(is_array($mxdData) ? $mxdData[$strField] : $mxdData->$strField));
+						} else {
+							$this->objData[$intDataKey]->$strField		= null;
+							$this->objPrintData[$intDataKey]->$strField	= '';
+						}
+					break;
+						
+					case 'thumbnail':
+					break;
+					
+					case 'poll':
+					break;
+					
+					case 'quiz':
+					break;
+					
+					case 'mediagal':
+					case 'mediagallery':
+					break;
+					
+					case 'country':
+					break;
+					
+					case 'state':
+					break;
+					
+					case 'city':
+					break;
+				}
 			}
 		}
-		
+	
 		switch($intReturnMode) {
 			case 0:
 			default:
@@ -714,14 +727,13 @@ class manageContent_Controller extends CRUD_Controller {
 			break;
 			
 			case 1:
-				$objReturn 			= clone (object) $this->objData;
+				$objReturn 			= ($boolReturnList ? clone (object) $this->objData : clone (object) reset($this->objData));
 				$this->objData		= null;
-				
 				return $objReturn;
 			break;
 			
 			case 2:
-				$objReturn 			= clone (object) $this->objPrintData;
+				$objReturn 			= ($boolReturnList ? clone (object) $this->objPrintData : clone (object) reset($this->objPrintData));
 				$this->objPrintData	= null;
 				
 				return $objReturn;
@@ -985,6 +997,62 @@ class manageContent_Controller extends CRUD_Controller {
 		} else {
 			define('ERROR_MSG','$this->updateMainContent error!');
 			return false;
+		}
+	}
+	
+	protected function setFieldType() {
+		// Sets $arrFieldType
+		foreach($this->objStruct AS $objField) {
+			switch($objField->fieldtype) {
+				case 'clob':
+				case 'text|fixed':
+				case 'text':
+				case 'blob':
+				case 'char':
+				case 'varchar':
+				case 'enum':
+					$strType = ($objField->suffix == 'mail' ? 'email' : 'string');
+					break;
+	
+				case 'boolean':
+					$strType = 'boolean';
+					break;
+	
+				case 'integer':
+				case 'decimal':
+				case 'float':
+				case 'tinyint':
+				case 'bigint':
+				case 'double':
+				case 'year':
+					$strType = 'numeric_clearchar';
+					break;
+	
+				case '0':
+				case '1':
+					$strType 				= 'numeric_clearchar';
+					$this->arrRelContent[] 	= clone $objField;
+					break;
+	
+				case '2':
+					$strType 				= 'array';
+					$this->arrRelContent[] 	= clone $objField;
+					break;
+	
+				case 'time':
+					$strType = '';
+					break;
+	
+				case 'timestamp':
+				case 'datetime':
+				case 'date':
+					$strType = 'date';
+					break;
+			}
+	
+			if($objField->mandatory == 0) $strType .= '_empty';
+	
+			$this->arrFieldType[$objField->field_name] = $strType;
 		}
 	}
 }

@@ -21,6 +21,7 @@ class Controller {
 	protected	$intUserID			= 0;
 	
 	private		$strTemplate;
+	private		$arrURL;
 	
 	static		$strClientName		= CLIENT;
 	static		$strProjectName		= PROJECT;
@@ -63,7 +64,7 @@ class Controller {
 		if($_SESSION[self::$strProjectName]['auth'] && isset($_SESSION[self::$strProjectName]['id'])) {
 			$this->intUserID = $_SESSION[self::$strProjectName]['id'];
 		}
-			
+		
 		// Renderize View's template
 		if($boolRenderView) $this->renderTemplate();
 	}
@@ -96,7 +97,7 @@ class Controller {
 		/**********			  PROJECT CONFIG			**********/
 		/**********										**********/
 		
-		define('SYS_WHERE'	,'delete = 0 AND active = 1 AND date_publish <= NOW() AND (date_expire  >= NOW() OR date_expire = "0000-00-00 00:00:00" OR date_expire IS NULL)');
+		define('SYS_WHERE'	,'#table#deleted = 0 AND #table#active = 1 AND #table#date_publish <= NOW() AND (#table#date_expire  >= NOW() OR #table#date_expire = "0000-00-00 00:00:00" OR #table#date_expire IS NULL)');
 		define('HTTP'		,'http://'. URI_DOMAIN . SYS_DIR);
 		
 		if(!isset($_SESSION[self::$strProjectName])) {
@@ -201,59 +202,62 @@ class Controller {
 		
 			// Checks for friendly URL
 			if(isset($_REQUEST[PROJECT.'_friendlyURL']) && $_REQUEST[PROJECT.'_friendlyURL'] == 1) {
-				$_REQUEST[VAR_ACTION] = self::getURISegment();
+				$_REQUEST[VAR_ACTION] 	= self::getURISegment();
+				$this->arrURL			= $_SESSION[self::$strProjectName]['URI_SEGMENT'];
 				
 				if(is_null($_REQUEST[VAR_ACTION])) {
 					// Sets alternative names to main sessions
-					switch($arrURL[1]) {
+					switch($this->arrURL[1]) {
 						default:
-							break;
+						break;
 					}
 		
-					$strTable = str_replace('-','_',$arrURL[1]);
-		
+					$strTable = $this->objModel->recordExists('table_name', 'sec_config', 'permalink = "' . str_replace('-','_',$this->arrURL[1]) . '"',true);
+					$strWhere = str_replace('#table#',$strTable.'.',SYS_WHERE);
+					
 					// Gets SECTION ID
 					$_REQUEST[VAR_SECTION] = $this->objModel->select('id','sec_config','','table = "' . $strTable . '"')->id;
-					if(DB::isError($_REQUEST[VAR_SECTION])) $_REQUEST[VAR_SECTION] = MAIN_SECTION;
-		
+					if(MDB2::isError($_REQUEST[VAR_SECTION]) || is_null($_REQUEST[VAR_SECTION])) $_REQUEST[VAR_SECTION] = MAIN_SECTION;
+					$this->objSection = $this->objModel->getSectionConfig($_REQUEST[VAR_SECTION]);
+					
 					// Gets LANGUAGE ID
-					$mxdLanguage 	= (isset($arrURL[3]) ? $arrURL[3] : (isset($arrURL[2]) ? $arrURL[2] : 0) );
+					$mxdLanguage 	= (isset($this->arrURL[3]) ? $this->arrURL[3] : (isset($this->arrURL[2]) ? $this->arrURL[2] : 0) );
 					$tempLanguage = $this->objModel->select('id','sys_language','','(acronym = "' . $mxdLanguage . '" ' . (is_numeric($mxdLanguage) ? ' OR id = "' . $mxdLanguage . '"' : '') . ') AND status = 1')->id;
 		
-					if(DB::isError($tempLanguage) || empty($tempLanguage)) {
-						$tempLanguage = (isset($_SESSION[self::$strProjectName][VAR_SECTION]) ? $_SESSION[self::$strProjectName][VAR_SECTION] : MAIN_LANGUAGE);
+					if(MDB2::isError($tempLanguage) || empty($tempLanguage)) {
+						$tempLanguage = (isset($_SESSION[self::$strProjectName][VAR_LANGUAGE]) ? $_SESSION[self::$strProjectName][VAR_LANGUAGE] : MAIN_LANGUAGE);
 					}
-					$_SESSION[self::$strProjectName][VAR_SECTION] = $tempLanguage;
+					
+					$_SESSION[self::$strProjectName][VAR_LANGUAGE] = $tempLanguage;
 					$strLangWhere = ' AND sys_language_id = ' . $tempLanguage;
 		
 					// Gets CONTENT ID
-					if(isset($arrURL[2])) {
-						$_REQUEST[VAR_CONTENT] = $this->objModel->select('id','ctn_' . $strTable,'','sys_permalink = "' . $arrURL[2] . '" AND ' . SYS_WHERE . $strLangWhere)->id;
-						if(DB::isError($_REQUEST[VAR_CONTENT])) unset($_REQUEST[VAR_CONTENT]);
+					if(isset($this->arrURL[2])) {
+						$_REQUEST[VAR_CONTENT] = $this->objModel->select('id',$strTable,'','permalink = "' . $this->arrURL[2] . '" AND ' . $strWhere . $strLangWhere,array(),array(),0,null,'One');
+						if(MDB2::isError($_REQUEST[VAR_CONTENT])) unset($_REQUEST[VAR_CONTENT]);
 					}
-		
+					
 					// If URL don't defines CONTENT ID, checks for HOME content
-					if(empty($_REQUEST[VAR_CONTENT])) {
-						$this->objSection = ( isset($_REQUEST[VAR_SECTION]) ? $this->objModel->getSectionConfig($_REQUEST[VAR_SECTION]) : $this->objModel->getSectionConfig(MAIN_SECTION) );
-						if(isset($this->objSection) && $this->objSection->home !=$this->objSection($this->objSection->tpl_list)) {
-							$_REQUEST[VAR_CONTENT] = $this->objModel->select('main.id','ctn_' . $strTable . ' AS main','rel_sec_language','(main.title = LOWER("home") OR rel_sec_language.name = main.title) AND ' . SYS_WHERE  . str_replace(' AND ',' AND rel_sec_language.',$strLangWhere))->id;
-							if(DB::isError($_REQUEST[VAR_CONTENT]) || empty($_REQUEST[VAR_CONTENT])) {
-								$_REQUEST[VAR_CONTENT] = $this->objModel->select('MAX(id)','ctn_' . $strTable,'',SYS_WHERE);
-							}
+					if(empty($_REQUEST[VAR_CONTENT]) && $this->objSection->home != 1 && empty($this->objSection->tpl_list)) {
+						$_REQUEST[VAR_CONTENT] = $this->objModel->select($strTable.'.id', $strTable,'JOIN rel_sec_language','('.$strTable.'.name = LOWER("home") OR rel_sec_language.name = '.$strTable.'.name) AND ' . $strWhere . str_replace(' AND ',' AND rel_sec_language.',$strLangWhere))->id;
+						if(MDB2::isError($_REQUEST[VAR_CONTENT]) || empty($_REQUEST[VAR_CONTENT])) {
+							$_REQUEST[VAR_CONTENT] = $this->objModel->select('MAX(id)',$strTable,'',$strWhere);
 						}
 					}
-		
-					define('SECTION'			, $arrURL[1]);
-					define('SECTION_PERMALINK'	,self::permalinkSyntax(str_replace('ctn_','',$this->objSection->table)));
+					
+					define('SECTION'			, $_REQUEST[VAR_SECTION]);
+					define('SECTION_SEGMENT'	, $this->arrURL[1]);
+					define('SECTION_PERMALINK'	, $this->objSection->permalink);
 				}
 			} else {
 				if(isset($_REQUEST[VAR_SECTION])) {
-					define('SECTION'		,$_REQUEST[VAR_SECTION]);
+					define('SECTION'		, $_REQUEST[VAR_SECTION]);
 				} elseif(!isset($inSistema)) {
-					define('SECTION'		,MAIN_SECTION);
+					define('SECTION'		, MAIN_SECTION);
 				}
 				$this->objSection = $this->objModel->getSectionConfig(SECTION);
-				define('SECTION_PERMALINK'	,self::permalinkSyntax(str_replace('ctn_','',$this->objSection->table)));
+				define('SECTION_PERMALINK'	, $this->objSection->permalink);
+				define('SECTION_SEGMENT'	, '');
 			}
 		
 			// Language
@@ -276,7 +280,7 @@ class Controller {
 			// Content
 			if(isset($_REQUEST[VAR_CONTENT])) {
 				// Checks if VAR_CONTENT and VAR_LANGUAGE values are a valid pair or if there is an equivalent pair for LANG_CONTENT
-				$intContent = $this->objModel->select('id',$this->objSection->table,'','rel_sec_language_id = "' . LANGUAGE . '" AND IF(rel_sec_language_id = 1 AND lang_content IS NOT NULL,lang_content = "'.$_REQUEST[VAR_CONTENT].'",id = "'.$_REQUEST[VAR_CONTENT].'")');
+				$intContent = $this->objModel->select('id',$this->objSection->table_name,'', 'sys_language_id = ' . LANGUAGE . ' AND IF(sys_language_id = 1 AND lang_content IS NOT NULL AND lang_content <> 0,lang_content = "'.$_REQUEST[VAR_CONTENT].'",id = "'.$_REQUEST[VAR_CONTENT].'")',array(),array(),0,null,'One');
 				define('CONTENT',$intContent);
 			} else {
 				define('CONTENT',NULL);
@@ -447,6 +451,7 @@ class Controller {
 		$_SESSION[self::$strProjectName]['URI_SEGMENT'] = $arrURL;
 		
 		switch($arrURL[1]) {
+			#case 'main':
 			case 'site':
 			case 'include-sistema':
 				return '';

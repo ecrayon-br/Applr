@@ -52,6 +52,10 @@ class Config_controller extends CRUD_Controller {
 									);
 	protected	$arrOrderData	= array('config.project_id');
 	protected	$arrGroupData	= array('config.project_id');
+
+	public function __construct($boolRenderTemplate = true) {
+		parent::__construct($boolRenderTemplate,true,CMS_ROOT_TEMPLATE);
+	}
 	
 	/**
 	 * Get CONFIG and PROJECT data
@@ -99,16 +103,20 @@ class Config_controller extends CRUD_Controller {
 			$_POST['project_logo_upload'] = '';
 			$objData->project['project_logo_upload'] = '';
 		}
-		
+		#echo '<pre>'; var_dump($objData->config); die();
 		$arrOrgData	= array_merge($objData->project,$objData->config);
+		#echo '<pre>'; var_dump($arrOrgData); die();
 		
 		if(($mxdValidate = $this->validateParamsArray($_POST,$this->arrFieldType,false)) === true) {
 			// Setups field's data
+			#echo '<pre>'; var_dump($objData->project); die();
 			$objManager						= new manageContent_Controller();
 			$objData->project				= $objManager->setupFieldSufyx($objData->project,array_keys($objData->project),1);
 			$objData->config				= $objManager->setupFieldSufyx($objData->config,array_keys($objData->config),1);
 			$objData->project->logo_upload 	= $objData->project->project_logo_upload;
 			unset($objData->project->project_logo_upload);
+			
+			#echo '<pre>'; var_dump($objData->project); die();
 			
 			// Updates PROJECT
 			if($this->objModel->update('project',$objData->project,'id = ' . $this->intProjectID) !== false) {

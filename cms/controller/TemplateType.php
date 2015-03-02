@@ -20,6 +20,10 @@ class TemplateType_controller extends CRUD_Controller {
 	
 	protected	$arrFieldData	= array('sys_template_type.*');
 	protected	$arrWhereData	= array('sys_template_type.id = {id}');
+
+	public function __construct($boolRenderTemplate = true) {
+		parent::__construct($boolRenderTemplate,true,CMS_ROOT_TEMPLATE);
+	}
 	
 	/**
 	 * @see CRUD_Controller::delete()

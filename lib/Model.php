@@ -568,32 +568,23 @@ class Model {
 							'queryAll' 	=> 'queryAll', 'queryOne' 	=> 'queryOne', 'queryRow' 	=> 'queryRow', 'queryCol' 	=> 'queryCol',
 							'1' 		=> 'queryAll', '2' 			=> 'queryOne', '3' 			=> 'queryRow', '4' 			=> 'queryCol'
 							);
-		
 		if(!is_object($this->objConn))																					return false;
-		
-		if(is_string($arrField) 	&& !empty($arrField))																$arrField 		= array($arrField);
+		if(is_string($arrField) 	&& !empty($arrField))									$arrField 		= array($arrField);
 		if(!is_array($arrField))																						return false;
-		
-		if(is_string($arrTable) 	&& !empty($arrTable))																$arrTable 		= array($arrTable);
+		if(is_string($arrTable) 	&& !empty($arrTable))									$arrTable 		= array($arrTable);
 		if(!is_array($arrTable))																						return false;
-		
-		if(is_string($arrJoin)		&& !empty($arrJoin)) 																$arrJoin 		= array($arrJoin); 
+		if(is_string($arrJoin)) 															$arrJoin 		= array($arrJoin); 
 		if(!is_array($arrJoin))																							return false;
-		
-		if(is_string($arrWhere)		&& !empty($arrWhere)) 																$arrWhere 		= array($arrWhere);
+		if(is_string($arrWhere)) 															$arrWhere 		= array($arrWhere);
 		if(!is_array($arrWhere))																						return false;
-		
-		if(is_string($arrOrderBy)	&& !empty($arrOrderBy)) 															$arrOrderBy 	= array($arrOrderBy);
+		if(is_string($arrOrderBy)) 															$arrOrderBy 	= array($arrOrderBy);
 		if(!is_array($arrOrderBy))																						return false;
-		
-		if(is_string($arrGroupBy)	&& !empty($arrGroupBy)) 															$arrGroupBy 	= array($arrGroupBy);
+		if(is_string($arrGroupBy)) 															$arrGroupBy 	= array($arrGroupBy);
 		if(!is_array($arrGroupBy))																						return false;
-		
-		if(!is_numeric($intOffSet)) 																					$intOffSet 		= 0;
-		if(!is_numeric($intLimit)) 																						$intLimit 		= null;
-		
+		if(!is_numeric($intOffSet)) 														$intOffSet 		= 0;
+		if(!is_numeric($intLimit)) 															$intLimit 		= null;
 		if(!is_string($strFetchMode) || (is_string($strFetchMode) && !array_key_exists($strFetchMode,$arrFetch))) 		return $strFetchMode;
-		
+
 		// Sets query syntax
 		$strQuery	= ' SELECT 
 							'.implode(',',$arrField).' 
@@ -603,7 +594,7 @@ class Model {
 						'.(count($arrWhere) > 0 	? 'WHERE 	'.implode(' AND '	,$arrWhere)		: '').'
 						'.(count($arrGroupBy) > 0 	? 'GROUP BY	'.implode(' , '		,$arrGroupBy)	: '').'
 						'.(count($arrOrderBy) > 0 	? 'ORDER BY '.implode(' ,'		,$arrOrderBy) 	: '');
-		#echo '<pre>'.$strQuery.'<hr>';
+		#echo '<pre>'; echo($strQuery); echo '<hr>';
 		// Sets LIMIT
 		$this->objConn->setLimit($intLimit,$intOffSet);
 		
@@ -745,7 +736,7 @@ class Model {
 		
 		// Prepares and execute query
 		$objQuery = $this->objConn->extended->autoExecute($strTable,$arrField,MDB2_AUTOQUERY_UPDATE,$strWhere);
-		
+		#echo '<pre>'; var_dump($objQuery); die();
 		if(MDB2::isError($objQuery)) {
 			define('ERROR_MSG','Error on Model::update->execute(): ' . $objQuery->getMessage());
 			return false;
@@ -805,7 +796,24 @@ class Model {
 	public function getSectionConfig($intSection) {
 		if(!is_numeric($intSection) || $intSection 	<= 0) return false;
 		
-		$objReturn = $this->select('*','sec_config',array(),'sec_config.id = ' . $intSection);
+		$arrFields	= array(
+						'sec_config.*',
+						'tpl_type_content.sys_template_id 	AS tpl_content_id',
+						'tpl_type_list.sys_template_id 		AS tpl_list_id',
+						'tpl_type_home.sys_template_id 		AS tpl_home_id',
+						'tpl_file_content.filename 			AS tpl_content',
+						'tpl_file_list.filename 			AS tpl_list',
+						'tpl_file_home.filename 			AS tpl_home'
+						);
+		$arrJoins	= array(
+						'LEFT JOIN rel_sec_template AS tpl_type_content ON tpl_type_content.sec_config_id = sec_config.id AND tpl_type_content.sys_template_type_id = 1',
+						'LEFT JOIN sys_template AS tpl_file_content 	ON tpl_file_content.id = tpl_type_content.sys_template_id',
+						'LEFT JOIN rel_sec_template AS tpl_type_list 	ON tpl_type_list.sec_config_id = sec_config.id AND tpl_type_list.sys_template_type_id = 2',
+						'LEFT JOIN sys_template AS tpl_file_list 		ON tpl_file_list.id = tpl_type_list.sys_template_id',
+						'LEFT JOIN rel_sec_template AS tpl_type_home 	ON tpl_type_home.sec_config_id = sec_config.id AND tpl_type_home.sys_template_type_id = 3',
+						'LEFT JOIN sys_template AS tpl_file_home 		ON tpl_file_home.id = tpl_type_home.sys_template_id',
+						);
+		$objReturn 	= $this->select($arrFields,'sec_config',$arrJoins,'sec_config.id = ' . $intSection);
 		
 		if(!empty($objReturn)) {
 			return reset($objReturn);

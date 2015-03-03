@@ -7,14 +7,13 @@ function setUCfirst(&$strValue,$strKey) {
 
 if($_REQUEST['debug']) { echo '<pre>'; print_r($_SESSION[PROJECT]['URI_SEGMENT']); die(); }
 
-// Gets URI controller and action params
-/*
-if((ACTION == '' || ACTION == 'login') && !authUser_Controller::isLoggedIn()) {
-	$strController	= 'Login_controller';
-} else
-*/
-if(ACTION == '') { //(ACTION == '' || ACTION == 'login') && authUser_Controller::isLoggedIn() && $_SESSION[PROJECT]['URI_SEGMENT'][3] !== 'out') {
-	$strController	= 'Main_controller';
+if(ACTION == '') {
+
+	$arrTmp			= explode('-',SECTION_SEGMENT);
+	array_walk($arrTmp,'setUCfirst');
+	$strController	= implode('',$arrTmp) . '_controller';
+	
+	if(!class_exists($strController)) $strController	= 'Main_controller';
 } else {
 	$arrTmp			= explode('-',ACTION);
 	array_walk($arrTmp,'setUCfirst');

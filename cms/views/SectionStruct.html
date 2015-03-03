@@ -6,23 +6,16 @@
 	{include file="struct/menu-top.html"}
 	<tr>
 		<th>Name</th>
+		<th>Parent Section</th>
 		<th>URL from Root</th>
 		<th>Table</th>
-		<th>Edit</th>
 	</tr>
 	{if count($objData) == 0}
 	<tr>
 		<td colspan=6 align="center">No records found!</td>
 	</tr>
 	{else}
-	{foreach from=$objData name="listData" item="objTmp"}
-	<tr>
-		<td><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{$objTmp->id}">{$objTmp->name}</a></td>
-		<td><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{$objTmp->id}">{$smarty.const.HTTP}{$objTmp->permalink}</a></td>
-		<td><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{$objTmp->id}">{$objTmp->table_name}</a></td>
-		<td align="center"><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{$objTmp->id}">[ edit ]</a></td>
-	</tr>
-	{/foreach}
+	{APPLR_printSectionHierarchy spacer="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" tpl="struct/section-list-iteration.html" hideDelete=true}
 	{/if}
 </table>
 </form>

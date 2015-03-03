@@ -22,6 +22,13 @@ function smarty_function_APPLR_printSectionHierarchy($params,&$template) {
 	$objHierarchy = $template->getTemplateVars('objHierarchy');
 	if(empty($objHierarchy)) 	return;
 	if(empty($params['tpl'])) 	return;
+	
+	foreach($params AS $var => $value) {
+		if($var != 'tpl' && $var != 'spacer') {
+			$template->assign($var,$value);
+		}
+	}
+	
 	displayData($template,$objHierarchy,$params['tpl'],$params['spacer']);
 }
 

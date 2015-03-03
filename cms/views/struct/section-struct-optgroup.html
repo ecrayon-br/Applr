@@ -1,0 +1,6 @@
+{if $folder != $objTmp->sys_folder_id}
+	{assign var="folder" value=$objTmp->sys_folder_id scope="root"}
+	{if $folder != 0}</optgroup>{/if}
+	<optgroup label="{$objTmp->sys_folder_name}" folder="{$objTmp->sys_folder_id}">
+{/if}
+		<option value="{$objTmp->id}"  {if $objTmp->id == $objField->child_id}selected{/if}>{$strSpacer}--| {$objTmp->name}</option>

@@ -93,13 +93,7 @@ SecStruct.fillCombo = function() {
 		<td>Section</td>
 		<td>
 			<select name="child_id" id="child_id" size="5" onclick="SecStruct.fillCombo();">
-				{foreach from=$arrFld name="listFolder" item="arrTmpFld"}
-				<optgroup label="{$arrTmpFld->name}" folder="{$arrTmpFld->id}">
-					{foreach from=$arrSec.{$arrTmpFld->id} name="listSec" item="arrTmpSec"}
-					<option value="{$arrTmpSec->id}"  {if $arrTmpSec->id == $objField->child_id}selected{/if}>--| {$arrTmpSec->name}</option>
-					{/foreach}
-				</optgroup>
-				{/foreach}
+				{APPLR_printSectionHierarchy spacer="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" tpl="struct/section-struct-optgroup.html"}
 			</select>
 		</td>
 	</tr>

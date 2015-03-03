@@ -364,10 +364,11 @@ class manageDB_Controller extends Controller {
 		if(!empty($arrAlterParams['change']))	$arrChangesDef['change']	= $arrAlterParams['change'];
 		if(!empty($arrAlterParams['rename']))	$arrChangesDef['rename']	= $arrAlterParams['rename'];
 		
-		#echo '--'; $test = $this->objModel->objConn->alterTable($strTable,$arrChangesDef,$boolCheck); var_dump($test); echo '--';
-		if(!MDB2::isError($this->objModel->objConn->alterTable($strTable,$arrChangesDef,$boolCheck))) {
+		$objSQL = $this->objModel->objConn->alterTable($strTable,$arrChangesDef,$boolCheck);
+		if(!MDB2::isError($objSQL)) {
 			return true;
 		}
+		
 		return false;
 	}
 	

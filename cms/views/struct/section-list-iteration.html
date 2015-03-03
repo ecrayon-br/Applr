@@ -3,6 +3,8 @@
 		<td><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{$objTmp->id}">{if empty($objTmp->sec_parent_name)}Root level{else}{$objTmp->sec_parent_name}{/if}</a></td>
 		<td><a href="{$smarty.const.HTTP}{$objTmp->permalink}/?preview=1" target="_blank">{$smarty.const.HTTP}{$objTmp->permalink}</a></td>
 		<td><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{$objTmp->id}">{$objTmp->table_name}</a></td>
+		{if !$hideDelete}
 		<td align="center"><a href="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/update/{$objTmp->id}">[ edit ]</a></td>
 		<td align="center"><input type="checkbox" name="delete[]" id="delete_{$objTmp->id}" value="{$objTmp->id}" /></td>
+		{/if}
 	</tr>

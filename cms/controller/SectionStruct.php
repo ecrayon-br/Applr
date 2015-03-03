@@ -19,12 +19,19 @@ class SectionStruct_controller extends Section_controller {
 											'admin'				=> 'boolean'
 										);
 		
-	protected	$arrFieldList		= array('sec_config.*','sec_parent.name AS sec_parent_name');
-	protected	$arrJoinList		= array('LEFT JOIN sec_config AS sec_parent ON sec_config.parent = sec_parent.id','JOIN rel_sec_struct','JOIN sec_config_order','JOIN sec_struct');
+	protected	$arrFieldList		= array('sec_config.*','sec_parent.name AS sec_parent_name','sys_folder.name AS sys_folder_name');
+	protected	$arrJoinList		= array(
+										'LEFT JOIN sec_config AS sec_parent ON sec_config.parent = sec_parent.id',
+										'JOIN rel_sec_struct',
+										'JOIN sec_config_order',
+										'JOIN sec_struct',
+										'JOIN sys_folder'
+										);
 	protected	$arrWhereList		= array(
 											'rel_sec_struct.sec_config_id = sec_config.id',
 											'rel_sec_struct.id = sec_config_order.field_id',
-											'rel_sec_struct.sec_struct_id = sec_struct.id'
+											'rel_sec_struct.sec_struct_id = sec_struct.id',
+											'sys_folder.id = sec_config.sys_folder_id'
 											);
 	protected	$arrOrderList		= array('sec_config.id');
 	

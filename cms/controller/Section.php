@@ -442,8 +442,8 @@ class Section_controller extends CRUD_Controller {
 	 */
 	protected function createSectionTable($strValue) {
 		$arrDefaultFields = array('add' => array(
-												'lang_content'		=> array('type' => 'integer', 'unsigned' => 0, 'notnull' => 1),
-												'usr_data_id'		=> array('type' => 'integer', 'unsigned' => 0, 'notnull' => 1),
+												'lang_content'		=> array('type' => 'integer', 'unsigned' => 0, 'notnull' => 1, 'default' => 1),
+												'usr_data_id'		=> array('type' => 'integer', 'unsigned' => 0, 'notnull' => 0),
 												'sys_language_id'	=> array('type' => 'integer', 'unsigned' => 0, 'notnull' => 1),
 												'date_create' 		=> array('type' => 'timestamp', 'notnull' => 1),
 												'date_publish' 		=> array('type' => 'timestamp', 'notnull' => 1),

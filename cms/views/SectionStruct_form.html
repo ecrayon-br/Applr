@@ -101,11 +101,11 @@ SecStruct.fillCombo = function() {
 		<td>Refered Section's Field to Exhibit</td>
 		<td>
 			<select name="field_rel" id="field_rel" size="5">
-			{*
-				{foreach from=$arrSec.1.1->fields name="listStruct" item="arrTmp"}
+			{if !empty($objField->id) && !empty($objField->field_rel)}
+				{foreach from=$arrSec.{$objField->child_sys_folder_id}.{$objField->child_id}->fields name="listStruct" item="arrTmp"}
 					<option value="{$arrTmp->field_name}" {if $arrTmp->field_name == $objField->field_rel}selected{/if}>{$arrTmp->name}</option>
 				{/foreach}
-			*}
+			{/if}
 			</select>
 		</td>
 	</tr>

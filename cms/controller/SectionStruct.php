@@ -102,6 +102,7 @@ class SectionStruct_controller extends Section_controller {
 				$this->strChildTable = $objTemp->table_name;
 			}
 		}
+		#echo '<pre>'; var_dump($this->arrSecList[1]);
 		$this->objSmarty->assign('arrSec',$this->arrSecList);
 		$this->objSmarty->assign('arrStruct',$this->arrStruct);
 		
@@ -233,7 +234,7 @@ class SectionStruct_controller extends Section_controller {
 		// Gets Fields List
 		$this->getFieldList();
 		$this->objSmarty->assign('objData',$this->objData);
-	
+		
 		// Shows interface
 		$this->renderTemplate(true,$this->strModule . '_form.html');
 	}

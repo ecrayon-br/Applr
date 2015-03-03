@@ -12,12 +12,20 @@ class Main_controller extends manageContent_Controller {
 	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
 	 *
 	 */
-	public function __construct() {
-		parent::__construct(0,false);
+	public function __construct($boolRenderTemplate = true,$intSecID = 0,$checkAuth = false,$strTemplateDir = ROOT_TEMPLATE) {
+		parent::__construct($intSecID,$checkAuth,$strTemplateDir);
 
+		if(empty($intSecID)) $intSecID = SECTION;
+		
 		// Sets Section vars
-		$this->setSection(SECTION);
-		$this->objSection	= $this->objModel->getSectionConfig(SECTION);
+		$this->setSection($intSecID);
+		
+		// Sets default fields
+		$this->objField[] = 'lang_content';
+		$this->objField[] = 'usr_data_id';
+		$this->objField[] = 'sys_language_id';
+		$this->objField[] = 'date_create';
+		$this->objField[] = 'active';
 		
 		// Setups SYS_WHERE syntax
 		$strWhere = str_replace('#table#',$this->objSection->table_name.'.',SYS_WHERE);
@@ -53,10 +61,14 @@ class Main_controller extends manageContent_Controller {
 			$intRel++;
 		}
 		
+		if($boolRenderTemplate) $this->renderTemplate();
+	}
+	
+	public function renderTemplate() {
 		if(!CONTENT) {
 			// Gets content
 			$this->objData	= $this->content();
-			
+		
 			// Formats relationship data
 			foreach($this->arrRelContent AS $objRel) {
 				if($objRel->type == 2) {
@@ -65,40 +77,50 @@ class Main_controller extends manageContent_Controller {
 					}
 				}
 			}
-			
+		
 			// Formats display data
 			$this->objData = $this->setupFieldSufyx($this->objData,array_keys((array) $this->objData[0]),2,true);
-			
+		
 			// Defines TPL
 			$strTPL = (HOME == 1 ? $this->objSection->tpl_home : $this->objSection->tpl_list);
-			
+		
 		} else {
 			// Gets content
 			$this->objData = $this->objModel->getData(CONTENT);
-
+		
 			// Formats relationship data
 			foreach($this->arrRelContent AS $objRel) {
 				if($objRel->type == 2) {
 					$this->objData->{$objRel->field_name} = json_decode($this->objData->{$objRel->field_name});
 				}
 			}
-
+		
 			// Formats display data
 			$this->objData = $this->setupFieldSufyx($this->objData,array_keys((array) $this->objData),2);
-
+		
 			// Defines TPL
 			$strTPL = (HOME == 1 ? $this->objSection->tpl_home : $this->objSection->tpl_content);
 		}
-
-		if($_REQUEST['debug']) { echo '<pre>'; print_r($this->objData); }
 		
+		if($_REQUEST['debug']) { echo '<pre>'; print_r($this->objData); }
+			
 		// Sets Smarty vars
 		$this->objSmarty->assign('objSection',$this->objSection);
 		$this->objSmarty->assign('objData',$this->objData);
 		$this->objSmarty->assign('objStruct',$this->objStruct);
-		
+			
 		// Renders Template
 		if(!empty($strTPL)) $this->renderTemplate(true,$strTPL);
 	}
-	
+
+	protected function insertMainContent($mxdData) {
+		if(!is_array($mxdData)) return false;
+		if(empty($mxdData['lang_content'])) 	$mxdData['lang_content'] = 1;
+		if(empty($mxdData['usr_data_id'])) 		$mxdData['usr_data_id'] = null;
+		if(empty($mxdData['sys_language_id']))  $mxdData['sys_language_id'] = LANGUAGE;
+		if(empty($mxdData['date_create']))  	$mxdData['date_create'] = date('YmdHis');
+		if(empty($mxdData['active'])) 			$mxdData['active'] = 0;
+		
+		return parent::insertMainContent($mxdData);
+	}
 }

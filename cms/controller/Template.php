@@ -25,10 +25,6 @@ class Template_controller extends CRUD_Controller {
 	
 	private		$arrFileList	= array();
 
-	public function __construct($boolRenderTemplate = true) {
-		parent::__construct($boolRenderTemplate,true,CMS_ROOT_TEMPLATE);
-	}
-	
 	/**
 	 * Class constructor
 	 *
@@ -41,7 +37,7 @@ class Template_controller extends CRUD_Controller {
 	 *
 	 */
 	public function __construct($boolRenderTemplate = true) {
-		parent::__construct(false);
+		parent::__construct(false,true,CMS_ROOT_TEMPLATE);
 		
 		// Read ROOT_TEMPLATE files and create Smarty variable to SELECT box
 		$this->arrFileList = array();

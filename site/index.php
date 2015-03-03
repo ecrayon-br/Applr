@@ -9,18 +9,18 @@ if($_REQUEST['debug']) { echo '<pre>'; print_r($_SESSION[PROJECT]['URI_SEGMENT']
 
 if(ACTION == '') {
 
-	$arrTmp			= explode('-',SECTION_SEGMENT);
+	$arrTmp			= explode('-',str_replace('_','-',SECTION_SEGMENT));
 	array_walk($arrTmp,'setUCfirst');
 	$strController	= implode('',$arrTmp) . '_controller';
 	
 	if(!class_exists($strController)) $strController	= 'Main_controller';
 } else {
-	$arrTmp			= explode('-',ACTION);
+	$arrTmp			= explode('-',str_replace('_','-',ACTION));
 	array_walk($arrTmp,'setUCfirst');
 	$strController	= implode('',$arrTmp) . '_controller';
 }
 
-$strAction		= (!empty($_SESSION[PROJECT]['URI_SEGMENT'][3]) ? $_SESSION[PROJECT]['URI_SEGMENT'][3] : '');
+$strAction		= (!empty($_SESSION[PROJECT]['URI_SEGMENT'][2]) ? $_SESSION[PROJECT]['URI_SEGMENT'][2] : '');
 $arrTmp			= explode('-',$strAction);
 array_walk($arrTmp,'setUCfirst');
 $strAction		= implode('',$arrTmp);

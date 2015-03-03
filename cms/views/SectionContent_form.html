@@ -52,7 +52,7 @@ $(document).ready(function(){
 <input type="hidden" name="id" id="id" value="{$objData->id}" />
 <input type="hidden" name="sys_language_id" id="sys_language_id" value="{if !empty($objData->sys_language_id)}{$objData->sys_language_id}{else}{$smarty.const.LANGUAGE}{/if}" />
 <table border=1 width=700>
-	<caption>APPLR SECTION CONTENT</caption>
+	<caption>APPLR SECTION CONTENT<h3>{$objSection->name}</h3></caption>
 	{include file="struct/menu-top.html"}
 	<tr>
 		<td colspan=2 align="center" bgcolor="#EEE">

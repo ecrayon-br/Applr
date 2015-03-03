@@ -43,12 +43,13 @@ class manageContent_Controller extends CRUD_Controller {
 	protected	$arrGroupData		= array('rel_sec_struct.id');
 	protected	$arrOrderData		= array('rel_sec_struct.id');
 	
-	protected	$arrRelFieldData	= array('rel_sec_sec.*','sec_config_order.field_order','sec_config_order.type', 'rel_sec_language.name AS child_name');
-	protected	$arrRelJoinData		= array('JOIN rel_sec_sec','JOIN sec_config_order', 'JOIN rel_sec_language');
+	protected	$arrRelFieldData	= array('rel_sec_sec.*','sec_config_order.field_order','sec_config_order.type', 'rel_sec_language.name AS child_name', 'child_config.sys_folder_id AS child_sys_folder_id');
+	protected	$arrRelJoinData		= array('JOIN rel_sec_sec','JOIN sec_config_order', 'JOIN rel_sec_language', 'JOIN sec_config AS child_config');
 	protected	$arrRelWhereData	= array(
 											'rel_sec_sec.sec_config_id = sec_config.id',
 											'rel_sec_sec.id = sec_config_order.field_id',
-											'rel_sec_sec.child_id = rel_sec_language.sec_config_id'
+											'rel_sec_sec.child_id = rel_sec_language.sec_config_id',
+											'rel_sec_sec.child_id = child_config.id'
 										);
 	protected	$arrRelGroupData	= array('rel_sec_sec.id');
 	protected	$arrRelOrderData	= array('rel_sec_sec.id');
@@ -77,13 +78,7 @@ class manageContent_Controller extends CRUD_Controller {
 	public function __construct($intSecID = 0,$checkAuth = true,$strTemplateDir = ROOT_TEMPLATE) {
 		parent::__construct(false,$checkAuth,$strTemplateDir);
 		
-		$this->objSection	= $this->objModel->getSectionConfig($intSecID);
-		
-		if(!empty($this->objSection)) {
-			$this->setSection($intSecID);
-			$this->getSectionFields();
-			$this->getRelSectionFields();
-		}
+		$this->setSection($intSecID);
 	}
 	
 	/**
@@ -100,9 +95,30 @@ class manageContent_Controller extends CRUD_Controller {
 	public function setSection($intSecID) {
 		if(!is_numeric($intSecID) || empty($intSecID)) return false;
 		
-		$this->intSecID = $intSecID;
-		
+		if($this->getSectionConfig($intSecID)) {
+			$this->intSecID = $intSecID;
+			
+			$this->getSectionFields();
+			$this->getRelSectionFields();
+		}
 		return true;
+	}
+
+	/**
+	 * Get SECTION config data and sets $this->objSection
+	 *
+	 * @return	boolean
+	 *
+	 * @since 	2013-01-22
+	 * @author	Diego Flores <diego [at] gmail [dot] com>
+	 *
+	 */
+	public function getSectionConfig($intSecID = 0) {
+		if(!$intSecID) $intSecID = $this->intSecID;
+		
+		$this->objSection	= $this->objModel->getSectionConfig($intSecID);
+		
+		if($this->objSection === false) return false; else return true;
 	}
 	
 	/**
@@ -115,7 +131,7 @@ class manageContent_Controller extends CRUD_Controller {
 	 *
 	 */
 	public function getSectionFields() {
-		$this->objField = $this->objModel->select('field_name','rel_sec_struct',array(),'sec_config_id = ' . $this->intSecID);
+		$this->objField = $this->objModel->select('field_name','rel_sec_struct',array(),'sec_config_id = ' . $this->intSecID,array(),array(),0,null,'Col');
 		
 		if($this->objField === false) return false; else return true;
 	}
@@ -268,7 +284,7 @@ class manageContent_Controller extends CRUD_Controller {
 	 *
 	 * @todo	Verify $mxdData type array | object and otimize method data struct and verification
 	 */
-	public function setupFieldSufyx($mxdContent,$objField = null,$intReturnMode = 0,$boolReturnList = false) {
+	public function setupFieldSufyx($mxdContent,$objField = null,$intReturnMode = 1,$boolReturnList = false) {
 		if(!is_array($mxdContent) && !is_object($mxdContent)) return false;
 		$mxdFirstChild = reset($mxdContent);
 		if( empty($mxdFirstChild) || (!is_array($mxdFirstChild) && !is_object($mxdFirstChild)) ) $mxdContent = array($mxdContent);
@@ -281,11 +297,13 @@ class manageContent_Controller extends CRUD_Controller {
 		$this->objData		= array();
 		$this->objPrintData	= array();
 		
+		#echo '<pre>'; print_r($this->objField);
+		
 		foreach($mxdContent AS $intDataKey => $mxdData) {
 			foreach($this->objField AS $mxdKey => &$strField) {
-				$this->objData[$intDataKey]->$strField = (is_array($mxdData) ? (!empty($mxdData[$strField]) ? $mxdData[$strField] : '') : (!empty($mxdData->$strField) ? $mxdData->$strField : ''));
-				#var_dump($this->objData[$intDataKey]->$strField).'<br>';
-				if(in_array($strField,array('date_create','date_publish','date_expire'))) {
+				$this->objData[$intDataKey]->$strField = (is_array($mxdData) ? (isset($mxdData[$strField]) ? $mxdData[$strField] : '') : (isset($mxdData->$strField) ? $mxdData->$strField : ''));
+				
+				if(in_array($strField,array('lang_content','usr_data_id','sys_language_id','date_create','date_publish','date_expire','active'))) {
 					$strTemp = $strField;
 				} else {
 					$strTemp = end(explode('_',$strField));
@@ -723,7 +741,7 @@ class manageContent_Controller extends CRUD_Controller {
 		switch($intReturnMode) {
 			case 0:
 			default:
-				return true;
+				return false;
 			break;
 			
 			case 1:
@@ -755,9 +773,12 @@ class manageContent_Controller extends CRUD_Controller {
 	protected function insertMainContent($mxdData) {
 		if(!is_array($mxdData)) return false;
 		
-		if($this->setupFieldSufyx($mxdData)) {
-			$this->intContentID = $this->objModel->insert($this->objSection->table,(array) $this->objData,true);
-			return true;
+		if( ($this->objData = $this->setupFieldSufyx($mxdData)) !== false) {
+			if( ($this->intContentID = $this->objModel->insert($this->objSection->table_name,(array) $this->objData,true)) !== false) {
+				return true;
+			} else {
+				return false;
+			}
 		} else {
 			define('ERROR_MSG','$this->setupFieldSufyx error!');
 			$this->intContentID = null;

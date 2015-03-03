@@ -216,7 +216,7 @@ class Controller {
 					$strWhere = str_replace('#table#',$strTable.'.',SYS_WHERE);
 					
 					// Gets SECTION ID
-					$_REQUEST[VAR_SECTION] = $this->objModel->select('id','sec_config','','table = "' . $strTable . '"')->id;
+					$_REQUEST[VAR_SECTION] = $this->objModel->select('id','sec_config','','table_name = "' . $strTable . '"')[0]->id;
 					if(MDB2::isError($_REQUEST[VAR_SECTION]) || is_null($_REQUEST[VAR_SECTION])) $_REQUEST[VAR_SECTION] = MAIN_SECTION;
 					$this->objSection = $this->objModel->getSectionConfig($_REQUEST[VAR_SECTION]);
 					

@@ -245,6 +245,8 @@ class Section_controller extends CRUD_Controller {
 		// CASE UPDATE
 		} else {
 			$this->_updateSection();
+			
+			// Formats data object
 		
 			// Shows interface
 			$this->_create($this->objData->id);
@@ -403,7 +405,7 @@ class Section_controller extends CRUD_Controller {
 	protected function _create($intID = 0) {
 		if($intID > 0) {
 			// Get Section config data
-			$this->objData 	= $this->objModel->getData($this->intSecID);
+			$this->objData 	= $this->objModel->getData($intID);
 			
 			// Gets Section name for each language
 			$arrLang	= array();

@@ -13,6 +13,7 @@ class sendMail_Controller extends Controller {
 	private 	$strHostAuthPwd		= '';
 	private 	$strSenderMail 		= 'contato@ecrayon.com.br';
 	private		$strSenderName		= 'ECRAYON Tecnologia Criativa';
+	private		$intPort			= 25;
     
 	/**
 	 * Class constructor
@@ -30,8 +31,9 @@ class sendMail_Controller extends Controller {
 
 		parent::__construct();
 		
-		$this->setAuth(EMAIL_AUTH);
+		$this->setAuth((boolean) EMAIL_AUTH);
 		$this->setHost(EMAIL_AUTH_HOST);
+		$this->setPort(EMAIL_AUTH_PORT);
 		$this->setAuthData(EMAIL_AUTH_USER,EMAIL_AUTH_PWD);
 		$this->setEncoding($strEncoding);
 	}
@@ -56,6 +58,25 @@ class sendMail_Controller extends Controller {
 	}
 	
     /**
+	 * Defines SMTP host
+	 *
+	 * @param 		string 	$strHost	SMTP host address
+	 * 
+	 * @return		boolean	
+	 * 
+	 * @since		2008-12-03
+	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
+	 * 
+	 */
+	public function setPort($intPort) {
+		if(!is_numeric($intPort) || empty($intPort))	return false;
+		
+		$this->intPort 	= $intPort;
+		
+		return true;
+	}
+	
+    /**
 	 * Defines authentication mode
 	 *
 	 * @param 		boolean 	$boolAuth	Authentication mode
@@ -67,7 +88,7 @@ class sendMail_Controller extends Controller {
 	 * 
 	 */
 	public function setAuth($boolAuth) {
-		if(!is_boolean($boolAuth) && $boolAuth !== 0 && $boolAuth !== 1)	return false;
+		if(!is_bool($boolAuth) && $boolAuth !== 0 && $boolAuth !== 1)	return false;
 		
 		$this->boolHostAuth 	= $boolAuth;
 		
@@ -312,12 +333,11 @@ class sendMail_Controller extends Controller {
 			case 'UTF-8':
 				$this->strSubject 		= utf8_encode($this->strSubject);
 				$this->strHTML 			= utf8_encode($this->strHTML);
-		
 				$this->strSenderName	= utf8_encode($this->strSenderName);
 				
 				foreach($this->arrRecipient AS $strMode => $arrTemp) {
-					foreach($arrTemp AS $strAddress => $strName) {
-						$this->arrRecipient[$strMode][$strAddress]->name = utf8_encode($strName);
+					foreach($arrTemp AS $strAddress => $objData) {
+						$this->arrRecipient[$strMode][$strAddress]->name = utf8_encode($objData->name);
 					}
 				}
 			break;
@@ -359,20 +379,27 @@ class sendMail_Controller extends Controller {
 								'host' 		=> $this->strHost,
 								'auth' 		=> true,
 								'username' 	=> $this->strHostAuthUser,
-								'password' 	=> $this->strHostAuthPwd
+								'password' 	=> $this->strHostAuthPwd,
+								'persist'	=> true,
+								'port'		=> $this->intPort
 							);
 			$objSMTP = PEAR_ApplrSendMail::factory('smtp',$arrParams);
 			
 			if(!PEAR::isError($objSMTP)) {
 				// Sends 'To' messages
 				foreach($this->arrRecipient['To'] AS $strAddress => $objData) {
-					$arrHeaders['To']					= $objData->name . '<' . $objData->address . '>';
-					$this->objReport->To->$strAddress	= (PEAR::isError($objSMTP->send($strAddress, $arrHeaders, $this->strHTML)) ? false : true);
+					$arrHeaders['To']					= $objData->name . ' <' . $objData->email . '>';
+					$objSend							= $objSMTP->send($strAddress, $arrHeaders, $this->strHTML);
+					$this->objReport->To->$strAddress	= (PEAR::isError($objSend) ? false : true);
+					
+					#if(PEAR::isError($objSend)) { var_dump($objSend); echo '<hr>'; }
+					
+					if(count($this->arrRecipient['To']) == 1 && count($this->arrRecipient['Bcc']) == 0) return $this->objReport->To->$strAddress;
 				}
 				
 				// Sends 'Bcc' messages
 				foreach($this->arrRecipient['Bcc'] AS $strAddress => $objData) {
-					$arrHeaders['To']					= $objData->name . '<' . $objData->address . '>';
+					$arrHeaders['To']					= $objData->name . ' <' . $objData->email . '>';
 					$this->objReport->Bcc->$strAddress	= (PEAR::isError($objSMTP->send($strAddress, $arrHeaders, $this->strHTML)) ? false : true);
 				}
 			} else {

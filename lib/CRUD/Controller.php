@@ -181,6 +181,7 @@ class CRUD_Controller extends Controller {
 		
 		if(isset($this->arrFieldType['usr_data_id'])) $arrData['usr_data_id'] = $this->intUserID;
 		
+		
 		if(($strField = $this->validateParamsArray($arrData,$this->arrFieldType,false)) === true) {
 			if(($intID = $this->objModel->replace($this->strTable,$arrData,true,(empty($arrData['id']) ? false : true))) !== false) {
 				
@@ -193,6 +194,8 @@ class CRUD_Controller extends Controller {
 				// Insert relationship values
 				foreach($this->objStruct AS $objField) {
 					if($objField->type == 2) {
+						// Formats rel data
+						if(!is_array($arrData[$objField->field_name])) $arrData[$objField->field_name] = array($arrData[$objField->field_name]);
 						
 						// Format insert data array
 						$mxdContent = array();
@@ -206,7 +209,7 @@ class CRUD_Controller extends Controller {
 						// Insert new relationships
 						$this->objModel->insert($objField->table_name,$mxdContent);
 						
-						$arrData[$objField->field_name] = $objField->fieldtype;
+						#$arrData[$objField->field_name] = $objField->fieldtype;
 					}
 				}
 				
@@ -222,6 +225,8 @@ class CRUD_Controller extends Controller {
 		}
 		
 		$this->objData	= (object) array_merge((array) $this->objData,$arrData);
+
+		#echo '<pre>'; print_r($this->objData); die();
 		if($boolRenderTemplate) {
 			$this->objSmarty->assign('objData',$this->objData);
 			$this->_create($intID);

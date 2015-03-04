@@ -43,6 +43,8 @@ function smarty_function_APPLR_FormField($params,$template) {
 		$objSection->objSmarty->assign('objParams',(object) $params['field']);
 		$objSection->objSmarty->assign('arrMatch',$params['value']);
 		
+		#echo '<pre>'; print_r($objList); var_dump($params['value']); echo '</pre>';
+		
 		$objSection->renderTemplate(true,'SectionContent_Relationship_form.html');
 		
 	// CONTENT FIELDS

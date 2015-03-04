@@ -561,7 +561,7 @@ class Model {
 	 * @author 	Diego Flores <diegotf [at] gmail dot com>
 	 * 
 	**/
-	public function select($arrField,$arrTable,$arrJoin = array(),$arrWhere = array(),$arrOrderBy = array(),$arrGroupBy = array(),$intOffSet = 0,$intLimit = null,$strFetchMode = 'All') {
+	public function select($arrField,$arrTable,$arrJoin = array(),$arrWhere = array(),$arrOrderBy = array(),$arrGroupBy = array(),$intOffSet = 0,$intLimit = null,$strFetchMode = 'All',$boolDebug = false) {
 		$arrFetch	= array	(
 							'All' 		=> 'queryAll', 'One' 		=> 'queryOne', 'Row' 		=> 'queryRow', 'Col' 		=> 'queryCol',
 							'fetchAll' 	=> 'queryAll', 'fetchOne' 	=> 'queryOne', 'fetchRow' 	=> 'queryRow', 'fetchCol' 	=> 'queryCol',
@@ -594,14 +594,14 @@ class Model {
 						'.(count($arrWhere) > 0 	? 'WHERE 	'.implode(' AND '	,$arrWhere)		: '').'
 						'.(count($arrGroupBy) > 0 	? 'GROUP BY	'.implode(' , '		,$arrGroupBy)	: '').'
 						'.(count($arrOrderBy) > 0 	? 'ORDER BY '.implode(' ,'		,$arrOrderBy) 	: '');
-		#echo '<pre>'; echo($strQuery); echo '<hr>';
+		
 		// Sets LIMIT
 		$this->objConn->setLimit($intLimit,$intOffSet);
 		
 		// Executes query
 		$objQuery	= $this->objConn->$arrFetch[$strFetchMode]($strQuery);
 		
-		if($this->_boolDebug) { echo '<pre>'; var_dump($objQuery); echo '</pre>'; }
+		if($this->_boolDebug || $boolDebug) { echo '<pre>'; print_r($strQuery); echo '<hr />'; var_dump($objQuery); echo '</pre>'; }
 		
 		if(MDB2::isError($objQuery)) {
 			define('ERROR_MSG',"Error on Model::select->$arrFetch[$strFetchMode](): " . $objQuery->getMessage());

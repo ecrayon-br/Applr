@@ -300,6 +300,7 @@ class manageContent_Controller extends CRUD_Controller {
 		#echo '<pre>'; print_r($this->objField);
 		
 		foreach($mxdContent AS $intDataKey => $mxdData) {
+			$this->arrControl = array();
 			foreach($this->objField AS $mxdKey => &$strField) {
 				$this->objData[$intDataKey]->$strField = (is_array($mxdData) ? (isset($mxdData[$strField]) ? $mxdData[$strField] : '') : (isset($mxdData->$strField) ? $mxdData->$strField : ''));
 				
@@ -469,9 +470,9 @@ class manageContent_Controller extends CRUD_Controller {
 							$this->objPrintData[$intDataKey]->$strField->original->Day		= $intDay;
 							$this->objPrintData[$intDataKey]->$strField->original->Year		= $intMonth;
 							$this->objPrintData[$intDataKey]->$strField->original->Month		= $intYear;
-						}
 						
-						unset($this->objData[$intDataKey]->$strDay,$this->objData[$intDataKey]->$strMonth,$this->objData[$intDataKey]->$strYear);
+							unset($this->objData[$intDataKey]->$strDay,$this->objData[$intDataKey]->$strMonth,$this->objData[$intDataKey]->$strYear);
+						}
 					break;
 					
 					case 'hour':
@@ -549,6 +550,7 @@ class manageContent_Controller extends CRUD_Controller {
 					
 					case 'permalink':
 						// Sets permalink string
+						$strField_URL = 'url_' . $strField;
 						$strPermalink = Controller::permalinkSyntax($this->objData[$intDataKey]->$strField);
 						$objData = $this->objModel->select('permalink',$this->objSection->table_name,array(),'permalink LIKE "' . $strPermalink . '%" AND sys_language_id = "' . LANGUAGE . '"');
 						$intCount = 1;
@@ -561,6 +563,7 @@ class manageContent_Controller extends CRUD_Controller {
 						if($intCount > 1) $strPermalink .= '-'.$intCount;
 						
 						$this->objData[$intDataKey]->$strField = $this->objPrintData[$intDataKey]->$strField = $strPermalink;
+						$this->objPrintData[$intDataKey]->$strField_URL = HTTP . $this->objSection->permalink . '/' . $strPermalink;
 					break;
 					
 					case 'check':

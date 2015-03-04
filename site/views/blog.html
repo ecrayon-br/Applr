@@ -1,0 +1,28 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Blog</title>
+</head>
+<body>
+
+{if is_array($objData)}
+	{foreach from=$objData item="objTemp" name="contentList"}
+		<h1><a href="{$objTemp->url_permalink}" title="{$objTemp->name}">{$objTemp->name}</a></h1>
+		<h5>{$objTemp->content_date->formatted}</h5>
+		<h3>{$objTemp->content_richtext|APPLR_html_entity_decode|truncate:280:"...":true}</h3>
+		<hr />
+	{/foreach}
+{else}
+
+{if $objData->private_bool && !$is_user}
+<h1>Você precisa ser cadastrado!</h1>
+{else}
+<h1>{$objData->name}</h1>
+<h5>{$objData->content_date->formatted}</h5>
+<h3>{$objData->content_richtext|APPLR_html_entity_decode}</h3>
+{/if}
+{/if}
+
+</body>
+</html>

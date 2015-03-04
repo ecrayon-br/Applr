@@ -97,7 +97,7 @@ class Controller {
 		/**********			  PROJECT CONFIG			**********/
 		/**********										**********/
 		
-		define('SYS_WHERE'	,'#table#deleted = 0 AND #table#active = 1 AND #table#date_publish <= NOW() AND (#table#date_expire  >= NOW() OR #table#date_expire = "0000-00-00 00:00:00" OR #table#date_expire IS NULL)');
+		define('SYS_WHERE'	,'#table#deleted = 0 AND #table#active = 1 AND (#table#date_publish <= NOW() OR #table#date_publish = "0000-00-00 00:00:00" OR #table#date_publish IS NULL) AND (#table#date_expire  >= NOW() OR #table#date_expire = "0000-00-00 00:00:00" OR #table#date_expire IS NULL)');
 		define('HTTP'		,'http://'. URI_DOMAIN . SYS_DIR);
 		
 		if(!isset($_SESSION[self::$strProjectName])) {
@@ -126,10 +126,11 @@ class Controller {
 			define('DESCRIPTION'		,$objConfig->description);
 			define('BRAND_IMG'			,$objConfig->logo);
 			define('START_DATE'			,$objConfig->start_date);
-		
+			
 			// E-mail authentication
 			define('EMAIL_AUTH'			,$objConfig->mail_auth);
 			define('EMAIL_AUTH_HOST'	,$objConfig->mail_auth_host);
+			define('EMAIL_AUTH_PORT'	,$objConfig->mail_auth_port);
 			define('EMAIL_AUTH_USER'	,$objConfig->mail_auth_user);
 			define('EMAIL_AUTH_PWD'		,$objConfig->mail_auth_password);
 		
@@ -234,7 +235,7 @@ class Controller {
 					// Gets CONTENT ID
 					if(isset($this->arrURL[2])) {
 						$_REQUEST[VAR_CONTENT] = $this->objModel->select('id',$strTable,'','permalink = "' . $this->arrURL[2] . '" AND ' . $strWhere . $strLangWhere,array(),array(),0,null,'One');
-						if(MDB2::isError($_REQUEST[VAR_CONTENT])) unset($_REQUEST[VAR_CONTENT]);
+						if(MDB2::isError($_REQUEST[VAR_CONTENT])) unset($_REQUEST[VAR_CONTENT],$this->arrURL[2]);
 					}
 					
 					// If URL don't defines CONTENT ID, checks for HOME content
@@ -248,6 +249,8 @@ class Controller {
 					define('SECTION'			, $_REQUEST[VAR_SECTION]);
 					define('SECTION_SEGMENT'	, $this->arrURL[1]);
 					define('SECTION_PERMALINK'	, $this->objSection->permalink);
+					define('PERMALINK'			, (!empty($this->arrURL[2]) ? $this->arrURL[2] : ''));
+					define('URL_PERMALINK'		, HTTP . SECTION_PERMALINK . '/' . (!empty($this->arrURL[2]) ?  $this->arrURL[2] : ''));
 				}
 			} else {
 				if(isset($_REQUEST[VAR_SECTION])) {
@@ -1005,6 +1008,7 @@ class Controller {
 		if(!is_array($arrValues))															return false;
 		if(!is_array($arrDataType) 	|| count($arrDataType) 	== 0)							return false;
 		
+		#echo '<pre>'; print_r($arrDataType); die();
 		// Validates $arrParams data
 		foreach($arrDataType AS $strKey => $strDataType) {
 			if(!array_key_exists($strKey,$arrValues)) 										$arrValues[$strKey] = null;

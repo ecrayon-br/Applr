@@ -65,7 +65,7 @@ class CRUD_Model extends Model {
 	public function getData($intID) {
 		if(!is_numeric($intID) || $intID <= 0) return false;
 		
-		$objReturn = $this->select($this->arrFieldData,$this->arrTable,$this->arrJoinData, str_replace('{id}',$intID,implode(' AND ',$this->arrWhereData)), $this->arrOrderData,$this->arrGroupData);
+		$objReturn = $this->select($this->arrFieldData,$this->arrTable,$this->arrJoinData, str_replace('{id}',$intID,implode(' AND ',$this->arrWhereData)), $this->arrOrderData,$this->arrGroupData); //,0,null,'All',true);
 		
 		if($objReturn === false) {
 			return false;

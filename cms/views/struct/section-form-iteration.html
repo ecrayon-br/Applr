@@ -1,1 +1,1 @@
-<option value="{$objFolder->id}|{$objTmp->id}"  {if $objFolder->id == $objData->sys_folder_id && $objTmp->id == $objData->parent}selected{/if}>{$strSpacer}-| {$objTmp->name}</option>
+{if $objTmp->id != $sectionID}<option value="{$objFolder->id}|{$objTmp->id}"  {if $objFolder->id == $objData->sys_folder_id && $objTmp->id == $objData->parent}selected{/if}>{$strSpacer}-| {$objTmp->name}</option>{/if}

@@ -26,9 +26,11 @@ array_walk($arrTmp,'setUCfirst');
 $strAction		= implode('',$arrTmp);
 
 if(empty($strAction) || !method_exists($strController,$strAction)) {
+	#echo '<h1>' . $strController . '</h1>';
 	// If action is empty, initializes controller and renders default view
 	$objClass = new $strController();
 } else {
+	#echo '<h1>' . $strController . (!empty($strAction) ? '->' . $strAction : '') . '</h1>';
 	// If action is set, initializes controller and executes action method
 	$objClass = new $strController(false);
 	$objClass->$strAction();

@@ -91,9 +91,12 @@ class SectionContent_controller extends manageContent_Controller {
 					$this->objRawData->{$objRel->field_name} = json_decode($this->objRawData->{$objRel->field_name});
 				}
 			}
+			
 			$this->objPrintData = $this->setupFieldSufyx($this->objRawData,array_keys((array) $this->objRawData),2);
 			
 			$this->objSmarty->assign('objData',$this->objPrintData);
+			
+			#echo '<pre>'; print_r($this->objPrintData); echo'</pre>';
 		}
 		
 		$this->renderTemplate(true,$this->strModule . '_form.html');
@@ -140,7 +143,7 @@ class SectionContent_controller extends manageContent_Controller {
 		foreach($this->arrRelContent AS $objRel) {
 			$arrFields = explode('_rel_',str_replace(array('sec_rel_','_parent','_child'),'',$objRel->table_name));		// sec_rel_ mysec_parent mysec_child
 			#echo '<pre>'; print_r($arrFields); die();
-			$this->objModel->arrFieldData[]	= 'CONCAT("[",GROUP_CONCAT(DISTINCT CONCAT("{\"id\":\"",rel_ctn_0.id,"\",\"value\":\"",rel_ctn_0.' . $objRel->field_rel. ',"\"}") SEPARATOR ","),"]") AS ' . $objRel->field_name; 
+			$this->objModel->arrFieldData[]	= 'CONCAT("[",GROUP_CONCAT(DISTINCT CONCAT("{\"id\":\"",rel_ctn_' . $intRel . '.id,"\",\"value\":\"",rel_ctn_' . $intRel . '.' . $objRel->field_rel. ',"\"}") SEPARATOR ","),"]") AS ' . $objRel->field_name; 
 			$this->objModel->arrJoinData[]	= 'LEFT JOIN ' . $objRel->table_name . ' AS rel_tbl_' . $intRel . ' ON rel_tbl_' . $intRel . '.parent_id = ' . $this->objModel->strTable . '.id';
 			$this->objModel->arrJoinData[]	= 'LEFT JOIN ' . $arrFields[1] . ' AS rel_ctn_' . $intRel . ' ON rel_tbl_' . $intRel . '.child_id = rel_ctn_' . $intRel . '.id';
 			$intRel++;
@@ -190,7 +193,7 @@ class SectionContent_controller extends manageContent_Controller {
 		$this->arrFieldType['seo_keywords']		= 'string_empty';
 		
 		$objData								= (object) $_POST;
-		$objData->lang_content					= 1;
+		$objData->lang_content					= 0;
 		$objData->date_create					= date('YmdHis');
 		
 		// If INSERT, defines PERMALINK; if UPDATE, keeps previous content
@@ -213,13 +216,13 @@ class SectionContent_controller extends manageContent_Controller {
 		} else {
 			$this->objData->date_expire		.= ' ' . $this->objData->time_expire;
 		}
-
+		
 		// Insert / Updates data
 		$this->_update((array) $this->objData,false);
 		
 		// Formats data array to screen
 		$this->objData	= $this->setupFieldSufyx($this->objData,array_keys((array) $this->objData),2);
-		
+		#echo '<pre>'; print_r($this->objData); die();
 		// Shows Section's form template
 		if(empty($objData->id)) {
 			$this->insert();

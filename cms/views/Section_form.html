@@ -16,7 +16,7 @@
 				{foreach from=$arrFld name="listFolder" item="objFolder"}
 				<optgroup label="{$objFolder->name}">
 					<option value="{$objFolder->id}|0" {if empty($objData) || ($objFolder->id == $objData->sys_folder_id && empty($objData->parent))}selected{/if}>-| Root level</option>
-					{APPLR_printSectionHierarchy spacer="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" tpl="struct/section-form-iteration.html"}
+					{APPLR_printSectionHierarchy spacer="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" tpl="struct/section-form-iteration.html" sectionID=$objData->id}
 				</optgroup>
 				{/foreach}
 			</select>

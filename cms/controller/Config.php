@@ -30,6 +30,7 @@ class Config_controller extends CRUD_Controller {
 										'config_dir_rss' 				=> 'string',
 										'config_mail_auth' 				=> 'boolean',
 										'config_mail_auth_host' 		=> 'string_empty',
+										'config_mail_auth_port' 		=> 'numeric_empty',
 										'config_mail_auth_user' 		=> 'string_empty',
 										'config_mail_auth_password' 	=> 'string_empty',
 										'config_mail_sys' 				=> 'email',

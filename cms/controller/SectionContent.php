@@ -85,18 +85,17 @@ class SectionContent_controller extends manageContent_Controller {
 	public function _create($intID = 0) {
 		if($intID > 0) {
 			$this->objRawData = $this->objModel->getData($intID);
-			
+			#echo '<pre>'; print_r($this->objRawData);
 			foreach($this->arrRelContent AS $objRel) {
 				if($objRel->type == 2) {
-					$this->objRawData->{$objRel->field_name} = json_decode($this->objRawData->{$objRel->field_name});
+					$this->objRawData->{$objRel->field_name} = json_decode( preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $this->objRawData->{$objRel->field_name}));
 				}
 			}
-			
+			#echo '<pre>'; print_r($this->objRawData);
 			$this->objPrintData = $this->setupFieldSufyx($this->objRawData,array_keys((array) $this->objRawData),2);
-			
+			#echo '<pre>'; print_r($this->objPrintData);
 			$this->objSmarty->assign('objData',$this->objPrintData);
 			
-			#echo '<pre>'; print_r($this->objPrintData); echo'</pre>';
 		}
 		
 		$this->renderTemplate(true,$this->strModule . '_form.html');
@@ -126,6 +125,8 @@ class SectionContent_controller extends manageContent_Controller {
 	 *
 	 * @since 	2013-02-08
 	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
+	 * 
+	 * @todo Check $this->objRelField and $this->objRelContent CONCAT/GROUP_CONCAT
 	 *
 	 */
 	public function update($intID = 0) {
@@ -138,15 +139,17 @@ class SectionContent_controller extends manageContent_Controller {
 			$this->_read(); exit();
 		}
 		
-		$intRel = 0;
-		#echo '<pre>'; print_r($this->arrRelContent); die();
-		foreach($this->arrRelContent AS $objRel) {
-			$arrFields = explode('_rel_',str_replace(array('sec_rel_','_parent','_child'),'',$objRel->table_name));		// sec_rel_ mysec_parent mysec_child
-			#echo '<pre>'; print_r($arrFields); die();
-			$this->objModel->arrFieldData[]	= 'CONCAT("[",GROUP_CONCAT(DISTINCT CONCAT("{\"id\":\"",rel_ctn_' . $intRel . '.id,"\",\"value\":\"",rel_ctn_' . $intRel . '.' . $objRel->field_rel. ',"\"}") SEPARATOR ","),"]") AS ' . $objRel->field_name; 
-			$this->objModel->arrJoinData[]	= 'LEFT JOIN ' . $objRel->table_name . ' AS rel_tbl_' . $intRel . ' ON rel_tbl_' . $intRel . '.parent_id = ' . $this->objModel->strTable . '.id';
-			$this->objModel->arrJoinData[]	= 'LEFT JOIN ' . $arrFields[1] . ' AS rel_ctn_' . $intRel . ' ON rel_tbl_' . $intRel . '.child_id = rel_ctn_' . $intRel . '.id';
-			$intRel++;
+		foreach($this->arrRelContent AS $intRel => $objRel) {
+			$arrChildField = explode(',',$objRel->child_fields);
+			foreach($arrChildField AS &$strField) {
+				$strField = '\"' . $strField . '\":\"",IF(rel_ctn_' . $intRel . '.' . $strField. ' IS NULL,"",rel_ctn_' . $intRel . '.' . $strField. '),"\"';
+			}
+			
+			$arrTables = explode('_rel_',str_replace(array('sec_rel_','_parent','_child'),'',$objRel->table_name));
+			
+			$this->objModel->arrFieldData[]	= $this->objModel->arrFieldList[]	= 'CONCAT("[",GROUP_CONCAT(DISTINCT CONCAT("{\"id\":\"",rel_ctn_' . $intRel . '.id,"\",\"value\":\"",rel_ctn_' . $intRel . '.' . $objRel->field_rel. ',"\",' . implode(',',$arrChildField) . '}") SEPARATOR ","),"]") AS ' . $objRel->field_name;
+			$this->objModel->arrJoinData[]	= $this->objModel->arrJoinList[]	= 'LEFT JOIN ' . $objRel->table_name . ' AS rel_tbl_' . $intRel . ' ON rel_tbl_' . $intRel . '.parent_id = ' . $this->objModel->strTable . '.id';
+			$this->objModel->arrJoinData[]	= $this->objModel->arrJoinList[]	= 'LEFT JOIN ' . $arrTables[1] . ' AS rel_ctn_' . $intRel . ' ON rel_tbl_' . $intRel . '.child_id = rel_ctn_' . $intRel . '.id';
 		}
 		
 		$this->_create($intID);

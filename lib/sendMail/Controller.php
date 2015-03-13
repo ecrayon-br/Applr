@@ -171,20 +171,56 @@ class sendMail_Controller extends Controller {
 	 * 
 	 */
 	public function setRecipient($arrRcpt) {
-		if(is_string($arrRcpt) && !empty($arrRcpt))			$arrRpct = array($arrRcpt => $arrRcpt);
-		if(!is_array($arrRcpt) || count($arrRcpt) <= 0)		return false;
+		if(is_string($arrRcpt) && !empty($arrRcpt))					$arrRcpt = array('To' => array($arrRcpt => $arrRcpt));
+		if(!empty($arrRcpt['To']) && !is_array($arrRcpt['To'])) 	return false;
+		if(!empty($arrRcpt['Bcc']) && !is_array($arrRcpt['Bcc'])) 	return false;
+		if(empty($arrRcpt['To']) && empty($arrRcpt['Bcc']) && (!is_array($arrRcpt) || empty($arrRcpt))) 	return false;
 		
+		// Resets recipients
+		$this->arrRecipient['To']	= array();
+		$this->arrRecipient['Bcc']	= array();
+		
+		// If defined "To" block
 		$boolTo = false;
-		foreach($arrRcpt AS $strAddress => $strName) {
-			if($this->checkEmailSyntax($strAddress)) {
-				if(!is_string($strName) || empty($strName)) $strName = $strAddress;
-				if(!$boolTo) {
+		if(array_key_exists('To',$arrRcpt) && is_array($arrRcpt['To'])) {
+			$boolTo = true;
+			
+			foreach($arrRcpt['To'] AS $strAddress => $strName) {
+				if($this->checkEmailSyntax($strAddress)) {
+					if(!is_string($strName) || empty($strName)) 	$strName = $strAddress;
 					$this->arrRecipient['To'][$strAddress]->name	= $strName;
 					$this->arrRecipient['To'][$strAddress]->email	= $strAddress;
-					$boolTo = true;
-				} else {
+				}
+			}
+		}
+
+		// If defined "Bcc" block
+		$boolBcc = false;
+		if(array_key_exists('Bcc',$arrRcpt) && is_array($arrRcpt['Bcc'])) {
+			$boolBcc = true;
+			
+			foreach($arrRcpt['Bcc'] AS $strAddress => $strName) {
+				if($this->checkEmailSyntax($strAddress)) {
+					if(!is_string($strName) || empty($strName)) 	$strName = $strAddress;
 					$this->arrRecipient['Bcc'][$strAddress]->name	= $strName;
 					$this->arrRecipient['Bcc'][$strAddress]->email	= $strAddress;
+				}
+			}
+		}
+		
+		// If blocks are not defined
+		if(!$boolTo && !$boolBcc) {
+			foreach($arrRcpt AS $strAddress => $strName) {
+				if($this->checkEmailSyntax($strAddress)) {
+					if(!is_string($strName) || empty($strName)) $strName = $strAddress;
+					if(!$boolTo) {
+						$this->arrRecipient['To'][$strAddress]->name	= $strName;
+						$this->arrRecipient['To'][$strAddress]->email	= $strAddress;
+						$boolTo = true;
+					} else {
+						$this->arrRecipient['Bcc'][$strAddress]->name	= $strName;
+						$this->arrRecipient['Bcc'][$strAddress]->email	= $strAddress;
+					}
 				}
 			}
 		}
@@ -231,10 +267,10 @@ class sendMail_Controller extends Controller {
 		Controller::unsecureGlobals();
 		
 		// If $strHTML is a file path, get file's content
-		if(is_file($strHTML)) $strHTML = file_get_contents($strHTML);
+		if(is_file($strHTML)) $strHTML = utf8_decode(file_get_contents($strHTML));
 		
 		// Replaces array of variables
-		if(is_array($arrVars)) {
+		if(is_array($arrVars) || is_object($arrVars)) {
 			foreach($arrVars AS $intKey => $strVar) {
 				$strHTML 	= str_replace('#'.$intKey.'#',nl2br($strVar),$strHTML);
 			}
@@ -392,15 +428,14 @@ class sendMail_Controller extends Controller {
 					$objSend							= $objSMTP->send($strAddress, $arrHeaders, $this->strHTML);
 					$this->objReport->To->$strAddress	= (PEAR::isError($objSend) ? false : true);
 					
-					#if(PEAR::isError($objSend)) { var_dump($objSend); echo '<hr>'; }
-					
 					if(count($this->arrRecipient['To']) == 1 && count($this->arrRecipient['Bcc']) == 0) return $this->objReport->To->$strAddress;
 				}
 				
 				// Sends 'Bcc' messages
 				foreach($this->arrRecipient['Bcc'] AS $strAddress => $objData) {
 					$arrHeaders['To']					= $objData->name . ' <' . $objData->email . '>';
-					$this->objReport->Bcc->$strAddress	= (PEAR::isError($objSMTP->send($strAddress, $arrHeaders, $this->strHTML)) ? false : true);
+					$objSend							= $objSMTP->send($strAddress, $arrHeaders, $this->strHTML);
+					$this->objReport->Bcc->$strAddress	= (PEAR::isError($objSend) ? false : true);
 				}
 			} else {
 				define('ERROR_MSG','Error on $this->sendMessage!');

@@ -389,6 +389,7 @@ class SectionStruct_controller extends Section_controller {
 						}
 						
 					} else {
+						$this->objModel->delete($strTable,'id = ' . $intFieldID);
 						$this->objModel->delete('rel_sec_struct','id = ' . $intFieldID);
 						$this->objSmarty->assign('ERROR_MSG','There was an error while trying to save "' . $_POST['name'] . '" order data! Please try again!');
 					}

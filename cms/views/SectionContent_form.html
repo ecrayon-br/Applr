@@ -51,7 +51,7 @@ $(document).ready(function(){
 <input type="hidden" name="sec_config_id" id="sec_config_id" value="{$objSection->id}" />
 <input type="hidden" name="id" id="id" value="{$objData->id}" />
 <input type="hidden" name="sys_language_id" id="sys_language_id" value="{if !empty($objData->sys_language_id)}{$objData->sys_language_id}{else}{$smarty.const.LANGUAGE}{/if}" />
-<table border=1 width=700>
+<table border=1 width=98%>
 	<caption>APPLR SECTION CONTENT<h3>{$objSection->name}</h3></caption>
 	{include file="struct/menu-top.html"}
 	<tr>
@@ -61,7 +61,10 @@ $(document).ready(function(){
 	</tr>
 	{foreach from=$objStruct name="listStruct" item="objTmp"}
 	<tr>
-		<td>{$objTmp->name}</td>
+		<td>
+			{$objTmp->name}<br />
+			<em>{$objTmp->tooltip}</em>
+		</td>
 		<td>
 			{APPLR_FormField field=$objTmp value=$objData->{$objTmp->field_name}}
 			{if !empty($evalAssign)}{eval var=$evalAssign}{/if}
@@ -69,7 +72,11 @@ $(document).ready(function(){
 	</tr>
 	{/foreach}
 	{include file="struct/section-seo-info.html"}
-	{include file="struct/section-publish-info.html"}
+	{if empty($objData)}
+		{include file="struct/section-publish-info.html"}
+	{else}
+		{include file="struct/section-publish-info_update.html"}
+	{/if}
 	<tr>
 		<td colspan=2 align=right>
 			<input type="submit" value="Save" />

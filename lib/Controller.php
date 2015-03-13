@@ -21,7 +21,7 @@ class Controller {
 	protected	$intUserID			= 0;
 	
 	private		$strTemplate;
-	private		$arrURL;
+	protected	$arrURL;
 	
 	static		$strClientName		= CLIENT;
 	static		$strProjectName		= PROJECT;
@@ -212,7 +212,7 @@ class Controller {
 						default:
 						break;
 					}
-		
+					
 					$strTable = $this->objModel->recordExists('table_name', 'sec_config', 'permalink = "' . str_replace('-','_',$this->arrURL[1]) . '"',true);
 					$strWhere = str_replace('#table#',$strTable.'.',SYS_WHERE);
 					

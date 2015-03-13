@@ -84,7 +84,8 @@ class CRUD_Model extends Model {
 	 *
 	 */
 	public function getList() {
-		$objReturn = $this->select($this->arrFieldList,$this->arrTable,$this->arrJoinList,$this->arrWhereList,$this->arrOrderList,$this->arrGroupList);
+		
+		$objReturn = $this->select($this->arrFieldList,$this->arrTable,$this->arrJoinList,$this->arrWhereList,$this->arrOrderList,$this->arrGroupList); //,0,null,'All',1);
 		
 		if($objReturn === false) {
 			return false;

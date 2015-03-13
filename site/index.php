@@ -25,6 +25,8 @@ $arrTmp			= explode('-',$strAction);
 array_walk($arrTmp,'setUCfirst');
 $strAction		= implode('',$arrTmp);
 
+#error_reporting(E_ALL);
+
 if(empty($strAction) || !method_exists($strController,$strAction)) {
 	#echo '<h1>' . $strController . '</h1>';
 	// If action is empty, initializes controller and renders default view

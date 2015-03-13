@@ -28,6 +28,7 @@ class Model {
 		
 		if($this->boolConnStatus) {
 			$this->objConn->loadModule('Extended');
+			$this->objConn->query('SET group_concat_max_len = 1024000;');
 		}
 	}
 	
@@ -584,7 +585,7 @@ class Model {
 		if(!is_numeric($intOffSet)) 														$intOffSet 		= 0;
 		if(!is_numeric($intLimit)) 															$intLimit 		= null;
 		if(!is_string($strFetchMode) || (is_string($strFetchMode) && !array_key_exists($strFetchMode,$arrFetch))) 		return $strFetchMode;
-
+		
 		// Sets query syntax
 		$strQuery	= ' SELECT 
 							'.implode(',',$arrField).' 

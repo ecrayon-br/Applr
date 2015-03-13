@@ -34,7 +34,7 @@ class manageContent_Controller extends CRUD_Controller {
 	protected	$arrOrderList		= array('rel_sec_struct.id');
 	
 	protected	$arrFieldData		= array('rel_sec_struct.*','sec_config_order.field_order','sec_config_order.type','sec_struct.name AS sec_struct_name','sec_struct.fieldtype','sec_struct.suffix');
-	protected	$arrJoinData		= array('JOIN rel_sec_struct','JOIN sec_config_order','JOIN sec_struct');
+	protected	$arrJoinData		= array('JOIN rel_sec_struct','JOIN sec_config_order ON sec_config_order.type = 1','JOIN sec_struct');
 	protected	$arrWhereData		= array(
 											'rel_sec_struct.sec_config_id = sec_config.id',
 											'rel_sec_struct.id = sec_config_order.field_id',
@@ -43,8 +43,8 @@ class manageContent_Controller extends CRUD_Controller {
 	protected	$arrGroupData		= array('rel_sec_struct.id');
 	protected	$arrOrderData		= array('rel_sec_struct.id');
 	
-	protected	$arrRelFieldData	= array('rel_sec_sec.*','sec_config_order.field_order','sec_config_order.type', 'rel_sec_language.name AS child_name', 'child_config.sys_folder_id AS child_sys_folder_id');
-	protected	$arrRelJoinData		= array('JOIN rel_sec_sec','JOIN sec_config_order', 'JOIN rel_sec_language', 'JOIN sec_config AS child_config');
+	protected	$arrRelFieldData	= array('rel_sec_sec.*','sec_config_order.field_order','sec_config_order.type', 'rel_sec_language.name AS child_name', 'child_config.sys_folder_id AS child_sys_folder_id', 'GROUP_CONCAT(DISTINCT rel_sec_struct.field_name SEPARATOR ",") AS child_fields');
+	protected	$arrRelJoinData		= array('JOIN rel_sec_sec','JOIN sec_config_order ON sec_config_order.type = 2', 'JOIN rel_sec_language', 'JOIN sec_config AS child_config', 'JOIN rel_sec_struct ON rel_sec_struct.sec_config_id = child_id');
 	protected	$arrRelWhereData	= array(
 											'rel_sec_sec.sec_config_id = sec_config.id',
 											'rel_sec_sec.id = sec_config_order.field_id',
@@ -145,8 +145,15 @@ class manageContent_Controller extends CRUD_Controller {
 	 * @author	Diego Flores <diego [at] gmail [dot] com>
 	 *
 	 */
-	public function getRelSectionFields() {
-		$this->objRelField = $this->objModel->select(array('field_name','table_name','IF(sec_config_id = ' . $this->intSecID . ',1,0) AS parent'),'rel_sec_sec',array(),'sec_config_id = ' . $this->intSecID . ' OR child_id = ' . $this->intSecID);
+	public function getRelSectionFields($intSecID = 0) {
+		if(empty($intSecID)) $intSecID = $this->intSecID;
+		
+		$arrFields	= $this->arrRelFieldData;
+		$arrFields[]= 'IF(rel_sec_sec.sec_config_id = ' . $intSecID . ',1,0) AS parent';
+		$arrWhere	= $this->arrRelWhereData;
+		$arrWhere[]	= '(rel_sec_sec.sec_config_id = ' . $this->intSecID . ' OR rel_sec_sec.child_id = ' . $intSecID . ')';
+		
+		$this->objRelField = $this->objModel->select($arrFields,'sec_config',$this->arrRelJoinData,$arrWhere,$this->arrRelOrderData,$this->arrRelGroupData);
 		
 		if($this->objRelField === false) return false; else return true;
 	}
@@ -181,15 +188,14 @@ class manageContent_Controller extends CRUD_Controller {
 		$this->objModel->arrGroupList	= $this->arrRelGroupData;
 		$this->objModel->arrOrderList	= $this->arrRelOrderData;
 		$arrTempList = array_merge($arrTempList,$this->objModel->getList());
-
-		#echo '<pre>'; var_dump($arrTempList);
+		
 		// Merges and orders array data
 		$this->objStruct = array();
 		foreach($arrTempList AS $objData) {
 			$this->objStruct[$objData->field_order] = clone $objData;
 		}
 		ksort($this->objStruct);
-		#echo '<pre>'; var_dump($this->objStruct);
+		
 		return $this->objStruct;
 	}
 	
@@ -775,8 +781,9 @@ class manageContent_Controller extends CRUD_Controller {
 	 */
 	protected function insertMainContent($mxdData) {
 		if(!is_array($mxdData)) return false;
-		
-		if( ($this->objData = $this->setupFieldSufyx($mxdData)) !== false) {
+		#echo '<pre>'; print_r($mxdData); die();
+		if( ($this->objData = $this->setupFieldSufyx($mxdData,array_keys($mxdData))) !== false) {
+			#echo '<pre>'; print_r($this->objData); die();
 			if( ($this->intContentID = $this->objModel->insert($this->objSection->table_name,(array) $this->objData,true)) !== false) {
 				return true;
 			} else {
@@ -839,23 +846,26 @@ class manageContent_Controller extends CRUD_Controller {
 			// Sets relationship params
 			if($this->setRelParams($objRel)) {
 				// Setups rel fields
-				if($this->setupRelField($mxdData,$objRel->field)) {
-					foreach($this->arrRelData[$objRel->field] AS $intRelID) {
+				if($this->setupRelField($mxdData,$objRel->field_name)) {
+					
+					foreach($this->arrRelData[$objRel->field_name] AS $intRelID) {
 						// Inserts new rel data
-						if($this->objModel->insert($objRel->table, ($objRel->parent ? array($objRelParams->strParentField => $this->intContentID, $objRelParams->strChildField => $intRelID) : array($objRelParams->strParentField => $intRelID, $objRelParams->strChildField => $this->intContentID)) )) {
-							$this->arrRelContent[$objRel->field][] = $this->recordExists('name', ($objRel->parent ? $objRelParams->strParentTable : $objRelParams->strChildTable),'id = ' . $intRelID,true);
+						$arrInsertData = ($objRel->parent ? array($this->objRelParams->strParentField => $this->intContentID, $this->objRelParams->strChildField => $intRelID) : array($this->objRelParams->strParentField => $intRelID, $this->objRelParams->strChildField => $this->intContentID));
+						
+						if( ($objInsert = $this->objModel->insert($objRel->table_name,$arrInsertData)) !== false ) {
+							$this->arrRelContent[$objRel->field_name][] = $this->recordExists('name', ($objRel->parent ? $this->objRelParams->strParentTable : $this->objRelParams->strChildTable),'id = ' . $intRelID,true);
 						} else {
 							define('ERROR_MSG','$this->updateRelContent::insert error on ' . $mxdKey . '!');
-							$this->arrRelContent[$objRel->field] = null;
+							$this->arrRelContent[$objRel->field_name] = null;
 						}
 					}
 				} else {
-					define('ERROR_MSG','$this->setupRelField error on ' . $objRel->field . ' : ' . $objRel->table . '!');
-					$this->arrRelContent[$objRel->field] = null;
+					define('ERROR_MSG','$this->setupRelField error on ' . $objRel->field_name . ' : ' . $objRel->table_name . '!');
+					$this->arrRelContent[$objRel->field_name] = null;
 				}
 			} else {
 				define('ERROR_MSG','$this->setRelParams error on ' . $mxdKey . '!');
-				$this->arrRelContent[$objRel->field] = null;
+				$this->arrRelContent[$objRel->field_name] = null;
 				return false;
 			}
 		}
@@ -877,18 +887,18 @@ class manageContent_Controller extends CRUD_Controller {
 	protected function updateRelContent($mxdData) {
 		if(!is_array($mxdData)) return false;
 		if($this->objRelField === false) return false;
-		#echo '<pre>'; print_r($this->objRelField); die();
+		
 		foreach($this->objRelField AS $mxdKey => $objRel) {
 			// Sets relationship params
 			if($this->setRelParams($objRel)) {
 				// Deletes previous related content
-				if($this->objModel->delete($objRel->table,$objRelParams->strWhere) !== false) {
+				if($this->objModel->delete($objRel->table,$this->objRelParams->strWhere) !== false) {
 					// Setups rel fields
 					if($this->setupRelField($mxdData,$objRel->field)) {
 						foreach($this->arrRelData[$objRel->field] AS $intRelID) {
 							// Inserts new rel data
-							if($this->objModel->insert($objRel->table, ($objRel->parent ? array($objRelParams->strParentField => $this->intContentID, $objRelParams->strChildField => $intRelID) : array($objRelParams->strParentField => $intRelID, $objRelParams->strChildField => $this->intContentID)) ) !== false) {
-								$this->arrRelContent[$objRel->field][] = $this->recordExists('name', ($objRel->parent ? $objRelParams->strParentTable : $objRelParams->strChildTable),'id = ' . $intRelID,true);
+							if($this->objModel->insert($objRel->table, ($objRel->parent ? array($this->objRelParams->strParentField => $this->intContentID, $this->objRelParams->strChildField => $intRelID) : array($this->objRelParams->strParentField => $intRelID, $this->objRelParams->strChildField => $this->intContentID)) ) !== false) {
+								$this->arrRelContent[$objRel->field][] = $this->recordExists('name', ($objRel->parent ? $this->objRelParams->strParentTable : $this->objRelParams->strChildTable),'id = ' . $intRelID,true);
 							} else {
 								define('ERROR_MSG','$this->updateRelContent::insert error on ' . $mxdKey . '!');
 								$this->arrRelContent[$objRel->field] = null;
@@ -913,26 +923,25 @@ class manageContent_Controller extends CRUD_Controller {
 	}
 	
 	private function setRelParams($objRel) {
-		if(!is_object($objRel) || !isset($objRel->table) || !isset($objRel->parent)) 	return false;
-		if(empty($objRel->table) || strpos($objRel->table,'rel_ctn_') !== 0) 			return false;
-		if(empty($objRel->parent) || ($objRel->parent != 0 && $objRel->parent != 1)) 	return false;
+		if(!is_object($objRel) || !isset($objRel->table_name) || !isset($objRel->parent)) 	return false;
+		if(empty($objRel->table_name) || strpos($objRel->table_name,'sec_rel_') !== 0) 		return false;
+		if(empty($objRel->parent) || ($objRel->parent != 0 && $objRel->parent != 1)) 		return false;
 		
-		// rel_ctn_PARENT_NAME_ctn_CHILD_NAME
-		$arrTmpTable	= explode('_ctn_',$objRel->table);
+		$arrTables = explode('_rel_',str_replace(array('sec_rel_','_parent','_child'),'',$objRel->table_name));
 		if($objRel->parent) {
-			$objRelParams->strParentTable 	= 'ctn_' . $arrTmpTable[1];
-			$objRelParams->strParentField	= $objRelParams->strParentTable . '_id';
-			$objRelParams->strChildTable	= 'ctn_' . $arrTmpTable[2];
-			$objRelParams->strChildField	= $objRelParams->strChildTable . '_id';
+			$this->objRelParams->strParentTable = $arrTables[0];
+			$this->objRelParams->strParentField	= 'parent_id';
+			$this->objRelParams->strChildTable	= $arrTables[1];
+			$this->objRelParams->strChildField	= 'child_id';
 			
-			$objRelParams->strWhere			= $objRelParams->strParentField . ' = ' . $this->intContentID;
+			$this->objRelParams->strWhere		= $this->objRelParams->strParentField . ' = ' . $this->intContentID;
 		} else {
-			$objRelParams->strParentTable 	= 'ctn_' . $arrTmpTable[2];
-			$objRelParams->strParentField	= $objRelParams->strParentTable . '_id';
-			$objRelParams->strChildTable	= 'ctn_' . $arrTmpTable[1];
-			$objRelParams->strChildField	= $objRelParams->strChildTable . '_id';
+			$this->objRelParams->strParentTable = $arrTables[1];
+			$this->objRelParams->strParentField	= 'parent_id';
+			$this->objRelParams->strChildTable	= $arrTables[0];
+			$this->objRelParams->strChildField	= 'child_id';
 			
-			$objRelParams->strWhere			= $objRelParams->strChildField . ' = ' . $this->intContentID;
+			$this->objRelParams->strWhere		= $this->objRelParams->strChildField . ' = ' . $this->intContentID;
 		}
 		return true;
 	}
@@ -954,6 +963,7 @@ class manageContent_Controller extends CRUD_Controller {
 		if(!is_string($strRelField) || empty($strRelField)) return false;
 		
 		$mxdData = (array) $mxdData;
+		$this->arrRelData = array();
 		
 		if(isset($mxdData[$strRelField]) && is_numeric($mxdData[$strRelField])) {
 			$this->arrRelData[$strRelField][]	= $mxdData[$strRelField];
@@ -983,7 +993,7 @@ class manageContent_Controller extends CRUD_Controller {
 	 */
 	public function insert($mxdData) {
 		if(!is_array($mxdData)) return false;
-		
+		#echo '<pre>'; print_r($mxdData); die();
 		if($this->insertMainContent($mxdData)) {
 			if($this->insertRelContent($mxdData)) {
 				return true;

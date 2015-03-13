@@ -96,19 +96,19 @@
 	<tr>
 		<td>Order By</td>
 		<td>
-			<input type="radio" name="applr_orderby" id="applr_orderby_1"	value="name ASC"			onclick="document.formConfig.orderby.value = this.value; document.formConfig.orderby.readOnly = true;" {if $objData->orderby == 'name ASC'}checked{/if}> <label for="applr_orderby_1">Name ASC</label>
+			<input type="radio" name="applr_orderby" id="applr_orderby_1"	value="name ASC"			onclick="document.formConfig.orderby.value = this.value; document.formConfig.orderby.readOnly = true;" {if $objData->orderby == 'name ASC'}{assign var="radioChecked" value=1}checked{/if}> <label for="applr_orderby_1">Name ASC</label>
 			<br />
-			<input type="radio" name="applr_orderby" id="applr_orderby_2"	value="name DESC"			onclick="document.formConfig.orderby.value = this.value; document.formConfig.orderby.readOnly = true;" {if $objData->orderby == 'name DESC'}checked{/if}> <label for="applr_orderby_2">Name DESC</label>
+			<input type="radio" name="applr_orderby" id="applr_orderby_2"	value="name DESC"			onclick="document.formConfig.orderby.value = this.value; document.formConfig.orderby.readOnly = true;" {if $objData->orderby == 'name DESC'}{assign var="radioChecked" value=1}checked{/if}> <label for="applr_orderby_2">Name DESC</label>
 			<br />
-			<input type="radio" name="applr_orderby" id="applr_orderby_3"	value="publish_date ASC"	onclick="document.formConfig.orderby.value = this.value; document.formConfig.orderby.readOnly = true;" {if $objData->orderby == 'publish_date ASC'}checked{/if}> <label for="applr_orderby_3">Publish Date ASC</label>
+			<input type="radio" name="applr_orderby" id="applr_orderby_3"	value="publish_date ASC"	onclick="document.formConfig.orderby.value = this.value; document.formConfig.orderby.readOnly = true;" {if $objData->orderby == 'publish_date ASC'}{assign var="radioChecked" value=1}checked{/if}> <label for="applr_orderby_3">Publish Date ASC</label>
 			<br />
-			<input type="radio" name="applr_orderby" id="applr_orderby_4"	value="publish_date DESC"	onclick="document.formConfig.orderby.value = this.value; document.formConfig.orderby.readOnly = true;" {if !isset($objData->orderby) || $objData->orderby == 'publish_date DESC'}checked{/if}> <label for="applr_orderby_4">Publish Date DESC</label>
+			<input type="radio" name="applr_orderby" id="applr_orderby_4"	value="publish_date DESC"	onclick="document.formConfig.orderby.value = this.value; document.formConfig.orderby.readOnly = true;" {if !isset($objData->orderby) || $objData->orderby == 'publish_date DESC'}{assign var="radioChecked" value=1}checked{/if}> <label for="applr_orderby_4">Publish Date DESC</label>
 			<br />
-			<input type="radio" name="applr_orderby" id="applr_orderby_5"	value="RAND()"				onclick="document.formConfig.orderby.value = this.value; document.formConfig.orderby.readOnly = true;" {if $objData->orderby == 'RAND()'}checked{/if}> <label for="applr_orderby_5">Random</label>
+			<input type="radio" name="applr_orderby" id="applr_orderby_5"	value="RAND()"				onclick="document.formConfig.orderby.value = this.value; document.formConfig.orderby.readOnly = true;" {if $objData->orderby == 'RAND()'}{assign var="radioChecked" value=1}checked{/if}> <label for="applr_orderby_5">Random</label>
 			<br />
-			<input type="radio" name="applr_orderby" id="applr_orderby_6"	value=""					onclick="document.formConfig.orderby.value = this.value; document.formConfig.orderby.readOnly = false; document.formConfig.orderby.focus();"> <label for="applr_orderby_6">Custom</label>
+			<input type="radio" name="applr_orderby" id="applr_orderby_6"	value=""					onclick="document.formConfig.orderby.value = this.value; document.formConfig.orderby.readOnly = false; document.formConfig.orderby.focus();" {if !$radioChecked}checked{/if}> <label for="applr_orderby_6">Custom</label>
 			<br />
-			<input type="text" name="orderby" value="{$objData->orderby}" maxlength="255" readonly size="40" />
+			<input type="text" name="orderby" value="{$objData->orderby}" maxlength="255" {if $radioChecked}readonly{/if} size="40" />
 		</td>
 	</tr>
 	<tr>

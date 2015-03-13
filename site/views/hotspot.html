@@ -8,15 +8,34 @@
 
 <h3>Página de Captura!</h3>
 
-{if $is_user}
-	Já tem Cadastro
+{if $error}
+<h4>{$error_msg}</h4>
+{/if}
+
+{if $alert}
+<h4>{$alert_msg}</h4>
 {else}
-	Novo Usuário
-	
-	<form action="{$smarty.const.HTTP}destino/save" name="form-user" method="post">
+
+{if $isLead}
+	Já tem Cadastro.
+{elseif $confirmLead}
+	{if !$hideResend}
+	<h4>
+		Você já faz parte do nosso banco de dados. Porém, é preciso confirmar o seu endereço de e-mail.<br />
+		Se desejar, <a href="{$smarty.const.HTTP}hotspot/save/?name={$smarty.cookies.APPLR_confirmLead}&hotspot-id={$objData->id}&redirect-uri={$smarty.const.SECTION_SEGMENT}/{$smarty.const.PERMALINK}" title="CLIQUE AQUI">CLIQUE AQUI</a> para reenviar a mensagem com o link de confirmação para <u>{$smarty.cookies.APPLR_confirmLead}</u>.<br /><br />
+	</h4>
+	Caso este não seja o seu e-mail, <a href="" title="CLIQUE AQUI">CLIQUE AQUI</a> para fazer o seu cadastro.
+	{/if}
+{else}
+	<h4>Insira seu e-mail</h4>
+
+	<form action="{$smarty.const.HTTP}hotspot/save" name="form-user" method="post">
+		<input type="hidden" name="hotspot-id" value="{$objData->id}" />
+		<input type="hidden" name="redirect-uri" value="{$smarty.const.SECTION_SEGMENT}/{$smarty.const.PERMALINK}" />
 		<input type="text" name="name" id="name" size=40 /><br />
 		<input type="submit" value="Cadastrar" />
 	</form>
+	{/if}
 {/if}
 
 </body>

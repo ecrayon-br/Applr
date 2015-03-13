@@ -1,6 +1,7 @@
 <?php
 include_once 'modifier.APPLR_html_entity_decode.php';
 include_once 'function.APPLR_FCKeditor.php';
+include_once 'function.html_options.php';
 
 /**
  * Smarty plugin
@@ -34,6 +35,8 @@ function smarty_function_APPLR_FormField($params,$template) {
 		
 		$objSection = new SectionContent_controller(false,$params['field']->child_id);
 		$objList	= $objSection->content();
+
+		#echo '<pre>'; print_r($params['field']); var_dump($params['value']); echo '</pre>';
 		
 		foreach($params['value'] AS &$mxdValue) {
 			$mxdValue = $mxdValue->id;
@@ -43,14 +46,30 @@ function smarty_function_APPLR_FormField($params,$template) {
 		$objSection->objSmarty->assign('objParams',(object) $params['field']);
 		$objSection->objSmarty->assign('arrMatch',$params['value']);
 		
-		#echo '<pre>'; print_r($objList); var_dump($params['value']); echo '</pre>';
-		
 		$objSection->renderTemplate(true,'SectionContent_Relationship_form.html');
 		
 	// CONTENT FIELDS
 	} else {
 		$template->assign('evalAssign','');
 		switch($params['field']->suffix) {
+			// 	TEMPLATE REL
+			case 'tpl':
+				$objTPL 	= new Template_controller(false);
+				$objList	= $objTPL->content();
+				$arrCombo	= array('Template' => array(0 => 'Selecione'));
+				foreach($objList AS $objTemp) {
+					$arrCombo[$objTemp->name][$objTemp->id] =  $objTemp->filename; 
+				}
+				
+				$arrParams	= array(
+								'name'		=> $strName,
+								'selected'	=> $params['value'],
+								'options'	=> $arrCombo
+								);
+				
+				return smarty_function_html_options($arrParams,$template);
+			break;
+			
 			// RICHTEXT
 			case 'richtext':
 				smarty_function_APPLR_FCKeditor(array('name' => $strName, 'value' => smarty_modifier_APPLR_html_entity_decode($params['value'])));

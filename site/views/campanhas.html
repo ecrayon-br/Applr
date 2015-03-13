@@ -6,23 +6,12 @@
 </head>
 <body>
 
-{if is_array($objData)}
 	{foreach from=$objData item="objTemp" name="contentList"}
-		<h1><a href="{$objTemp->url_permalink}" title="{$objTemp->name}">{$objTemp->name}</a></h1>
+		<h1><a href="{$smarty.const.HTTP}{$smarty.const.SECTION_PERMALINK}/send/{$objTemp->permalink}" title="{$objTemp->name}">{$objTemp->name}</a></h1>
 		<h5>{$objTemp->content_date->formatted}</h5>
 		<h3>{$objTemp->content_richtext|APPLR_html_entity_decode|truncate:280:"...":true}</h3>
 		<hr />
 	{/foreach}
-{else}
-
-{if $objData->private_bool && !$isLead}
-<h1>Você precisa ser cadastrado!</h1>
-{else}
-<h1>{$objData->name}</h1>
-<h5>{$objData->content_date->formatted}</h5>
-<h3>{$objData->content_richtext|APPLR_html_entity_decode}</h3>
-{/if}
-{/if}
 
 </body>
 </html>

@@ -3,3 +3,7 @@ classe_gerasecao.php
 formulario.php
 lib/smarty/templates_c/*
 lib/smarty/cache/*
+lib/CrontabManager/bin/*
+lib/CrontabManager/src/*
+lib/CrontabManager/tests/*
+lib/X/_X/*

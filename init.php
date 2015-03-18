@@ -19,10 +19,10 @@ include_once 'credentials.php';
 /**********		WEBSITE ENV & CREDENTIALS		**********/
 /**********										**********/
 
-if(strpos($_SERVER["HTTP_HOST"],URI_DOMAIN_DEVELOP) !== false) {
+if(!isset($_SERVER["HTTP_HOST"]) || strpos($_SERVER["HTTP_HOST"],URI_DOMAIN_DEVELOP) !== false) {
 
 	define('URI_DOMAIN'	,URI_DOMAIN_DEVELOP);
-	define('LOCAL_DIR'	,'/' . DIR_DEVELOP . '/www/');
+	define('LOCAL_DIR'	, (empty($_SERVER['DOCUMENT_ROOT']) ? '' : '/' . DIR_DEVELOP . '/www/'));
 
 	error_reporting(E_ERROR); #E_ALL&~E_NOTICE&~E_WARNING&~E_DEPRECATED&~E_STRICT);
 	
@@ -31,7 +31,7 @@ if(strpos($_SERVER["HTTP_HOST"],URI_DOMAIN_DEVELOP) !== false) {
 	define('DB_PASSWORD',DB_DEVELOP_PWD);
 	define('DB_NAME'	,DB_DEVELOP_DB);
 
-} elseif(strpos($_SERVER["HTTP_HOST"],URI_DOMAIN_HOMOLOG) !== false) {
+} elseif(isset($_SERVER["HTTP_HOST"]) && strpos($_SERVER["HTTP_HOST"],URI_DOMAIN_HOMOLOG) !== false) {
 
 	define('URI_DOMAIN'	,($_SERVER["HTTP_HOST"] == DIR_HOMOLOG.'.'.URI_DOMAIN_HOMOLOG ? DIR_HOMOLOG.'.'.URI_DOMAIN_HOMOLOG : URI_DOMAIN_HOMOLOG));
 	define('LOCAL_DIR'	,(URI_DOMAIN == DIR_HOMOLOG.'.'.URI_DOMAIN_HOMOLOG ? '' : '/' . DIR_HOMOLOG) . '/');
@@ -57,9 +57,8 @@ if(strpos($_SERVER["HTTP_HOST"],URI_DOMAIN_DEVELOP) !== false) {
 }
 
 define('SYS_DIR'	, (LOCAL_DIR != '' && LOCAL_DIR != '/' ? LOCAL_DIR : '/'));
-define('SYS_ROOT'	, $_SERVER['DOCUMENT_ROOT'] . SYS_DIR);
+define('SYS_ROOT'	, (empty($_SERVER['DOCUMENT_ROOT']) ? realpath(dirname($_SERVER['PHP_SELF'])) : $_SERVER['DOCUMENT_ROOT']) . SYS_DIR);
 define('SMARTY_DIR'	, SYS_ROOT . 'lib/smarty/');
-
 
 /*********************************************************/
 /*********************************************************/

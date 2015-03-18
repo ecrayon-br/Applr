@@ -117,7 +117,7 @@ function APPLR_autoload($strPackage) {
 		$strPath	= SYS_ROOT . $strApplrDir . implode('/',$arrFolder) . '.php';
 		
 		// Includes File
-		include_once $strPath;
+		if(is_file($strPath)) include_once $strPath;
 	}
 }
 spl_autoload_register('APPLR_autoload');

@@ -4,10 +4,10 @@ class manageContent_Controller extends CRUD_Controller {
 	public		$objField;
 	public		$objRelField;
 	
-	public		$arrRelData;
+	public		$arrRelData		= array();
 	public		$objPrintData;
 	public		$intContentID;
-	public		$arrRelContent;
+	public		$arrRelContent	= array();
 	
 	protected	$intSecID;
 	protected	$objRelParams;

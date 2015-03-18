@@ -1,5 +1,5 @@
 <?php
-class EmailReport_controller extends Main_Controller {
+class EmailReport_controller extends Main_controller {
 	
 	protected $intSecID = 9;
 	

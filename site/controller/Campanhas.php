@@ -1,5 +1,5 @@
 <?php
-class Campanhas_controller extends Main_Controller {
+class Campanhas_controller extends Main_controller {
 
 	private $tryConfirm = 0;
 	
@@ -7,8 +7,9 @@ class Campanhas_controller extends Main_Controller {
 	protected $objMail;
 	protected $objList;
 	
-	protected $strErrorMail = 'diegotf@gmail.com';
-	protected $discardErrors = false;
+	protected $strErrorMail		= 'diegotf@gmail.com';
+	protected $discardErrors	= false;
+	protected $intMailInterval	= 21600; # 6 hours
 	
 	/**
 	 * Class constructor
@@ -58,8 +59,6 @@ class Campanhas_controller extends Main_Controller {
 		foreach($this->objMail->objData AS $intMailKey => $objMail) {
 			// Checks if e-mail templates exists
 			if(!$this->objSmarty->templateExists($objMail->mail_tpl_filename)) { $intPrevMailID = $objMail->id; continue; }
-
-			
 			// LISTA
 			// Gets user's address list
 			switch($objMail->timesheet_int) {
@@ -73,7 +72,6 @@ class Campanhas_controller extends Main_Controller {
 					$this->objList = new Leads_controller($strWhere);
 				break;
 			}
-			
 			// Sets previous e-mail ID
 			$intPrevMailID = $objMail->id;
 			
@@ -84,18 +82,19 @@ class Campanhas_controller extends Main_Controller {
 			// A/B Test
 			// Gets AB_Test result, if exists
 			$objAB_Result = $this->getAB_Result($objMail->id);
+
 			if(!empty($objMail->subject_02)) {
 				
 				// Sets Scheduled Job Action
 				$strActionFile 	= 'cronjob-send-ab_test-result-mail.php';
 				$strAction		= SYS_ROOT . $strActionFile . ' permalink=' . $strPermalink;
-				
+
 				// If e-mails must be send to AB Testing List
 				if(is_null($objAB_Result)) {
 
 					// Clones objList and shuffles
 					$objList			= $this->objList->objData;
-					shuffle(shuffle($objList));
+					shuffle($objList);
 					
 					// Defines A/B slice
 					$intSlice	= ceil(count($this->objList->objData) * 0.1);
@@ -105,7 +104,7 @@ class Campanhas_controller extends Main_Controller {
 					// Sends message to full A_list
 					$this->sendMailToList($objMail,$objList_A,$objMail->subject,1);
 					
-					// Sends message to full B_list
+					// Sends message to full B_list		
 					if(count($objList) > 1) $this->sendMailToList($objMail,$objList_B,$objMail->subject_02,2);
 					
 					if($boolSetTask) {
@@ -114,7 +113,7 @@ class Campanhas_controller extends Main_Controller {
 						$strPath	= $objFinder->find();
 							
 						// Sets Scheduled Job Time
-						$intTime	= time() + 300;
+						$intTime	= time() + $this->intMailInterval;
 							
 						// Register crontab / Task Scheduler action
 						$strOS = strtoupper(substr(PHP_OS, 0, 3));
@@ -124,16 +123,18 @@ class Campanhas_controller extends Main_Controller {
 								$objService = new X_Scheduler_Ms_Service();
 								$objService->scheduleCommand($strPath, $intTime, 1, 300, $strAction);
 								$objService->register(PROJECT . ' - AB Test - ' . $objMail->id);
-								break;
+							break;
 					
 							default:
 								// Sets CronTab job
-								$strCronJob = date('i H d m',$intTime); #(date('i') + 2) . ' ' . (date('H')) . date(' d m ') . (date(' N') == 7 ? 0 : date('N'));
+								$strCronJob = date('i H d m *',$intTime); #(date('i') + 2) . ' ' . (date('H')) . date(' d m ') . (date(' N') == 7 ? 0 : date('N'));
+								
 								$objCronTab = new CrontabManager();
 								$objJob		= $objCronTab->newJob();
-								$objJob->on($strCronJob)->doJob('MAILTO=' . $this->$strErrorMail)->doJob($strPath . ' ' . $strAction . ($this->discardErrors ? ' >/dev/null 2>&1' : ''),null,true);
+								$objJob->doJob('MAILTO=' . $this->strErrorMail);
+								$objJob->on($strCronJob)->doJob($strPath . ' ' . $strAction . ($this->discardErrors ? ' >/dev/null 2>&1' : ''),null,true);
 								$objCronTab->save();
-								break;
+							break;
 						}
 					}
 
@@ -172,8 +173,10 @@ class Campanhas_controller extends Main_Controller {
 				
 			// Normal
 			} else {
+				
 				// Sends message to full leads list
 				$this->sendMailToList($objMail);
+				
 			}
 			
 			
@@ -248,17 +251,18 @@ class Campanhas_controller extends Main_Controller {
 						}
 							
 						$intSend++;
-					} while($objSend !== true && $intSend < $this->objData->error_int);
+					} while($objSend !== true && $intSend < $this->objData->rel_email_config->error_int);
 		
 				}
 					
 				$intMsg++;
 			} else {
+				// Resets control vars
 				$intMsg = 0;
 				$intBlock++;
-					
+				
 				// Delays message blocks
-				if($intBlock > 0) sleep($this->objData->rel_email_config->delay_block_int);
+				sleep($this->objData->rel_email_config->delay_block_int);
 			}
 		}
 	}

@@ -1,5 +1,5 @@
 <?php
-class Blog_controller extends Main_Controller {
+class Blog_controller extends Main_controller {
 	
 	private $isLead;
 	

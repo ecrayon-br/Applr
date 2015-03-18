@@ -85,17 +85,20 @@ class Main_controller extends manageContent_Controller {
 			// Gets content
 			$this->objData	= $this->content();
 			
-			// Formats relationship data
-			foreach($this->arrRelContent AS $objRel) {
-				if($objRel->type == 2) {
-					foreach($this->objData AS $intDataKey => &$mxdDataContent) {
-						$mxdDataContent->{$objRel->field_name} = json_decode($mxdDataContent->{$objRel->field_name});
+			if(!empty($this->objData)) {
+				// Formats relationship data
+				foreach($this->arrRelContent AS $objRel) {
+					if($objRel->type == 2) {
+						foreach($this->objData AS $intDataKey => &$mxdDataContent) {
+							$mxdDataContent->{$objRel->field_name} = json_decode($mxdDataContent->{$objRel->field_name});
+						}
 					}
 				}
+				// Formats display data
+				$arrDataKeys	= array_keys((array) reset($this->objData));
+				$this->objData	= (array) $this->setupFieldSufyx($this->objData,$arrDataKeys,2,true);
 			}
-			// Formats display data
-			$this->objData = (array) $this->setupFieldSufyx($this->objData,array_keys((array) $this->objData[0]),2,true);
-		
+			
 			// Defines TPL
 			$this->strTPL = (HOME == 1 ? $this->objSection->tpl_home : $this->objSection->tpl_list);
 		
@@ -103,21 +106,23 @@ class Main_controller extends manageContent_Controller {
 			// Gets content
 			$this->objData = $this->objModel->getData($this->intContentID);
 		
-			// Formats relationship data
-			foreach($this->arrRelContent AS $objRel) {
-				if($objRel->type == 2) {
-					$this->objData->{$objRel->field_name} = json_decode($this->objData->{$objRel->field_name});
+			if(!empty($this->objData)) {
+				// Formats relationship data
+				foreach($this->arrRelContent AS $objRel) {
+					if($objRel->type == 2) {
+						$this->objData->{$objRel->field_name} = json_decode($this->objData->{$objRel->field_name});
+					}
 				}
+			
+				// Formats display data
+				$this->objData = $this->setupFieldSufyx($this->objData,array_keys((array) $this->objData),2);
 			}
-		
-			// Formats display data
-			$this->objData = $this->setupFieldSufyx($this->objData,array_keys((array) $this->objData),2);
-		
+			
 			// Defines TPL
 			$this->strTPL = (HOME == 1 ? $this->objSection->tpl_home : $this->objSection->tpl_content);
 		}
 		
-		if($_REQUEST['debug']) { echo '<pre>'; print_r($this->objData); }
+		if(!empty($_REQUEST['debug'])) { echo '<pre>'; print_r($this->objData); }
 	}
 	
 	public function renderTemplate($strTemplate = '') {

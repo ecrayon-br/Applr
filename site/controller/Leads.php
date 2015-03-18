@@ -1,5 +1,5 @@
 <?php
-class Leads_controller extends Main_Controller {
+class Leads_controller extends Main_controller {
 	
 	protected $intSecID = 4;
 	

@@ -1,5 +1,5 @@
 <?php
-class Email_controller extends Main_Controller {
+class Email_controller extends Main_controller {
 	
 	protected $intSecID = 7;
 	

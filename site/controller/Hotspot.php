@@ -1,5 +1,5 @@
 <?php
-class Hotspot_controller extends Main_Controller {
+class Hotspot_controller extends Main_controller {
 	
 	private $tryCookie = 0;
 	private $isLead;
@@ -80,7 +80,7 @@ class Hotspot_controller extends Main_Controller {
 		$this->checkLead();
 		
 		// Sets SECTION as LEADS
-		$objUser 	= new Main_Controller(false,4);
+		$objUser 	= new Main_controller(false,4);
 		$strWhere	= 'name = "'.$_REQUEST['name'].'" AND ' . str_replace('aet_fl_leads.active = 1 AND ','',$objUser->strWhere);
 		
 		// If e-mail doesnt exists in database

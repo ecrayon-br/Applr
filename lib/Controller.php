@@ -144,6 +144,9 @@ class Controller {
 			define('DESCRIPTION'		,$objConfig->description);
 			define('BRAND_IMG'			,$objConfig->logo);
 			define('START_DATE'			,$objConfig->start_date);
+			define('FB_APP_ID'			,$objConfig->fb_app_id);
+			define('FB_ADMIN_ID'		,$objConfig->fb_admin_id);
+			define('GA_ID'				,$objConfig->ga_id);
 			
 			// E-mail authentication
 			define('EMAIL_AUTH'			,$objConfig->mail_auth);
@@ -269,6 +272,12 @@ class Controller {
 					define('SECTION_PERMALINK'	, $this->objSection->permalink);
 					define('PERMALINK'			, (!empty($this->arrURL[2]) ? $this->arrURL[2] : ''));
 					define('URL_PERMALINK'		, HTTP . SECTION_PERMALINK . '/' . (!empty($this->arrURL[2]) ?  $this->arrURL[2] : ''));
+				} else {
+					$strSectionPermalink = (empty($this->arrURL[4]) ? $this->arrURL[3] : $this->arrURL[4]);
+					$this->objSection = $this->objModel->getSectionConfig($strSectionPermalink);
+					
+					define('SECTION_PERMALINK'	, $this->objSection->permalink);
+					define('SECTION_SEGMENT'	, '');
 				}
 			} else {
 				if(isset($_REQUEST[VAR_SECTION])) {
@@ -277,10 +286,11 @@ class Controller {
 					define('SECTION'		, MAIN_SECTION);
 				}
 				$this->objSection = $this->objModel->getSectionConfig(SECTION);
+				
 				define('SECTION_PERMALINK'	, $this->objSection->permalink);
 				define('SECTION_SEGMENT'	, '');
 			}
-		
+			
 			// Language
 			if(isset($tempLanguage)) {
 				define('LANGUAGE',$tempLanguage);
@@ -727,7 +737,7 @@ class Controller {
     public function encodeEntities($strValue) {
     	if(!is_string($strValue))	return false;
     	
-    	return htmlentities($this->decodeEntities($strValue),ENT_QUOTES,$this->strCharSet);
+    	return htmlentities($this->decodeEntities($strValue),ENT_QUOTES,$this->strCharSet,false);
     }
     
     /**

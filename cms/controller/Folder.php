@@ -7,6 +7,9 @@ class Folder_controller extends CRUD_Controller {
 	 * ALL PROTECTED VARS BELOWS MUST BE SET UP WITH DATABASE AND RESPECTIVE DATA FOR APPLR TO WORK!
 	 * 
 	 */
+		/**
+		 * @todo set PROJECT_ID
+		 */
 	protected	$strTable		= 'sys_folder';
 	protected	$arrTable		= array('sys_folder');
 	

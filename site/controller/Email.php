@@ -19,6 +19,9 @@ class Email_controller extends Main_controller {
 		parent::__construct(false,$this->intSecID,0,false);
 
 		// Sets sys_template CONTENT JOIN SQL
+		/**
+		 * @todo set PROJECT_ID
+		 */
 		$this->objModel->arrFieldList[]	= $this->objModel->arrFieldData[]	= 'sys_template.filename AS mail_tpl_filename';
 		$this->objModel->arrJoinList[]	= $this->objModel->arrJoinData[]	= 'LEFT JOIN sys_template ON sys_template.status = 1 AND sys_template.id = aet_fl_email.mail_tpl';
 		

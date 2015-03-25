@@ -7,6 +7,9 @@ class Section_controller extends CRUD_Controller {
 	 * ALL PROTECTED VARS BELOWS MUST BE SET UP WITH DATABASE AND RESPECTIVE DATA FOR APPLR TO WORK!
 	 * 
 	 */
+		/**
+		 * @todo set PROJECT_ID
+		 */
 	protected	$strTable		= 'sec_config';
 	protected	$arrTable		= array('sec_config');
 	
@@ -89,7 +92,10 @@ class Section_controller extends CRUD_Controller {
 			$this->intSecID		= intval($_SESSION[self::$strProjectName]['URI_SEGMENT'][4]);
 			if(!$this->intSecID) $this->intSecID = intval($_POST['sec_config_id']);
 		}
-		
+
+		/**
+		 * @todo set PROJECT_ID
+		 */
 		// Gets TEMPLATES list
 		$this->arrTPLList	= $this->objModel->select(array('id','name'),'sys_template',array(),array(),array(),array(),0,null,'All');
 		
@@ -324,7 +330,10 @@ class Section_controller extends CRUD_Controller {
 		@mkdir(ROOT_STATIC	. $this->objSectionData->permalink,0755);
 		@mkdir(ROOT_RSS		. $this->objSectionData->permalink,0755);
 		@mkdir(ROOT_XML		. $this->objSectionData->permalink,0755);
-	
+
+		/**
+		 * @todo set PROJECT_ID
+		 */
 		$arrMediaGalleryInfo	= array(
 				'usr_data_id'	=> $this->intUserID,
 				'sec_config_id'	=> $this->objData->id,

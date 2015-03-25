@@ -1,0 +1,39 @@
+@font-face {
+  font-family: "Aller_Bold";
+  src: url('Aller/aller_std.ttf') format('truetype'), url('Aller/aller_std.eot') format('embedded-opentype'), url('Aller/aller_std.otf') format('opentype'), url('Aller/aller_std.svg') format('svg'), url('Aller/aller_std.woff') format('woff');
+}
+
+@font-face {
+  font-family: "Aller_Bolditalic";
+  src: url('Aller/aller_std_bdit.ttf') format('truetype'), url('Aller/aller_std_bdit.eot') format('embedded-opentype'), url('Aller/aller_std_bdit.otf') format('opentype'), url('Aller/aller_std_bdit.svg') format('svg'), url('Aller/aller_std_bdit.woff') format('woff');
+}
+
+@font-face {
+  font-family: "Aller_Italic";
+  src: url('Aller/aller_std_it.ttf') format('truetype'), url('Aller/aller_std_it.eot') format('embedded-opentype'), url('Aller/aller_std_it.otf') format('opentype'), url('Aller/aller_std_it.svg') format('svg'), url('Aller/aller_std_it.woff') format('woff');
+}
+
+@font-face {
+  font-family: "Aller_Light";
+  src: url('Aller/aller_std_lt.ttf') format('truetype'), url('Aller/aller_std_lt.eot') format('embedded-opentype'), url('Aller/aller_std_lt.otf') format('opentype'), url('Aller/aller_std_lt.svg') format('svg'), url('Aller/aller_std_lt.woff') format('woff');
+}
+
+@font-face {
+  font-family: "Aller_LightItalic";
+  src: url('Aller/aller_std_ltit.ttf') format('truetype'), url('Aller/aller_std_ltit.eot') format('embedded-opentype'), url('Aller/aller_std_ltit.otf') format('opentype'), url('Aller/aller_std_ltit.svg') format('svg'), url('Aller/aller_std_ltit.woff') format('woff');
+}
+
+@font-face {
+  font-family: "Aller";
+  src: url('Aller/aller_std_rg.ttf') format('truetype'), url('Aller/aller_std_rg.eot') format('embedded-opentype'), url('Aller/aller_std_rg.otf') format('opentype'), url('Aller/aller_std_rg.svg') format('svg'), url('Aller/aller_std_rg.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'Aller-Display';
+    src: url('Aller/AllerDisplay_Std_Rg-webfont.ttf') format('truetype'),
+		 url('Aller/AllerDisplay_Std_Rg-webfont.eot?#iefix') format('embedded-opentype'),
+		 url('Aller/AllerDisplay_Std_Rg-webfont.otf') format('opentype'),
+         url('Aller/AllerDisplay_Std_Rg-webfont.svg#aller_displayregular') format('svg'),
+         url('Aller/AllerDisplay_Std_Rg-webfont.woff') format('woff'),
+         url('Aller/AllerDisplay_Std_Rg-webfont.woff2') format('woff2');
+}

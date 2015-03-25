@@ -1,0 +1,131 @@
+@CHARSET "UTF-8";
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,del, 
+dfn, em, font, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+caption {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-style: inherit;
+    vertical-align: baseline;
+}
+
+html, BODY {
+	text-align: center;
+	width: 100% !important;
+	height: 100% !important;
+}
+
+a {
+	text-decoration: none;
+}
+
+a img {
+	border: none;
+}
+
+.clearfix:before, .clearfix:after{
+	content: "\0020"; 
+	display: block; 
+	height: 0; 
+	visibility: hidden; 
+}
+.clearfix:after{ 
+	clear: both;
+}
+.clearfix {
+	zoom: 1;
+}
+
+.blocked{ display: block !important; }
+.marginLeft5{ margin-left: 5px !important; }
+.marginLeft10{ margin-left: 10px !important; }
+.marginLeft20{ margin-left: 20px  !important; }
+.marginRight5{ margin-right: 5px  !important; }
+.marginRight10{ margin-right: 10px  !important; }
+.marginRight20{ margin-right: 20px  !important; }
+.marginRight50{ margin-right: 50px  !important; }
+.marginTop5{ margin-top: 5px  !important; }
+.marginTop10{ margin-top: 10px  !important; }
+.marginTop20{ margin-top: 20px  !important; }
+.marginTop50{ margin-top: 50px  !important; }
+.marginTop65{ margin-top: 65px  !important; }
+.marginBottom5{ margin-bottom: 5px  !important; }
+.marginBottom10{ margin-bottom: 10px  !important; }
+.marginBottom20{ margin-bottom: 20px !important; }
+.paddingLeft5{ padding-left: 5px  !important; }
+.paddingLeft10{ padding-left: 10px  !important; }
+.paddingLeft20{ padding-left: 20px  !important; }
+.paddingRight10{ padding-right: 10px  !important; }
+.paddingRight20{ padding-right: 20px  !important; }
+.paddingRight50{ padding-right: 50px  !important; }
+.paddingTop5{ padding-top: 5px  !important; }
+.paddingTop10{ padding-top: 10px  !important; }
+.paddingTop20{ padding-top: 20px  !important; }
+.paddingTop35{ padding-top: 35px  !important; }
+.paddingTop50{ padding-top: 50px  !important; }
+.paddingBottom5{ padding-bottom: 5px  !important; }
+.paddingBottom10{ padding-bottom: 10px !important; }
+.paddingBottom20{ padding-bottom: 20px !important;}
+.clearRight { clear: right !important; }
+.clearLeft { clear: left !important; }
+.clearBoth { clear: both !important; }
+.left{ float: left !important; }
+.right{ float: right !important; }
+.text9{ font-size: 9px !important; }
+.text10{ font-size: 10px !important; }
+.text11{ font-size: 11px !important; }
+.text12{ font-size: 12px !important; }
+.text14{ font-size: 14px !important; }
+.text16{ font-size: 16px !important; }
+.text17{ font-size: 17px  !important; }
+.text18{ font-size: 18px  !important; }
+.text20{ font-size: 20px  !important; }
+.text24{ font-size: 24px  !important; }
+.textBold { font-weight: bold !important; }
+.textRight { text-align: right !important; }
+.textCenter { text-align: center !important; }
+.textLeft { text-align: left !important; }
+.colorGray1{ color: #949494  !important; }
+.colorGray2{ color: #eaeaea  !important; }
+.colorGreen1{ color: #688f3c  !important; }
+.colorGreen2{ color: #476f26  !important; }
+.colorBlue1{ color: #477990  !important; }
+.colorBlue2{ color: #055a7d  !important; }
+.colorWhite{ color: #fff  !important; }
+.colorBlack{ color: #000  !important; }
+.w400 { width: 400px !important; }
+.w300 { width: 300px !important; }
+.w250 { width: 250px !important; }
+.w200 { width: 200px !important; }
+.w175 { width: 175px !important; }
+.w150 { width: 150px !important; }
+.w140 { width: 140px !important; }
+.w100 { width: 100px !important; }
+.w90 { width: 90px !important; }
+.w75 { width: 75px !important; }
+.w50 { width: 50px !important; }
+.w40 { width: 40px !important; }
+.w20 { width: 20px !important; }
+.h25 { height: 25px !important }
+.h30 { height: 30px !important }
+.h40 { height: 40px !important }
+.h125 { height: 125px !important }
+.posAbsolute { position: absolute !important; }
+.posRelative { position: relative !important; }
+.hidden { display: none !important; }
+
+.container {
+	margin: 0 auto;
+	padding: 0px;
+	text-align: left;
+	width: 999px;
+	height: 100%;
+	border: none;
+}

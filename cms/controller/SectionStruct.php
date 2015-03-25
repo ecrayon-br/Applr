@@ -7,6 +7,9 @@ class SectionStruct_controller extends Section_controller {
 	 * ALL PROTECTED VARS BELOWS MUST BE SET UP WITH DATABASE AND RESPECTIVE DATA FOR APPLR TO WORK!
 	 * 
 	 */
+		/**
+		 * @todo set PROJECT_ID
+		 */
 	protected	$strTable			= 'sec_config';
 	protected	$arrTable			= array('sec_config');
 	
@@ -88,6 +91,9 @@ class SectionStruct_controller extends Section_controller {
 		}
 		
 		// Gets SECTION list
+		/**
+		 * @todo set PROJECT_ID
+		 */
 		$this->arrSecList	= array();
 		$arrTempSec			= $this->objModel->select(array('id','name','sys_folder_id','table_name'),'sec_config',array(),array(),array(),array(),0,null,'All');
 		foreach($arrTempSec AS $intKey => $objTemp) {
@@ -346,6 +352,9 @@ class SectionStruct_controller extends Section_controller {
 									);
 			
 			// Defines rel table name
+		/**
+		 * @todo set PROJECT_ID
+		 */
 			$strChildTable			= $this->objModel->recordExists('table_name','sec_config','id = ' . $_POST['child_id'],true);
 			if(!empty($strChildTable)) {
 				$_POST['table_name']	= 'sec_rel_' . $this->strSecTable . ($this->strSecTable == $strChildTable ? '_parent' : '') . '_rel_' . $strChildTable . ($this->strSecTable == $strChildTable ? '_child' : '');

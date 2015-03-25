@@ -311,7 +311,7 @@ class Model {
 			if(is_null($mxdColumnData) || strtoupper($mxdColumnData) == 'NULL') {
 				$mxdColumnData = null;
 			} elseif(is_string($mxdColumnData) && strpos($mxdColumnData,'"') !== 0 && strpos($mxdColumnData,"'") !== 0) {
-				$mxdColumnData = htmlentities($mxdColumnData,ENT_QUOTES,'UTF-8'); //$this->objConn->quote(htmlentities($mxdColumnData,ENT_QUOTES,'UTF-8'));
+				$mxdColumnData = htmlentities($mxdColumnData,ENT_QUOTES,'UTF-8',false); //$this->objConn->quote(htmlentities($mxdColumnData,ENT_QUOTES,'UTF-8'));
 			} elseif($mxdColumnData === "") {
 				$mxdColumnData = ''; //$this->objConn->quote('','text',true);
 			}
@@ -532,6 +532,9 @@ class Model {
 		if(!is_string($strContent)	|| empty($strContent))	$strContent = '';
 		
 		// Executes query
+		/**
+		 * @todo set PROJECT_ID
+		 */
 		$arrField = array(
 						'usr_data_id' 	=> $intUser,
 						'sec_config_id' => $intSection,
@@ -786,7 +789,7 @@ class Model {
 	/**
 	 * Get Applr section config info
 	 * 
-	 * @param	integer		$intSection	Section ID
+	 * @param	mixed	$mxdSection	Section ID or PERMALINK
 	 *
 	 * @return 	Object
 	 *
@@ -794,8 +797,17 @@ class Model {
 	 * @author 	Diego Flores <diegotf [at] gmail dot com>
 	 * 
 	 */
-	public function getSectionConfig($intSection) {
-		if(!is_numeric($intSection) || $intSection 	<= 0) return false;
+	/**
+	 * @todo set PROJECT_ID
+	 */
+	public function getSectionConfig($mxdSection) {
+		if(is_numeric($mxdSection) && $mxdSection > 0) {
+			$boolType = 0;
+		} elseif(is_string($mxdSection) && !empty($mxdSection)) {
+			$boolType = 1;
+		} else {
+			return false;
+		}
 		
 		$arrFields	= array(
 						'sec_config.*',
@@ -814,7 +826,7 @@ class Model {
 						'LEFT JOIN rel_sec_template AS tpl_type_home 	ON tpl_type_home.sec_config_id = sec_config.id AND tpl_type_home.sys_template_type_id = 3',
 						'LEFT JOIN sys_template AS tpl_file_home 		ON tpl_file_home.id = tpl_type_home.sys_template_id',
 						);
-		$objReturn 	= $this->select($arrFields,'sec_config',$arrJoins,'sec_config.id = ' . $intSection);
+		$objReturn 	= $this->select($arrFields,'sec_config',$arrJoins,(!$boolType ? 'sec_config.id = ' . $mxdSection : 'sec_config.permalink = "' . $mxdSection . '"'));
 		
 		if(!empty($objReturn)) {
 			return reset($objReturn);

@@ -1,0 +1,117 @@
+.box {
+	width: 310px;
+	position: relative;
+	top: 50%;
+	margin-top: -300px;
+}
+
+.box.right {
+	float: right;
+}
+
+.box .header {
+	height: 60px;
+	border-radius: 5px;
+    background: #A0C655;
+    margin-bottom: 10px;
+    text-align: center;
+    padding-top: 15px;
+}
+.box .header img {
+	max-width: 280px;
+}
+
+.box .body {
+	height: 375px;
+	border-radius: 5px;
+    background: white;
+    margin-bottom: 10px;
+    padding: 20px;
+    
+	font-family: "Aller";
+}
+	    
+.box .body .title {
+	font-size: 20px;
+	color: #344E7E;
+}
+
+.box .body .subtitle {
+	font-size: 14px;
+	color: #60877B;
+	text-align: center;
+	margin: 10px 0;
+}
+
+.box .body .form {
+	font-family: "Aller-Display";
+	font-size: 20px;
+	color: #344E7E;
+	text-align: center;
+}
+.box .body .form input[type=text]{
+	width: 200px;
+	height: 32px;
+	margin-bottom: 10px;
+	
+	border: 2px solid black;
+	border-radius: 10px;
+	background: #E5E6E7;
+}
+.box .button {
+	width: 250px;
+	height: 50px;
+	border: 1px solid black;
+	border-radius: 10px;
+	text-align: center;
+	margin: 0 auto;
+	line-height: 50px;
+	vertical-align: middle;
+	cursor: pointer;
+	
+	font-family: "Aller-Display";
+	font-size: 22px;
+	font-style: italic;
+	color: white;
+	text-transform: uppercase;
+	margin-bottom: 20px;
+}
+.box .button:hover {
+	text-decoration: underline;
+}
+.box .button.cyan {
+	background-color: #00AEEC;
+}
+.box .button.green {
+	background-color: #A0C655;
+}
+.box .button.orange {
+	background-color: #DC853D;
+}
+.box .button .icon {
+	width: 22px;
+	height: 22px;
+	display: inline-block;
+	vertical-align: middle;
+	margin-left: 5px;
+	margin-top: -2px;
+	
+	background: url(../content/image/destino/button-icon.png) no-repeat 0 0 !important;
+}
+.box .body .note {
+	font-family: "Aller";
+	font-size: 14px;
+	color: #344E7E;
+	text-align: center;
+}
+
+.box .footer {
+	height: 56px;
+	border-radius: 5px;
+    background: white;
+    padding: 20px;
+
+	font-family: "Aller";
+	font-size: 12px;
+	color: #60877B;
+}

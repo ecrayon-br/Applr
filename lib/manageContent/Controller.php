@@ -20,6 +20,9 @@ class manageContent_Controller extends CRUD_Controller {
 	 * ALL PROTECTED VARS BELOWS MUST BE SET UP WITH DATABASE AND RESPECTIVE DATA FOR APPLR TO WORK!
 	 *
 	 */
+	/**
+	 * @todo set PROJECT_ID
+	 */
 	protected	$strTable			= 'sec_config';
 	protected	$arrTable			= array('sec_config');
 	
@@ -152,7 +155,10 @@ class manageContent_Controller extends CRUD_Controller {
 		$arrFields[]= 'IF(rel_sec_sec.sec_config_id = ' . $intSecID . ',1,0) AS parent';
 		$arrWhere	= $this->arrRelWhereData;
 		$arrWhere[]	= '(rel_sec_sec.sec_config_id = ' . $this->intSecID . ' OR rel_sec_sec.child_id = ' . $intSecID . ')';
-		
+
+		/**
+		 * @todo set PROJECT_ID
+		 */
 		$this->objRelField = $this->objModel->select($arrFields,'sec_config',$this->arrRelJoinData,$arrWhere,$this->arrRelOrderData,$this->arrRelGroupData);
 		
 		if($this->objRelField === false) return false; else return true;
@@ -171,6 +177,9 @@ class manageContent_Controller extends CRUD_Controller {
 		if(empty($intSecID)) $intSecID = $this->intSecID;
 		
 		// Gets Struct Field list
+		/**
+		 * @todo set PROJECT_ID
+		 */
 		$this->objModel->arrTable		= $this->arrTable;
 		$this->objModel->arrFieldList	= $this->arrFieldList;
 		$this->objModel->arrJoinList	= $this->arrJoinList;
@@ -181,6 +190,9 @@ class manageContent_Controller extends CRUD_Controller {
 		$arrTempList = $this->objModel->getList();
 		
 		// Gets Relationship Field list
+		/**
+		 * @todo set PROJECT_ID
+		 */
 		$this->objModel->arrFieldList	= $this->arrRelFieldData;
 		$this->objModel->arrJoinList	= $this->arrRelJoinData;
 		$this->objModel->arrWhereList	= $this->arrRelWhereData;
@@ -303,7 +315,7 @@ class manageContent_Controller extends CRUD_Controller {
 		$this->objData		= array();
 		$this->objPrintData	= array();
 		
-		#echo '<pre>'; print_r($this->objField);
+		#echo '<pre>'; print_r($this->arrRelContent);
 		
 		foreach($mxdContent AS $intDataKey => $mxdData) {
 			$this->arrControl = array();
@@ -315,7 +327,7 @@ class manageContent_Controller extends CRUD_Controller {
 				} else {
 					$strTemp = end(explode('_',$strField));
 				}
-				#var_dump($strTemp);	
+					
 				switch($strTemp) {
 					case 'currency':
 						switch($this->objData[$intDataKey]->$strField) {
@@ -337,7 +349,7 @@ class manageContent_Controller extends CRUD_Controller {
 						}
 					break;
 					
-					case 'title':
+					case 'treatment':
 						switch($this->objData[$intDataKey]->$strField) {
 							default:
 							case 0:
@@ -603,15 +615,13 @@ class manageContent_Controller extends CRUD_Controller {
 						
 						if(empty($this->arrControl[$strField])) {
 							$this->arrControl[$strField] = true;
-							
 							if(isset($_FILES[$strField]) && !empty($_FILES[$strField]['name'])) {
-								$objUpload = new uploadFile_Controller($strField,ROOT_UPLOAD . Controller::permalinkSyntax($this->objSection->name));
+								$objUpload = new uploadFile_Controller($strField,ROOT_UPLOAD . $this->objSection->permalink);
 								$objReturn = $objUpload->uploadFile();
 								
-								$this->objData[$intDataKey]->$strField 					= $objReturn;
-								
-								$this->objPrintData[$intDataKey]->$strField->original 	= $objReturn;
-								$this->objPrintData[$intDataKey]->$strField->uri 		= HTTP . $this->objPrintData[$intDataKey]->$strField->original;
+								$this->objData[$intDataKey]->$strField 					= str_replace(DIR_UPLOAD,'',$objReturn);
+								$this->objPrintData[$intDataKey]->$strField->original 	= $this->objData[$intDataKey]->$strField;
+								$this->objPrintData[$intDataKey]->$strField->uri 		= HTTP_UPLOAD . $this->objPrintData[$intDataKey]->$strField->original;
 							} else {
 								$strOldField = $strField.'_old';
 								
@@ -621,11 +631,11 @@ class manageContent_Controller extends CRUD_Controller {
 								}
 								
 								$this->objPrintData[$intDataKey]->$strField->original 	= (empty($this->objData[$intDataKey]->$strField) ? '' : $this->objData[$intDataKey]->$strField);
-								$this->objPrintData[$intDataKey]->$strField->uri 		= (empty($this->objPrintData[$intDataKey]->$strField->original) ? '' : HTTP . $this->objPrintData[$intDataKey]->$strField->original);
+								$this->objPrintData[$intDataKey]->$strField->uri 		= (empty($this->objPrintData[$intDataKey]->$strField->original) ? '' : HTTP_UPLOAD . $this->objPrintData[$intDataKey]->$strField->original);
 							}
 						} else {
-							$this->objPrintData[$intDataKey]->$strField->original	= str_replace(HTTP,'',$this->objData[$intDataKey]->$strField);
-							$this->objPrintData[$intDataKey]->$strField->uri 		= (empty($this->objPrintData[$intDataKey]->$strField->original) ? '' : HTTP . $this->objPrintData[$intDataKey]->$strField->original);
+							$this->objPrintData[$intDataKey]->$strField->original	= str_replace(HTTP_UPLOAD,'',$this->objData[$intDataKey]->$strField);
+							$this->objPrintData[$intDataKey]->$strField->uri 		= (empty($this->objPrintData[$intDataKey]->$strField->original) ? '' : HTTP_UPLOAD . $this->objPrintData[$intDataKey]->$strField->original);
 						}
 						
 						unset($this->objData[$intDataKey]->$strOld);
@@ -642,6 +652,9 @@ class manageContent_Controller extends CRUD_Controller {
 								$this->objData[$intDataKey]->$strField['file'] = $objUpload->uploadFile();
 								
 								// Inserts DB registry
+								/**
+								 * @todo set PROJECT_ID
+								 */
 								$arrData = array(
 												'media_gallery_id'		=> null,
 												'usr_data_id'			=> $this->intUserID,
@@ -678,6 +691,9 @@ class manageContent_Controller extends CRUD_Controller {
 								$this->objData[$intDataKey]->$strField['file'] = $objUpload->uploadFile();
 								
 								// Inserts DB registry
+								/**
+								 * @todo set PROJECT_ID
+								 */
 								$arrData = array(
 												'media_gallery_id'		=> null,
 												'usr_data_id'			=> $this->intUserID,
@@ -1065,12 +1081,12 @@ class manageContent_Controller extends CRUD_Controller {
 				case '0':
 				case '1':
 					$strType 				= 'numeric_clearchar';
-					$this->arrRelContent[] 	= clone $objField;
+					$this->arrRelContent[$objField->field_name] 	= clone $objField;
 					break;
 	
 				case '2':
 					$strType 				= 'array';
-					$this->arrRelContent[] 	= clone $objField;
+					$this->arrRelContent[$objField->field_name] 	= clone $objField;
 					break;
 	
 				case 'time':

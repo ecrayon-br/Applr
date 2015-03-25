@@ -109,6 +109,9 @@ class Hotspot_controller extends Main_controller {
 		// If is new e-mail or previous unactive e-mail
 		if($objReturn) {
 			// Gets e-mail template
+			/**
+			 * @todo set PROJECT_ID
+			 */
 			$objMailContent 	= $this->objModel->select(array('email.id','email.subject','email.content_richtext','sys_template.filename'), 'aet_fl_email AS email',array('JOIN sec_rel_aet_fl_email_rel_aet_fl_destino AS rel','LEFT JOIN sys_template ON sys_template.id = email.mail_tpl'),'email.id = rel.parent_id AND rel.child_id = ' . $this->intContentID,array(),array(),0,null,'Row');
 			
 			// Sets template vars

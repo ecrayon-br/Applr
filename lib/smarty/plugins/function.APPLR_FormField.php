@@ -140,7 +140,7 @@ function smarty_function_APPLR_FormField($params,$template) {
 			
 			// DEFAULT FIELD
 			default:
-				$strField	= str_replace(array('#name#','name="','id="','for="','value="','</textarea'),array($strName, 'name="'.$strName, 'id="'.$strName, 'for="'.$strName, 'value="'.$params['value'], $params['value'].'</textarea'), $strHTML);
+				if(is_string($params['value'])) $strField	= str_replace(array('#name#','name="','id="','for="','value="','</textarea'),array($strName, 'name="'.$strName, 'id="'.$strName, 'for="'.$strName, 'value="'.$params['value'], $params['value'].'</textarea'), $strHTML);
 			    return $strField;
 			break;
 		}

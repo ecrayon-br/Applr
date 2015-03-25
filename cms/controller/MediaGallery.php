@@ -7,6 +7,9 @@ class MediaGallery_controller extends CRUD_Controller {
 	 * ALL PROTECTED VARS BELOWS MUST BE SET UP WITH DATABASE AND RESPECTIVE DATA FOR APPLR TO WORK!
 	 * 
 	 */
+		/**
+		 * @todo set PROJECT_ID
+		 */
 	protected	$strTable		= 'media_gallery';
 	protected	$arrTable		= array('media_gallery');
 	
@@ -80,6 +83,9 @@ class MediaGallery_controller extends CRUD_Controller {
 		$this->arrDirList	= array_diff($this->arrDirList,$arrMediaDir);
 		
 		// Gets SECTION list
+		/**
+		 * @todo set PROJECT_ID
+		 */
 		$this->arrSecList	= $this->objModel->select(array('id','name'),'sec_config',array(),array(),array(),array(),0,null,'All');
 		
 		$this->objSmarty->assign('arrDir',$this->arrDirList);
@@ -174,6 +180,9 @@ class MediaGallery_controller extends CRUD_Controller {
 	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
 	 *
 	 */
+		/**
+		 * @todo set PROJECT_ID
+		 */
 	public function gallery($intID = 0,$strTPL = '') {
 		if(!is_numeric($intID) || $intID <= 0) { 
 			$intID = intval($_SESSION[self::$strProjectName]['URI_SEGMENT'][4]); 

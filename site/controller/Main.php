@@ -62,7 +62,8 @@ class Main_controller extends manageContent_Controller {
 		$this->objModel->arrGroupData	= array($this->objModel->strTable . '.id');
 		
 		// Set Relationship SQL vars
-		foreach($this->arrRelContent AS $intRel => $objRel) {
+		$intRel = 0;
+		foreach($this->arrRelContent AS $objRel) {
 			$arrChildField = explode(',',$objRel->child_fields);
 			foreach($arrChildField AS &$strField) {
 				$strField = '\"' . $strField . '\":\"",IF(rel_ctn_' . $intRel . '.' . $strField. ' IS NULL,"",rel_ctn_' . $intRel . '.' . $strField. '),"\"';
@@ -73,6 +74,8 @@ class Main_controller extends manageContent_Controller {
 			$this->objModel->arrFieldData[]	= $this->objModel->arrFieldList[]	= 'CONCAT("[",GROUP_CONCAT(DISTINCT CONCAT("{\"id\":\"",rel_ctn_' . $intRel . '.id,"\",\"value\":\"",rel_ctn_' . $intRel . '.' . $objRel->field_rel. ',"\",' . implode(',',$arrChildField) . '}") SEPARATOR ","),"]") AS ' . $objRel->field_name;
 			$this->objModel->arrJoinData[]	= $this->objModel->arrJoinList[]	= 'LEFT JOIN ' . $objRel->table_name . ' AS rel_tbl_' . $intRel . ' ON rel_tbl_' . $intRel . '.parent_id = ' . $this->objModel->strTable . '.id';
 			$this->objModel->arrJoinData[]	= $this->objModel->arrJoinList[]	= 'LEFT JOIN ' . $arrTables[1] . ' AS rel_ctn_' . $intRel . ' ON rel_tbl_' . $intRel . '.child_id = rel_ctn_' . $intRel . '.id';
+			
+			$intRel++;
 		}
 		
 		if($boolGetContent) $this->getSectionContent();
@@ -121,7 +124,7 @@ class Main_controller extends manageContent_Controller {
 			// Defines TPL
 			$this->strTPL = (HOME == 1 ? $this->objSection->tpl_home : $this->objSection->tpl_content);
 		}
-		
+		#echo '<pre>'; print_r($this->objData);
 		if(!empty($_REQUEST['debug'])) { echo '<pre>'; print_r($this->objData); }
 	}
 	

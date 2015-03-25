@@ -1,12 +1,6 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>Página de Captura</title>
-</head>
-<body>
+{include file="struct/header.html"}
 
-<h3>Página de Captura!</h3>
+<div class="container">
 
 {if $error}
 <h4>{$error_msg}</h4>
@@ -14,8 +8,9 @@
 
 {if $alert}
 <h4>{$alert_msg}</h4>
-{else}
+{/if}
 
+{*
 {if $isLead}
 	Já tem Cadastro.
 {elseif $confirmLead}
@@ -27,16 +22,32 @@
 	Caso este não seja o seu e-mail, <a href="" title="CLIQUE AQUI">CLIQUE AQUI</a> para fazer o seu cadastro.
 	{/if}
 {else}
-	<h4>Insira seu e-mail</h4>
+*}
+	<div class="box right">
+		<div class="header"><img src="{$smarty.const.IMAGE}destino/logo.png" /></div>
+		
+		<div class="body">
+			<div class="title">
+				{$objData->title|APPLR_html_entity_decode|nl2br}
+			</div>
+			
+			<div class="subtitle">
+				{$objData->subtitle|APPLR_html_entity_decode|nl2br}
+			</div>
+			
+			<div class="form" action="{$smarty.const.HTTP}hotspot/save" hotspot-id="{$objData->id}" redirect-uri="{$smarty.const.SECTION_SEGMENT}/{$smarty.const.PERMALINK}">
+				{$objData->label} <input type="text" name="name" id="name" size=40 />
+				
+				<div class="button {$objData->button_color}">{$objData->button} {if $objData->button_icon_bool}<div class="icon"></div>{/if}</div>
+			</div>
+			
+			<div class="note">{$objData->note}</div>
+		</div>
+		
+		<div class="footer">{$objData->spam}</div>
+	</div>
+{*/if*}
 
-	<form action="{$smarty.const.HTTP}hotspot/save" name="form-user" method="post">
-		<input type="hidden" name="hotspot-id" value="{$objData->id}" />
-		<input type="hidden" name="redirect-uri" value="{$smarty.const.SECTION_SEGMENT}/{$smarty.const.PERMALINK}" />
-		<input type="text" name="name" id="name" size=40 /><br />
-		<input type="submit" value="Cadastrar" />
-	</form>
-	{/if}
-{/if}
-
+</div>
 </body>
 </html>

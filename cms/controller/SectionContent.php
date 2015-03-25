@@ -23,11 +23,15 @@ class SectionContent_controller extends manageContent_Controller {
 		parent::__construct($intSecID,true,CMS_ROOT_TEMPLATE);
 		
 		// Gets Section ID from Section Permalink
+		/**
+		 * @todo set PROJECT_ID
+		 * @todo review if/else block below
+		 */
 		if(!empty($intSecID)) {
 			$this->intSecID	= intval($intSecID);
 			$strSection		= $this->objModel->recordExists('permalink','sec_config','id = "' . $this->intSecID . '"',true);
 		} else {
-			$strSection		= (!in_array($_SESSION[self::$strProjectName]['URI_SEGMENT'][3],array('update','insert','add','list')) ? $_SESSION[self::$strProjectName]['URI_SEGMENT'][3] : $_SESSION[self::$strProjectName]['URI_SEGMENT'][4]);
+			$strSection		= (!in_array($_SESSION[self::$strProjectName]['URI_SEGMENT'][3],array('update','insert','add','list','duplicate')) ? $_SESSION[self::$strProjectName]['URI_SEGMENT'][3] : $_SESSION[self::$strProjectName]['URI_SEGMENT'][4]);
 			$this->intSecID	= intval($this->objModel->recordExists('id','sec_config','permalink = "' . $strSection . '"',true));
 			
 			if(empty($this->intSecID)) {
@@ -71,6 +75,28 @@ class SectionContent_controller extends manageContent_Controller {
 		if($boolRenderTemplate) $this->_read();
 	}
 	
+	public function duplicate() {
+		// Gets parent content
+		$this->update(0,false);
+		
+		// Setups data object
+		$this->objRawData->id 	= null;
+		$this->objRawData->name = 'Copy ' . date('YmdHis - ') . $this->objRawData->name; 
+		foreach($this->objPrintData AS $strKey => $mxdData) {
+			if(is_array($mxdData)) {
+				if($this->arrRelContent[$strKey]->type == 2) {
+					$this->objRawData->$strKey = reset($this->objRawData->$strKey)->id;
+				} else {
+					foreach($this->objRawData->$strKey AS &$objData) {
+						$objData = $objData->id;
+					}
+				}
+			}
+		}
+		#echo '<pre>'; print_r($this->objRawData); die();
+		$this->add($this->objRawData);
+	}
+	
 	/**
 	 * Shows INSERT / UPDATE form interface
 	 *
@@ -82,23 +108,24 @@ class SectionContent_controller extends manageContent_Controller {
 	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
 	 *
 	 */
-	public function _create($intID = 0) {
+	public function _create($intID = 0, $boolRenderTemplate = true) {
 		if($intID > 0) {
 			$this->objRawData = $this->objModel->getData($intID);
-			#echo '<pre>'; print_r($this->objRawData);
+			
 			foreach($this->arrRelContent AS $objRel) {
 				if($objRel->type == 2) {
 					$this->objRawData->{$objRel->field_name} = json_decode( preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $this->objRawData->{$objRel->field_name}));
+					$this->objPrintData->{$objRel->field_name} = $this->objRawData->{$objRel->field_name};
 				}
 			}
-			#echo '<pre>'; print_r($this->objRawData);
+			
 			$this->objPrintData = $this->setupFieldSufyx($this->objRawData,array_keys((array) $this->objRawData),2);
-			#echo '<pre>'; print_r($this->objPrintData);
+			
 			$this->objSmarty->assign('objData',$this->objPrintData);
 			
 		}
 		
-		$this->renderTemplate(true,$this->strModule . '_form.html');
+		if($boolRenderTemplate) $this->renderTemplate(true,$this->strModule . '_form.html');
 	}
 	
 	/**
@@ -129,7 +156,7 @@ class SectionContent_controller extends manageContent_Controller {
 	 * @todo Check $this->objRelField and $this->objRelContent CONCAT/GROUP_CONCAT
 	 *
 	 */
-	public function update($intID = 0) {
+	public function update($intID = 0,$boolRenderTemplate = true) {
 		if(!is_numeric($intID) || $intID <= 0) { 
 			$intID = intval($_SESSION[self::$strProjectName]['URI_SEGMENT'][5]); 
 		}
@@ -139,7 +166,8 @@ class SectionContent_controller extends manageContent_Controller {
 			$this->_read(); exit();
 		}
 		
-		foreach($this->arrRelContent AS $intRel => $objRel) {
+		$intRel = 0;
+		foreach($this->arrRelContent AS $objRel) {
 			$arrChildField = explode(',',$objRel->child_fields);
 			foreach($arrChildField AS &$strField) {
 				$strField = '\"' . $strField . '\":\"",IF(rel_ctn_' . $intRel . '.' . $strField. ' IS NULL,"",rel_ctn_' . $intRel . '.' . $strField. '),"\"';
@@ -147,12 +175,14 @@ class SectionContent_controller extends manageContent_Controller {
 			
 			$arrTables = explode('_rel_',str_replace(array('sec_rel_','_parent','_child'),'',$objRel->table_name));
 			
-			$this->objModel->arrFieldData[]	= $this->objModel->arrFieldList[]	= 'CONCAT("[",GROUP_CONCAT(DISTINCT CONCAT("{\"id\":\"",rel_ctn_' . $intRel . '.id,"\",\"value\":\"",rel_ctn_' . $intRel . '.' . $objRel->field_rel. ',"\",' . implode(',',$arrChildField) . '}") SEPARATOR ","),"]") AS ' . $objRel->field_name;
-			$this->objModel->arrJoinData[]	= $this->objModel->arrJoinList[]	= 'LEFT JOIN ' . $objRel->table_name . ' AS rel_tbl_' . $intRel . ' ON rel_tbl_' . $intRel . '.parent_id = ' . $this->objModel->strTable . '.id';
-			$this->objModel->arrJoinData[]	= $this->objModel->arrJoinList[]	= 'LEFT JOIN ' . $arrTables[1] . ' AS rel_ctn_' . $intRel . ' ON rel_tbl_' . $intRel . '.child_id = rel_ctn_' . $intRel . '.id';
+			$this->objModel->arrFieldData[$objRel->field_name]	= $this->objModel->arrFieldList[$objRel->field_name]	= 'CONCAT("[",GROUP_CONCAT(DISTINCT CONCAT("{\"id\":\"",rel_ctn_' . $intRel . '.id,"\",\"value\":\"",rel_ctn_' . $intRel . '.' . $objRel->field_rel. ',"\",' . implode(',',$arrChildField) . '}") SEPARATOR ","),"]") AS ' . $objRel->field_name;
+			$this->objModel->arrJoinData['rel_tbl_' . $intRel]	= $this->objModel->arrJoinList['rel_tbl_' . $intRel]	= 'LEFT JOIN ' . $objRel->table_name . ' AS rel_tbl_' . $intRel . ' ON rel_tbl_' . $intRel . '.parent_id = ' . $this->objModel->strTable . '.id';
+			$this->objModel->arrJoinData['rel_ctn_' . $intRel]	= $this->objModel->arrJoinList['rel_ctn_' . $intRel]	= 'LEFT JOIN ' . $arrTables[1] . ' AS rel_ctn_' . $intRel . ' ON rel_tbl_' . $intRel . '.child_id = rel_ctn_' . $intRel . '.id';
+			
+			$intRel++;
 		}
 		
-		$this->_create($intID);
+		$this->_create($intID,$boolRenderTemplate);
 	}
 	
 	/**
@@ -171,7 +201,7 @@ class SectionContent_controller extends manageContent_Controller {
 	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
 	 *
 	 */
-	public function add() {
+	public function add($objData = null) {
 		$this->unsecureGlobals();
 		
 		// Sets Section's DB Entity name
@@ -195,7 +225,8 @@ class SectionContent_controller extends manageContent_Controller {
 		$this->arrFieldType['seo_description']	= 'string_empty';
 		$this->arrFieldType['seo_keywords']		= 'string_empty';
 		
-		$objData								= (object) $_POST;
+		$objData								= (is_null($objData) || !is_object($objData) ? (object) $_POST : $objData);
+		
 		$objData->lang_content					= 0;
 		$objData->date_create					= date('YmdHis');
 		
@@ -205,32 +236,32 @@ class SectionContent_controller extends manageContent_Controller {
 		} else {
 			$objData->permalink = $this->objModel->recordExists('permalink',$this->strTable,'id = "' . $objData->id . '"',true);
 		}
+		
+		if(empty($objData->sys_language_id))	$objData->sys_language_id	= $objData->sys_language_id	= LANGUAGE;
+		if(empty($objData->date_publish))	{
+			$objData->date_publish	= date('YmdHis');
+		} else {
+			$objData->date_publish	.= ' ' . $objData->time_publish;
+		}
+		if(empty($objData->date_expire))	{
+			$objData->date_expire		= '00000000000000';
+		} else {
+			$objData->date_expire		.= ' ' . $objData->time_expire;
+		}
 
 		$this->objData	= $this->setupFieldSufyx($objData,array_keys((array) $objData),1);
-		
-		if(empty($this->objData->sys_language_id))	$this->objData->sys_language_id	= $objData->sys_language_id	= LANGUAGE;
-		if(empty($this->objData->date_publish))	{
-			$this->objData->date_publish	= date('YmdHis');
-		} else {
-			$this->objData->date_publish	.= ' ' . $this->objData->time_publish;
-		}
-		if(empty($this->objData->date_expire))	{
-			$this->objData->date_expire		= '00000000000000';
-		} else {
-			$this->objData->date_expire		.= ' ' . $this->objData->time_expire;
-		}
 		
 		// Insert / Updates data
 		$this->_update((array) $this->objData,false);
 		
 		// Formats data array to screen
-		$this->objData	= $this->setupFieldSufyx($this->objData,array_keys((array) $this->objData),2);
-		#echo '<pre>'; print_r($this->objData); die();
+		$this->objPrintData	= reset($this->objPrintData);
+		
 		// Shows Section's form template
-		if(empty($objData->id)) {
+		if(empty($this->objPrintData->id)) {
 			$this->insert();
 		} else {
-			$this->update($objData->id);
+			$this->update($this->objPrintData->id);
 		}
 		
 		$this->secureGlobals();

@@ -1,0 +1,103 @@
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	
+	<title>
+		{APPLR_getSectionName sectionId=$smarty.const.SECTION assign="strSection"}
+		
+		{if $smarty.const.ACTION == 'siteMap'}
+			{$T_siteMap}
+		{elseif $smarty.const.ACTION != '' && $smarty.const.ACTION != 'FB-share'}
+			
+		{/if}
+		
+		{if is_object($objData) && $objData->name != $smarty.const.TITLE && $objData->name != $strSection && $objData->name|lower != "home"}
+			{$objData->name} | 
+		{/if}
+		
+		{if $smarty.const.SECTION != $smarty.const.MAIN_SECTION}{$strSection} | {/if}
+		
+		{$smarty.const.TITLE}
+	</title>
+	
+	<meta property="og:title" 		content="{if is_object($objData) && $objData->name != $smarty.const.TITLE}{$objData->name} | {/if}{if $smarty.const.SECTION != $smarty.const.MAIN_SECTION}{$strSection} | {/if}{$smarty.const.TITLE}" />
+	<meta property="og:site_name" 	content="{if is_object($objData) && $objData->name != $smarty.const.TITLE}{$objData->name} | {/if}{if $smarty.const.SECTION != $smarty.const.MAIN_SECTION}{$strSection} | {/if}{$smarty.const.TITLE}" />
+	<meta property="og:description" content="{$objData->seo_description}" 	/>
+	<meta property="og:keywords" 	content="{$objData->seo_keywords}" 		/>
+	<meta property="og:image" 		content="" />
+	<meta property="og:type" 		content="company" />
+	<meta property="og:url" 		content="{$objData->url_permalink}" />
+	
+	<meta name="title" 				content="{if is_object($objData) && $objData->name != $smarty.const.TITLE}{$objData->name} | {/if}{if $smarty.const.SECTION != $smarty.const.MAIN_SECTION}{$strSection} | {/if}{$smarty.const.TITLE}" />
+	<meta name="site_name" 			content="{if is_object($objData) && $objData->name != $smarty.const.TITLE}{$objData->name} | {/if}{if $smarty.const.SECTION != $smarty.const.MAIN_SECTION}{$strSection} | {/if}{$smarty.const.TITLE}" />
+	<meta name="description" 		content="{$objData->seo_description}" 	/>
+	<meta name="keywords" 			content="{$objData->seo_keywords}" 		/>
+	<meta name="image_src" 			content="" />
+	<meta name="type" 				content="company" />
+	<meta name="url" 				content="{$objData->url_permalink}" />
+	
+	<meta property="fb:admins" content="{$smarty.const.FB_ADMIN_ID}"/>
+	<meta property="fb:app_id" content="{$smarty.const.FB_APP_ID}"/>
+	
+	<link rel="stylesheet" type="text/css" media="screen" href="{$smarty.const.TEMPLATE}css/sys/main.css" />
+	
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.js"></script>
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+   	<script src="{$smarty.const.TEMPLATE}scrips/core/jquery.DOMWindow.js" type="text/javascript" charset="utf-8"></script>
+	<!--[if lt IE 9]> <script src="{$smarty.const.TEMPLATE}scrips/core/jquery.backgroundSize.js"></script> <![endif]-->
+	
+	<script type="text/javascript">
+	{foreach from=$smarty.const item="strConst"}
+		var {$strConst} = '{$smarty.const.$strConst}';
+	{/foreach}
+	
+	{if empty($smarty.request.ib_preview)}
+	{literal}
+		if(window.location.href.indexOf(URI_DOMAIN) > 0 && GA_ID != '' && GA_ID !== null) {
+		  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+		  ga('create', GA_ID, 'auto');
+		  ga('send', 'pageview');
+		}
+	{/literal}
+	{/if}
+
+	<!-- Facebook Conversion Code for 7F-FB -->
+	{literal}
+		(function(d, s, id) {
+		  var js, fjs = d.getElementsByTagName(s)[0];
+		  if (d.getElementById(id)) return;
+		  js = d.createElement(s); js.id = id;
+		  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&appId=265091830343348&version=v2.0";
+		  fjs.parentNode.insertBefore(js, fjs);
+		}(document, 'script', 'facebook-jssdk'));
+		
+		{*
+		(function() {
+		var _fbq = window._fbq || (window._fbq = []);
+		if (!_fbq.loaded) {
+		var fbds = document.createElement('script');
+		fbds.async = true;
+		fbds.src = '//connect.facebook.net/en_US/fbds.js';
+		var s = document.getElementsByTagName('script')[0];
+		s.parentNode.insertBefore(fbds, s);
+		_fbq.loaded = true;
+		}
+		})();
+		
+		window._fbq = window._fbq || [];
+		
+		window._fbq.push(['track', '6023451022473', {'value':'0.01','currency':'BRL'}]);
+		*}
+		
+	{/literal}
+	</script>
+	
+	<script type="text/javascript" src="{$smarty.const.TEMPLATE}scrips/sys/main.js"></script>
+
+	<!--[if lt IE 9]>
+	<script type="text/javascript">
+	{literal}jQuery(document).ready(function($) { $(document.body).css({backgroundSize: "cover"}); });{/literal}
+	</script>
+	<![endif]-->

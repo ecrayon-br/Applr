@@ -7,6 +7,9 @@ class Media_controller extends CRUD_Controller {
 	 * ALL PROTECTED VARS BELOWS MUST BE SET UP WITH DATABASE AND RESPECTIVE DATA FOR APPLR TO WORK!
 	 * 
 	 */
+		/**
+		 * @todo set PROJECT_ID
+		 */
 	protected	$strTable		= 'media_data';
 	protected	$arrTable		= array('media_data','media_gallery');
 	
@@ -46,6 +49,9 @@ class Media_controller extends CRUD_Controller {
 		parent::__construct($boolRenderTemplate,true,CMS_ROOT_TEMPLATE);
 		
 		// Gets GALLERY list
+		/**
+		 * @todo set PROJECT_ID
+		 */
 		$this->arrGallList	= (array) $this->objModel->select(array('id','name','dirpath'),'media_gallery',array(),array(),array(),array(),0,null,'All');
 		
 		$this->objSmarty->assign('arrGall',$this->arrGallList);
@@ -70,6 +76,9 @@ class Media_controller extends CRUD_Controller {
 	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
 	 *
 	 */
+		/**
+		 * @todo set PROJECT_ID
+		 */
 	public function add() {
 		$this->unsecureGlobals();
 		

@@ -82,6 +82,7 @@ class CRUD_Model extends Model {
 	 * @since 	2013-02-09
 	 * @author 	Diego Flores <diegotf [at] gmail [dot] com>
 	 *
+	 * @todo set list limit
 	 */
 	public function getList() {
 		

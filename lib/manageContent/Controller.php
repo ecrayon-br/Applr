@@ -46,7 +46,7 @@ class manageContent_Controller extends CRUD_Controller {
 	protected	$arrGroupData		= array('rel_sec_struct.id');
 	protected	$arrOrderData		= array('rel_sec_struct.id');
 	
-	protected	$arrRelFieldData	= array('rel_sec_sec.*','sec_config_order.field_order','sec_config_order.type', 'rel_sec_language.name AS child_name', 'child_config.sys_folder_id AS child_sys_folder_id', 'GROUP_CONCAT(DISTINCT rel_sec_struct.field_name SEPARATOR ",") AS child_fields');
+	protected	$arrRelFieldData	= array('rel_sec_sec.*','sec_config_order.field_order','sec_config_order.type', 'rel_sec_language.name AS child_name', 'child_config.table_name AS child_section_table_name', 'child_config.permalink AS child_section_permalink', 'child_config.sys_folder_id AS child_sys_folder_id', 'CONCAT(GROUP_CONCAT(DISTINCT rel_sec_struct.field_name SEPARATOR ","),",date_create,date_publish,date_expire,seo_description,seo_keywords,permalink") AS child_fields');
 	protected	$arrRelJoinData		= array('JOIN rel_sec_sec','JOIN sec_config_order ON sec_config_order.type = 2', 'JOIN rel_sec_language', 'JOIN sec_config AS child_config', 'JOIN rel_sec_struct ON rel_sec_struct.sec_config_id = child_id');
 	protected	$arrRelWhereData	= array(
 											'rel_sec_sec.sec_config_id = sec_config.id',

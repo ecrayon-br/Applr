@@ -181,7 +181,6 @@ class CRUD_Controller extends Controller {
 		
 		if(isset($this->arrFieldType['usr_data_id'])) $arrData['usr_data_id'] = $this->intUserID;
 		
-		
 		if(($strField = $this->validateParamsArray($arrData,$this->arrFieldType,false)) === true) {
 			if(($intID = $this->objModel->replace($this->strTable,$arrData,true,(empty($arrData['id']) ? false : true))) !== false) {
 				

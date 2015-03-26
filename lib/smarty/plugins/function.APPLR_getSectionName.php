@@ -20,7 +20,7 @@ function smarty_function_APPLR_getSectionName($params, &$template) {
 	
 	$objController = new Controller();
 	
-	$strSection = $objController->recordExists('rel_sec_language.name', 'rel_sec_language', 'sys_language_id = ' . $params['languageId'] . ' AND sec_config_id = ' . $params['sectionId']);
+	$strSection = $objController->recordExists('rel_sec_language.name', 'rel_sec_language', 'sys_language_id = ' . $params['languageId'] . ' AND sec_config_id = ' . $params['sectionId'],1);
 
 	if(isset($params['assign']) && !empty($params['assign'])) {
 		$template->assign($params['assign'],$strSection);

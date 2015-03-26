@@ -243,12 +243,13 @@ class Controller {
 					$this->objSection = $this->objModel->getSectionConfig($_REQUEST[VAR_SECTION]);
 					
 					// Gets LANGUAGE ID
-					$mxdLanguage 	= (isset($this->arrURL[3]) ? $this->arrURL[3] : (isset($this->arrURL[2]) ? $this->arrURL[2] : 0) );
+					$mxdLanguage 	= (!empty($this->arrURL[3]) ? $this->arrURL[3] : (!empty($this->arrURL[2]) ? $this->arrURL[2] : 0) );
 					$tempLanguage = $this->objModel->select('id','sys_language','','(acronym = "' . $mxdLanguage . '" ' . (is_numeric($mxdLanguage) ? ' OR id = "' . $mxdLanguage . '"' : '') . ') AND status = 1')->id;
 		
 					if(MDB2::isError($tempLanguage) || empty($tempLanguage)) {
 						$tempLanguage = (isset($_SESSION[self::$strProjectName][VAR_LANGUAGE]) ? $_SESSION[self::$strProjectName][VAR_LANGUAGE] : MAIN_LANGUAGE);
 					}
+					#var_dump($tempLanguage);
 					
 					$_SESSION[self::$strProjectName][VAR_LANGUAGE] = $tempLanguage;
 					$strLangWhere = ' AND sys_language_id = ' . $tempLanguage;
@@ -266,18 +267,18 @@ class Controller {
 							$_REQUEST[VAR_CONTENT] = $this->objModel->select('MAX(id)',$strTable,'',$strWhere);
 						}
 					}
-					
+					#var_dump($this->objSection->permalink); die();
 					define('SECTION'			, $_REQUEST[VAR_SECTION]);
 					define('SECTION_SEGMENT'	, $this->arrURL[1]);
-					define('SECTION_PERMALINK'	, $this->objSection->permalink);
+					define('SECTION_PERMALINK'	, HTTP . $this->objSection->permalink . '/');
 					define('PERMALINK'			, (!empty($this->arrURL[2]) ? $this->arrURL[2] : ''));
 					define('URL_PERMALINK'		, HTTP . SECTION_PERMALINK . '/' . (!empty($this->arrURL[2]) ?  $this->arrURL[2] : ''));
 				} else {
 					$strSectionPermalink = (empty($this->arrURL[4]) ? $this->arrURL[3] : $this->arrURL[4]);
 					$this->objSection = $this->objModel->getSectionConfig($strSectionPermalink);
 					
-					define('SECTION_PERMALINK'	, $this->objSection->permalink);
-					define('SECTION_SEGMENT'	, '');
+					define('SECTION_PERMALINK'	, HTTP . $this->objSection->permalink . '/');
+					define('SECTION_SEGMENT'	, $this->objSection->permalink);
 				}
 			} else {
 				if(isset($_REQUEST[VAR_SECTION])) {
@@ -287,8 +288,8 @@ class Controller {
 				}
 				$this->objSection = $this->objModel->getSectionConfig(SECTION);
 				
-				define('SECTION_PERMALINK'	, $this->objSection->permalink);
-				define('SECTION_SEGMENT'	, '');
+				define('SECTION_PERMALINK'	, HTTP . $this->objSection->permalink . '/');
+				define('SECTION_SEGMENT'	, $this->objSection->permalink);
 			}
 			
 			// Language
@@ -364,6 +365,13 @@ class Controller {
 			define('ACTION',$_REQUEST[VAR_ACTION]);
 		} else {
 			define('ACTION','');
+		}
+		
+		// Template
+		if(isset($_REQUEST[VAR_TEMPLATE])) {
+			define('TEMPLATE_FILE',$_REQUEST[VAR_TEMPLATE]);
+		} else {
+			define('TEMPLATE_FILE','');
 		}
 		
 		// Search
@@ -988,7 +996,7 @@ class Controller {
 	 * 
 	 */
 	public function escapeXSS($strData) {
-		if((!is_string($strData) && !is_numeric($strData)) || empty($strData))	return false;
+		if( (!is_string($strData) && !is_numeric($strData)) || ($strData != 0 && empty($strData)) )	return false;
 		
 		return strip_tags(str_replace(self::$arrSpecialChar,'',self::replaceQuoteAndSlash($strData)));
 	}

@@ -1,28 +1,5 @@
 {include file="struct/header.html"}
 
-<div class="container">
-
-{if $error}
-<h4>{$error_msg}</h4>
-{/if}
-
-{if $alert}
-<h4>{$alert_msg}</h4>
-{/if}
-
-{*
-{if $isLead}
-	Já tem Cadastro.
-{elseif $confirmLead}
-	{if !$hideResend}
-	<h4>
-		Você já faz parte do nosso banco de dados. Porém, é preciso confirmar o seu endereço de e-mail.<br />
-		Se desejar, <a href="{$smarty.const.HTTP}hotspot/save/?name={$smarty.cookies.APPLR_confirmLead}&hotspot-id={$objData->id}&redirect-uri={$smarty.const.SECTION_SEGMENT}/{$smarty.const.PERMALINK}" title="CLIQUE AQUI">CLIQUE AQUI</a> para reenviar a mensagem com o link de confirmação para <u>{$smarty.cookies.APPLR_confirmLead}</u>.<br /><br />
-	</h4>
-	Caso este não seja o seu e-mail, <a href="" title="CLIQUE AQUI">CLIQUE AQUI</a> para fazer o seu cadastro.
-	{/if}
-{else}
-*}
 	<div class="box right">
 		<div class="header"><img src="{$smarty.const.IMAGE}destino/logo.png" /></div>
 		
@@ -35,19 +12,27 @@
 				{$objData->subtitle|APPLR_html_entity_decode|nl2br}
 			</div>
 			
-			<div class="form" action="{$smarty.const.HTTP}hotspot/save" hotspot-id="{$objData->id}" redirect-uri="{$smarty.const.SECTION_SEGMENT}/{$smarty.const.PERMALINK}">
+			{if $confirmLead}
+			<div class="msg green show">
+			Você já faz parte do nosso banco de dados. Porém, é preciso confirmar o seu e-mail.<br /><br />
+			<div class="button inline" hotspot-id="{$objData->id}" name="{$smarty.cookies.APPLR_confirmLead}">CLIQUE AQUI</div> para reenviar o link de confirmação para <u>{$smarty.cookies.APPLR_confirmLead}</u>.
+			</div>
+			<div class="msg hide"></div>
+			{else}
+			<div class="form" hotspot-id="{$objData->id}" {*redirect-uri="{$smarty.const.SECTION_SEGMENT}/{$smarty.const.PERMALINK}"*}>
 				{$objData->label} <input type="text" name="name" id="name" size=40 />
 				
 				<div class="button {$objData->button_color}">{$objData->button} {if $objData->button_icon_bool}<div class="icon"></div>{/if}</div>
 			</div>
 			
+			<div class="msg hide"></div>
+
 			<div class="note">{$objData->note}</div>
+			{/if}
+			
 		</div>
 		
 		<div class="footer">{$objData->spam}</div>
 	</div>
-{*/if*}
 
-</div>
-</body>
-</html>
+{include file="struct/footer.html"}

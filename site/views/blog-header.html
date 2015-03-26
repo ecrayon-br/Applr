@@ -1,0 +1,22 @@
+<div class="header">
+	<a href="" title=""><img src="{$smarty.const.TEMPLATE}content/image/blog/logo.png" /></a>
+	
+	{if !$isLead}
+	<div class="mailing">
+		<div class="form" hotspot-id="">
+			Receba dicas e conteúdos exclusivos
+			<input type="text" name="name" id="name" placeholder="Digite aqui o seu melhor e-mail" />
+			<div class="button green">Quero receber!</div>
+		</div>
+		<div class="msg hide">
+			Lorem ipsum
+		</div>
+	</div>
+	{/if}
+</div>
+<div class="menu">
+	<a href="{$smarty.const.SECTION_PERMALINK}sobre" title="Sobre">Sobre</a>
+	<a href="{$smarty.const.HTTP}contato" title="Contato">Contato</a>
+	<a href="{$smarty.const.SECTION_PERMALINK}" title="Início">Início</a>
+</div>
+<script type="text/javascript" src="{$smarty.const.TEMPLATE}scripts/blog-header.js" charset="utf-8"></script>

@@ -3,23 +3,27 @@
 {include file="blog-header.html"}
 
 <div class="content">
-	
 	<div class="list">
 	{if is_array($objData)}
-		{include file="blog-grid-content.html"}
+		{foreach from=$objData item="objTemp" name="contentList"}
+		<div class="box">
+			{if $objTemp->private_bool}<div class="tag"></div>{/if}
+			<h1><a href="{$objTemp->url_permalink}" title="{$objTemp->name}">{$objTemp->name}</a></h1>
+			<h5>Postado em {$objTemp->content_date->formatted}</h5>
+			<a href="">{$objTemp->content_richtext|APPLR_html_entity_decode|truncate:280:"...":true}</a>
+			
+			<div class="fb-like" data-href="{$objTemp->url_permalink}" data-layout="button_count" data-action="like" data-show-faces="false" data-share="true"></div>
+			<br class="clearfix" />
+		</div>
+		{/foreach}
 	{else}
 		<div class="box">
 		{if $objData->private_bool && !$isLead}
-			<div class="tag"></div>
-			<h1>Conteúdo exclusivo!</h1>
-			Este conteúdo é exclusivo para os assinantes do blog!<br />
-			Caso deseje fazer parte deste seleto grupo, informe seu e-mail e clique em "Quero Receber!" no cabeçalho da página.<br /><br />
-			Muito obrigado e um grande abraço!<br /><br />
-			<b>Edilson Rahal Tavares.</b>
+			<h1>Voc� precisa ser cadastrado!</h1>
 		{else}
 			{if $objData->private_bool}<div class="tag"></div>{/if}
 			<h1>{$objData->name}</h1>
-			{if !empty($objData->content_date->original->Timestamp)}<h5>Postado em {$objData->content_date->formatted}</h5>{/if}
+			<h5>Postado em {$objData->content_date->formatted}</h5>
 			{$objData->content_richtext|APPLR_html_entity_decode}
 			<div class="fb-like" data-href="{$objData->url_permalink}" data-layout="button_count" data-action="like" data-show-faces="false" data-share="true"></div>
 			<br class=" clearfix" />

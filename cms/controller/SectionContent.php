@@ -119,8 +119,8 @@ class SectionContent_controller extends manageContent_Controller {
 				}
 			}
 			
-			$this->objPrintData = $this->setupFieldSufyx($this->objRawData,array_keys((array) $this->objRawData),2);
-			
+			if(empty($this->objPrintData->id)) $this->objPrintData = $this->setupFieldSufyx($this->objRawData,array_keys((array) $this->objRawData),2);
+			#echo '<pre>'; print_r($this->objPrintData);			
 			$this->objSmarty->assign('objData',$this->objPrintData);
 			
 		}
@@ -168,17 +168,24 @@ class SectionContent_controller extends manageContent_Controller {
 		
 		$intRel = 0;
 		foreach($this->arrRelContent AS $objRel) {
+			$arrTables = explode('_rel_',str_replace(array('sec_rel_','_parent','_child'),'',$objRel->table_name));
+			$strTable = ($objRel->parent ? $arrTables[1] : $arrTables[0]); 
+			
 			$arrChildField = explode(',',$objRel->child_fields);
 			foreach($arrChildField AS &$strField) {
-				$strField = '\"' . $strField . '\":\"",IF(rel_ctn_' . $intRel . '.' . $strField. ' IS NULL,"",rel_ctn_' . $intRel . '.' . $strField. '),"\"';
+				if($strField != 'permalink') {
+					$strField = '\"' . $strField . '\":\"",IF(' . $arrTables[1] . '.' . $strField. ' IS NULL,"",' . $arrTables[1] . '.' . $strField. '),"\"';
+				} else {
+					$strAttrPermalink = 'IF(' . $arrTables[1] . '.' . $strField. ' IS NULL,"", CONCAT("' . $objRel->child_section_permalink . '/",' . $arrTables[1] . '.' . $strField. ') )';
+					$strField = '\"' . $strField . '\":\"",' . $strAttrPermalink . ',"\"';
+				}
 			}
-			
-			$arrTables = explode('_rel_',str_replace(array('sec_rel_','_parent','_child'),'',$objRel->table_name));
-			
-			$this->objModel->arrFieldData[$objRel->field_name]	= $this->objModel->arrFieldList[$objRel->field_name]	= 'CONCAT("[",GROUP_CONCAT(DISTINCT CONCAT("{\"id\":\"",rel_ctn_' . $intRel . '.id,"\",\"value\":\"",rel_ctn_' . $intRel . '.' . $objRel->field_rel. ',"\",' . implode(',',$arrChildField) . '}") SEPARATOR ","),"]") AS ' . $objRel->field_name;
+			$arrChildField[] = '\"url_permalink\":\"", CONCAT("' . HTTP . '",' . $strAttrPermalink . '),"\"';
+				
+			$this->objModel->arrFieldData[$objRel->field_name]	= $this->objModel->arrFieldList[$objRel->field_name]	= 'CONCAT("[",GROUP_CONCAT(DISTINCT CONCAT("{\"id\":\"",' . $arrTables[1] . '.id,"\",\"value\":\"",' . $arrTables[1] . '.' . $objRel->field_rel. ',"\",' . implode(',',$arrChildField) . '}") SEPARATOR ","),"]") AS ' . $objRel->field_name;
 			$this->objModel->arrJoinData['rel_tbl_' . $intRel]	= $this->objModel->arrJoinList['rel_tbl_' . $intRel]	= 'LEFT JOIN ' . $objRel->table_name . ' AS rel_tbl_' . $intRel . ' ON rel_tbl_' . $intRel . '.parent_id = ' . $this->objModel->strTable . '.id';
-			$this->objModel->arrJoinData['rel_ctn_' . $intRel]	= $this->objModel->arrJoinList['rel_ctn_' . $intRel]	= 'LEFT JOIN ' . $arrTables[1] . ' AS rel_ctn_' . $intRel . ' ON rel_tbl_' . $intRel . '.child_id = rel_ctn_' . $intRel . '.id';
-			
+			$this->objModel->arrJoinData[$arrTables[1]]	= $this->objModel->arrJoinList[$arrTables[1]]	= 'LEFT JOIN ' . $arrTables[1] . ' ON rel_tbl_' . $intRel . '.child_id = ' . $arrTables[1] . '.id';
+				
 			$intRel++;
 		}
 		

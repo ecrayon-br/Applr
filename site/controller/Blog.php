@@ -28,9 +28,14 @@ class Blog_controller extends Main_controller {
 		// If content is defined, checks for PRIVATE param
 		if($this->intContentID && !$this->isLead && $this->objData->private_bool) {
 			// Gets related HOTSPOT
+			/*
 			$intHotspotContent 	= $this->objModel->recordExists('id', 'aet_fl_destino AS hotspot JOIN sec_rel_aet_fl_destino_rel_aet_fl_blog AS rel','hotspot.id = rel.parent_id AND rel.child_id = ' . $this->intContentID,true);
 			$objHotspot 		= new Hotspot_controller(true,'hotspot.html',$intHotspotContent);
-		} else {
+			*/
+			$strHotspot 	= $this->objModel->recordExists('permalink', 'aet_fl_destino AS hotspot JOIN sec_rel_aet_fl_destino_rel_aet_fl_blog AS rel','hotspot.id = rel.parent_id AND rel.child_id = ' . $this->intContentID,true);
+			header("Location: " . HTTP . "hotspot/" . $strHotspot);
+			exit();
+		} elseif($boolRenderTemplate) {
 			$this->renderTemplate($strTemplate);
 		}
 	}

@@ -291,8 +291,8 @@ class sendMail_Controller extends Controller {
 		}
 		
 		// Replaces CONSTANT variables
-		$arrData = get_defined_constants();
-		foreach($arrData AS $intKey => $strVar) {
+		$arrData = get_defined_constants(true);
+		foreach($arrData['user'] AS $intKey => $strVar) {
 			$strHTML 	= str_replace('#'.$intKey.'#',nl2br($strVar),$strHTML);
 		}
 		

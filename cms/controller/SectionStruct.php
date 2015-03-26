@@ -310,6 +310,8 @@ class SectionStruct_controller extends Section_controller {
 	public function add() {
 		$this->unsecureGlobals();
 		
+#echo '<pre>'; print_r($_POST); #die();
+		
 		// Sets DYNAMIC field data
 		if(isset($_POST['field']) && $_POST['field'] == 1) {
 			// Sets main insert table
@@ -366,13 +368,14 @@ class SectionStruct_controller extends Section_controller {
 				$this->getFieldData();
 			}
 		}
-		
+#print_r($this->objField);
 		// Validate $_POST params
 		if(($mxdValidate = $this->validateParamsArray($_POST,$this->arrFieldType,false)) === true) {
-			
+#var_dump($mxdValidate);
 			// Inserts field struct data
 			if(($intFieldID = $this->objModel->replace($strTable,$_POST,true)) !== false) {
-				
+#var_dump($intFieldID);
+#var_dump($_POST['id']);
 				// If creating a new field
 				if(empty($_POST['id'])) {
 					// Gets next order index
@@ -538,7 +541,7 @@ class SectionStruct_controller extends Section_controller {
 		#echo '<pre>'; print_r($arrData); die();
 		
 		// If new field is RELATIONSHIP
-		if(empty($arrData['sec_struct_id'])) {
+		if(empty($arrData['sec_struct_id']) && !empty($arrData['child_id'])) {
 			
 			// If previous field is DYNAMIC and new one is RELATIONSHIP
 			if($this->objField->type == 1) {
@@ -603,8 +606,9 @@ class SectionStruct_controller extends Section_controller {
 					return false;
 				}
 				
-			// If both, previous and new field, are RELATIONSHIP
-			} else {
+			// If both, previous and new field, are RELATIONSHIP and DIFFERENT to each other 
+			} elseif($arrData['child_id'] != $this->objField->child_id) {
+				
 				// Drops previous relationship table
 				if($this->objManage->drop('Table',$this->objField->table_name)) {
 					// Drops previous relationship field
@@ -612,12 +616,12 @@ class SectionStruct_controller extends Section_controller {
 						
 					// Adds new relationship field and table
 					if($this->addField($arrData,false)) {
-						// Delete rel_sec_struct previous record
+						// Delete rel_sec_sec previous record
 						$this->objModel->delete('rel_sec_sec','table_name = "' . $this->objField->table_name . '"');
 				
 						return true;
 					} else {
-						// Delete rel_sec_struct previous record
+						// Delete rel_sec_sec previous record
 						$this->objModel->delete('rel_sec_sec','table_name = "' . $arrData['table_name'] . '"');
 				
 						return false;
@@ -626,6 +630,8 @@ class SectionStruct_controller extends Section_controller {
 					return false;
 				}
 				
+			} else {
+				return true;
 			}
 		// If new field is DYNAMIC
 		} else {

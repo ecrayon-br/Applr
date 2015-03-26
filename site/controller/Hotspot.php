@@ -48,21 +48,42 @@ class Hotspot_controller extends Main_controller {
 		} elseif(!empty($_SESSION[PROJECT]['URI_SEGMENT'][4])) {
 			$this->strRedirectURI_Segment 	= str_replace('_','/',$_SESSION[PROJECT]['URI_SEGMENT'][4]);
 			$this->strRedirectURI			= HTTP . $this->strRedirectURI_Segment;
+		} else {
+			if(is_array($this->objData)) $this->objData = reset($this->objData);
+			$this->strRedirectURI_Segment 	= str_replace('/','_',$this->objData->rel_blog[0]->permalink);
+			$this->strRedirectURI			= $this->objData->rel_blog[0]->url_permalink;
 		}
+		
+		// Checks if user is lead
+		if(empty($_REQUEST['preview'])) $this->checkLead(true);
 
-		#var_dump($_COOKIE[PROJECT . '_confirmLead']);
+		// Sets TPL
+		#$this->strTemplate = $strTemplate;
 		if($boolRenderTemplate) $this->renderTemplate($strTemplate);
 	}
 	
-	private function checkLead() {
+	/**
+	 * Checks if user is already confirmed in database
+	 * 
+	 * @param 	boolean $boolRedirect	Defines if returns BOOLEAN or redirects user to new page
+	 * 
+	 * @return	boolean
+	 */
+	private function checkLead($boolRedirect = false) {
 		if($this->isLead) {
-			if(!empty($this->strRedirectURI)) {
+			if(!$boolRedirect) {
+				return true;
+			} elseif(!empty($this->strRedirectURI)) { 
 				header("Location: " . $this->strRedirectURI);
 				exit();
-			} else {
-				$this->renderTemplate($strTemplate);
+			} /*elseif(!empty($this->strTemplate)) {
+				$this->renderTemplate($this->strTemplate);
 				die();
+			} */else {
+				return true;
 			}
+		} else {
+			return false;
 		}
 	}
 	
@@ -77,63 +98,81 @@ class Hotspot_controller extends Main_controller {
 	 */
 	public function save() {
 		// Cheks if user is lead
-		$this->checkLead();
-		
-		// Sets SECTION as LEADS
-		$objUser 	= new Main_controller(false,4);
-		$strWhere	= 'name = "'.$_REQUEST['name'].'" AND ' . str_replace('aet_fl_leads.active = 1 AND ','',$objUser->strWhere);
-		
-		// If e-mail doesnt exists in database
-		if(!$this->objModel->recordExists('id', 'aet_fl_leads',$strWhere) && !empty($_POST)) {
-			// Inserts content
-			$_POST['first_name'] = $_POST['name'];
-			$objReturn = $objUser->insertMainContent($_POST);
+		if(!$this->checkLead()) {
 			
-		// If e-mail exists, check if is active
-		} else {
-			// Formats email info
-			$objUser						= null;
-			$objUser->objData				= null;
-			$objUser->objData->name			= $_REQUEST['name'];
-			$objUser->objData->first_name	= $_REQUEST['name'];
+			// Sets return object
+			$objResult	= null;
+			$objResult->hideResend = false;
 			
-			// Defines hideResend smarty var
-			$this->objSmarty->assign('hideResend',true);
+			// Sets SECTION as LEADS
+			$objUser 	= new Main_controller(false,4);
+			$strWhere	= 'name = "'.$_REQUEST['name'].'" AND ' . str_replace('aet_fl_leads.active = 1 AND ','',$objUser->strWhere);
 			
-			$objReturn = $this->objModel->recordExists('id', 'aet_fl_leads', 'active = 0 AND '. $strWhere);
-		}
-		// Sets CONFIRM LEAD cookie
-		$intExpire = time()+60*60*24*365;
-		setcookie(PROJECT . '_confirmLead',$_REQUEST['name'],$intExpire,'/');
-		
-		// If is new e-mail or previous unactive e-mail
-		if($objReturn) {
-			// Gets e-mail template
-			/**
-			 * @todo set PROJECT_ID
-			 */
-			$objMailContent 	= $this->objModel->select(array('email.id','email.subject','email.content_richtext','sys_template.filename'), 'aet_fl_email AS email',array('JOIN sec_rel_aet_fl_email_rel_aet_fl_destino AS rel','LEFT JOIN sys_template ON sys_template.id = email.mail_tpl'),'email.id = rel.parent_id AND rel.child_id = ' . $this->intContentID,array(),array(),0,null,'Row');
-			
-			// Sets template vars
-			if($objMailContent) {
-				$objMailContent->md5			= md5($objUser->objData->name);
-				$objMailContent->redirect_uri	= $this->strRedirectURI_Segment;
-			}
-			
-			// Sends confirmation e-mail
-			$objMail = new sendMail_Controller();
-			if($objMailContent && $this->objSmarty->templateExists($objMailContent->filename) && $objMail->sendMessage(array($objUser->objData->name => $objUser->objData->first_name),$objMailContent->subject, ROOT_TEMPLATE.$objMailContent->filename ,$objMailContent)) {
-				$this->objSmarty->assign('alert',true);
-				$this->objSmarty->assign('alert_msg','Enviamos uma mensagem para o seu e-mail.<br />Por favor, clique no link de confirmação.');
+			// If e-mail doesnt exists in database
+			if(!$this->objModel->recordExists('id', 'aet_fl_leads',$strWhere) && !empty($_POST)) {
+				// Inserts content
+				unset($_POST['redirect-uri'],$_POST['hotspot-id']);
+				$_POST['first_name'] = $_POST['name'];
+				$objReturn = $objUser->insertMainContent($_POST);
+				
+			// If e-mail exists, check if is active
 			} else {
-				$this->objSmarty->assign('error',true);
-				$this->objSmarty->assign('error_msg','Não foi possível enviar o e-mail.');
+				// Formats email info
+				$objUser						= null;
+				$objUser->objData				= null;
+				$objUser->objData->name			= $_REQUEST['name'];
+				$objUser->objData->first_name	= $_REQUEST['name'];
+				
+				// Defines hideResend smarty var
+				$this->objSmarty->assign('hideResend',true);
+				$objResult->hideResend = true;
+				
+				$objReturn = $this->objModel->recordExists('id', 'aet_fl_leads', 'active = 0 AND '. $strWhere);
 			}
-			$this->renderTemplate($strTemplate);
+			
+			// If is new e-mail or previous unactive e-mail
+			if($objReturn) {
+				// Sets CONFIRM LEAD cookie
+				$intExpire = time()+60*60*24*365;
+				setcookie(PROJECT . '_confirmLead',$_REQUEST['name'],$intExpire,'/');
+				
+				// Gets e-mail template
+				/**
+				 * @todo set PROJECT_ID
+				 */
+				$objMailContent 	= $this->objModel->select(array('email.id','email.subject','email.content_richtext','sys_template.filename'), 'aet_fl_email AS email',array('JOIN sec_rel_aet_fl_email_rel_aet_fl_destino AS rel','LEFT JOIN sys_template ON sys_template.id = email.mail_tpl'),'email.id = rel.parent_id AND rel.child_id = ' . $this->intContentID,array(),array(),0,null,'Row');
+				
+				// Sets template vars
+				if($objMailContent) {
+					$objMailContent->md5			= md5($objUser->objData->name);
+					$objMailContent->redirect_uri	= $this->strRedirectURI_Segment;
+				}
+				
+				// Sends confirmation e-mail
+				$objMail = new sendMail_Controller();
+				if($objMailContent && $this->objSmarty->templateExists($objMailContent->filename) && $objMail->sendMessage(array($objUser->objData->name => $objUser->objData->first_name),$objMailContent->subject, ROOT_TEMPLATE.$objMailContent->filename ,$objMailContent)) {
+					$objResult->status			= 1;
+					$objResult->alert->color	= 'blue';
+					$objResult->alert->msg		= 'Enviamos uma mensagem para o seu e-mail!<br /><br />Acesse sua caixa postal e clique no link da mensagem para visualizar o conteúdo gratuito.';
+				} else {
+					$objResult->status			= 0;
+					$objResult->alert->color	= 'red';
+					$objResult->alert->msg		= 'Não foi possível enviar o e-mail.';
+				}
+				#$this->renderTemplate($this->strTemplate);
+			} else {
+				$objResult->status			= 2;
+				$objResult->alert->color	= 'green';
+				$objResult->alert->msg		= 'Seu e-mail já está cadastrado em nossa base de dados!';
+			}
+			
 		} else {
-			header("Location: " . HTTP . "/?error=1");
-			exit();
+			$objResult->status			= 2;
+			$objResult->alert->color	= 'green';
+			$objResult->alert->msg		= 'Seu e-mail já está cadastrado em nossa base de dados!';
 		}
+		
+		echo json_encode($objResult);
 	}
 	
 	/**
@@ -147,37 +186,39 @@ class Hotspot_controller extends Main_controller {
 	 */
 	public function confirm() {
 		// Cheks if user is lead
-		$this->checkLead();
+		$this->checkLead(true);
 		
-		// IF cookie doesnt exists
-		if(isset($_COOKIE[PROJECT . '_isLead']) || $_COOKIE[PROJECT . '_isLead'] == true || empty($_SESSION[PROJECT]['URI_SEGMENT'][3])) {
+		// Checks URL params
+		if(empty($_SESSION[PROJECT]['URI_SEGMENT'][3])) {
+			header("Location: " . $this->strRedirectURI);
+			exit();
+		}
+		
+		// Sets IS LEAD cookie
+		$intExpire = time()+60*60*24*365;
+		if(setcookie(PROJECT . '_isLead',true,$intExpire,'/')) {
+			
+			// Unsets CONFIRM LEAD cookie
+			setcookie(PROJECT . '_confirmLead',true,1,'/');
+			
+			// Updates lead status
+			if(!$this->objModel->update('aet_fl_leads',array('active' => 1),'MD5(name) = "' . $_SESSION[PROJECT]['URI_SEGMENT'][3] . '"')) {
+				
+				// If error, resets cookies
+				setcookie(PROJECT . '_isLead',true,1,'/');
+				setcookie(PROJECT . '_confirmLead',true,$intExpire,'/');
+			}
+			
 			header("Location: " . HTTP . $this->strRedirectURI_Segment);
 			exit();
 		} else {
-			// Sets IS LEAD cookie
-			$intExpire = time()+60*60*24*365;
-			if(setcookie(PROJECT . '_isLead',true,$intExpire,'/')) {
-				// Unsets CONFIRM LEAD cookie
-				setcookie(PROJECT . '_confirmLead',true,1,'/');
-				
-				// Updates lead status
-				if(!$this->objModel->update('aet_fl_leads',array('active' => 1),'MD5(name) = "' . $_SESSION[PROJECT]['URI_SEGMENT'][3] . '"')) {
-					
-					// If error, unset cookie
-					setcookie(PROJECT . '_isLead',true,1,'/');
-				}
-				
-				header("Location: " . HTTP . $this->strRedirectURI_Segment);
-				exit();
+			
+			// Retries set cookie
+			if($this->tryCookie <= 3) {
+				$this->confirm();
 			} else {
-				
-				// Retries set cookie
-				if($this->tryCookie <= 3) {
-					$this->confirm();
-				} else {
-					header("Location: " . HTTP . $this->strRedirectURI_Segment . '/?error=2');
-					exit();
-				}
+				header("Location: " . HTTP . $this->strRedirectURI_Segment . '/?error=2');
+				exit();
 			}
 		}
 	}

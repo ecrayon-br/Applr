@@ -1,3 +1,12 @@
+CONFIG= {};
+
+CONFIG.clearError = function() {
+	$('*').removeClass('error');
+	$('*').removeClass('type1');
+	$('*').removeClass('type2');
+	$('*').removeClass('type3');
+}
+
 dumpProps = function(obj, parent) {
    // Go through all the properties of the passed-in object
    for (var i in obj) {

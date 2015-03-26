@@ -6,8 +6,13 @@
 
 	<link rel="stylesheet" type="text/css" media="screen" href="{$smarty.const.TEMPLATE}css/webfonts/fonts.css" />
 	<link rel="stylesheet" type="text/css" media="screen" href="{$smarty.const.TEMPLATE}css/vars.css" />
-	<link rel="stylesheet" type="text/css" media="screen" href="{$smarty.const.TEMPLATE}css/hotspot.css" />
 	
+	{if file_exists("`$smarty.const.ROOT_TEMPLATE`css/`$smarty.const.SECTION_SEGMENT`.css")}<link rel="stylesheet" type="text/css" media="screen" href="{$smarty.const.TEMPLATE}css/{$smarty.const.SECTION_SEGMENT}.css" />{/if}
+	{if file_exists("`$smarty.const.ROOT_TEMPLATE`scripts/`$smarty.const.SECTION_SEGMENT`.js")}<script type="text/javascript" src="{$smarty.const.TEMPLATE}scripts/{$smarty.const.SECTION_SEGMENT}.js" charset="utf-8"></script>{/if}
+
+	{if $smarty.const.SECTION_SEGMENT == 'contato'}<link rel="stylesheet" type="text/css" media="screen" href="{$smarty.const.TEMPLATE}css/blog.css" />{/if}
+	
+{if $smarty.const.SECTION_SEGMENT == 'hotspot'}	
 <style>
 {literal}
 
@@ -21,6 +26,8 @@ background-size: cover !important;
 
 {/literal}
 </style>
+{/if}
 </head>
 <body>
 <div id="fb-root"></div>
+<div class="container">

@@ -49,19 +49,53 @@
 	color: #344E7E;
 	text-align: center;
 }
+.box .body .msg {
+	font-family: "Aller";
+	font-size: 18px;
+	color: #344E7E;
+	text-align: center;
+	
+	margin-top: 20px;
+}
+.box .body .msg a {
+	color: #344E7E !important;
+}
+.box .body .msg a:hover {
+	text-decoration: underline;
+}
+.box .body .msg.red {
+	color: red !important;
+}
+.box .body .msg.green {
+	color: #a0c655 !important;
+}
+.box .body .msg.blue {
+	color: #344E7E !important;
+}
+.box .body .msg.hide {
+	display: none;
+}
+.box .body .msg.show {
+	display: block;
+}
 .box .body .form input[type=text]{
 	width: 200px;
 	height: 32px;
 	margin-bottom: 10px;
 	
-	border: 2px solid black;
+	border: 2px solid #4D4C4E;
 	border-radius: 10px;
 	background: #E5E6E7;
 }
-.box .button {
+.box .button.inline {
+	color: #344E7E;
+	cursor: pointer;
+	display: inline-block;
+}
+.box .form .button {
 	width: 250px;
 	height: 50px;
-	border: 1px solid black;
+	border: 2px solid #4D4C4E;
 	border-radius: 10px;
 	text-align: center;
 	margin: 0 auto;
@@ -79,16 +113,16 @@
 .box .button:hover {
 	text-decoration: underline;
 }
-.box .button.cyan {
+.box .form .button.cyan {
 	background-color: #00AEEC;
 }
-.box .button.green {
+.box .form .button.green {
 	background-color: #A0C655;
 }
-.box .button.orange {
+.box .form .button.orange {
 	background-color: #DC853D;
 }
-.box .button .icon {
+.box .form .button .icon {
 	width: 22px;
 	height: 22px;
 	display: inline-block;

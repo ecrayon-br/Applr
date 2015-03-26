@@ -68,7 +68,7 @@ class Campanhas_controller extends Main_controller {
 				break;
 				
 				default:
-					$strWhere = 'rel_ctn_0.read_bool = 1 AND rel_tbl_email_report.child_id = ' . $intPrevMailID . ' AND datediff(now(),rel_ctn_0.date_expire) = ' . $objMail->timesheet_int . (!is_null($objAB_Result) ? ' AND aet_fl_leads.id NOT IN (SELECT DISTINCT rel_leads FROM aet_fl_email_report WHERE rel_email = ' . $objMail->id . ')' : ''); 
+					$strWhere = 'aet_fl_email_report.read_bool = 1 AND rel_tbl_email_report.child_id = ' . $intPrevMailID . ' AND datediff(now(),aet_fl_email_report.date_expire) = ' . $objMail->timesheet_int . (!is_null($objAB_Result) ? ' AND aet_fl_leads.id NOT IN (SELECT DISTINCT rel_leads FROM aet_fl_email_report WHERE rel_email = ' . $objMail->id . ')' : ''); 
 					$this->objList = new Leads_controller($strWhere);
 				break;
 			}

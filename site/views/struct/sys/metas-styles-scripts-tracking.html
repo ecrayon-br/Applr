@@ -45,13 +45,33 @@
 	<!--[if lt IE 9]> <script src="{$smarty.const.TEMPLATE}scrips/core/jquery.backgroundSize.js"></script> <![endif]-->
 	
 	<script type="text/javascript">
-	{foreach from=$smarty.const item="strConst"}
-		var {$strConst} = '{$smarty.const.$strConst}';
-	{/foreach}
+		var FB_APP_ID			= '{$smarty.const.FB_APP_ID}';
+		var FB_ADMIN_ID			= '{$smarty.const.FB_ADMIN_ID}';
+		var GA_ID				= '{$smarty.const.GA_ID}';
+		var PAGING_LIMIT		= '{$smarty.const.PAGING_LIMIT}';
+		var HTTP				= '{$smarty.const.HTTP}';
+		var HTTP_SITE			= '{$smarty.const.HTTP_SITE}';
+		var SECTION_SEGMENT		= '{$smarty.const.SECTION_SEGMENT}';
+		var SECTION_PERMALINK	= '{$smarty.const.SECTION_PERMALINK}';
+		var PERMALINK 			= '{$smarty.const.PERMALINK}';
+		var URL_PERMALINK 		= '{$smarty.const.URL_PERMALINK}';
+		var LANGUAGE 			= '{$smarty.const.LANGUAGE}';
+		var LOCALE 				= '{$smarty.const.LOCALE}';
+		var CONTENT 			= '{$smarty.const.CONTENT}';
+		var HOME 				= '{$smarty.const.HOME}';
+		var PAGE 				= '{$smarty.const.PAGE}';
+		var MEDIA_GALLERY 		= '{$smarty.const.MEDIA_GALLERY}';
+		var PREVIEW 			= '{$smarty.const.PREVIEW}';
+		var ACTION 				= '{$smarty.const.ACTION}';
+		var SEARCH 				= '{$smarty.const.SEARCH}';
+		var PROJECT 			= '{$smarty.const.PROJECT}';
+		var URI_DOMAIN 			= '{$smarty.const.URI_DOMAIN}';
+		var URI_DOMAIN_PROD		= '{$smarty.const.URI_DOMAIN_PROD}';
+		var SYS_DIR 			= '{$smarty.const.SYS_DIR}';
 	
 	{if empty($smarty.request.ib_preview)}
 	{literal}
-		if(window.location.href.indexOf(URI_DOMAIN) > 0 && GA_ID != '' && GA_ID !== null) {
+		if(window.location.href.indexOf(URI_DOMAIN_PROD) > 0 && GA_ID != '' && GA_ID !== null) {
 		  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 		  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
 		  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
@@ -65,15 +85,16 @@
 
 	<!-- Facebook Conversion Code for 7F-FB -->
 	{literal}
+	if(FB_APP_ID != '' && FB_APP_ID !== null) {
 		(function(d, s, id) {
 		  var js, fjs = d.getElementsByTagName(s)[0];
 		  if (d.getElementById(id)) return;
 		  js = d.createElement(s); js.id = id;
-		  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&appId=265091830343348&version=v2.0";
+		  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&appId=" + FB_APP_ID +"&version=v2.0";
 		  fjs.parentNode.insertBefore(js, fjs);
 		}(document, 'script', 'facebook-jssdk'));
-		
-		{*
+	}
+	if(window.location.href.indexOf(URI_DOMAIN_PROD) > 0 && FB_APP_ID != '' && FB_APP_ID !== null) {
 		(function() {
 		var _fbq = window._fbq || (window._fbq = []);
 		if (!_fbq.loaded) {
@@ -89,12 +110,11 @@
 		window._fbq = window._fbq || [];
 		
 		window._fbq.push(['track', '6023451022473', {'value':'0.01','currency':'BRL'}]);
-		*}
-		
+	}	
 	{/literal}
 	</script>
 	
-	<script type="text/javascript" src="{$smarty.const.TEMPLATE}scrips/sys/main.js"></script>
+	<script type="text/javascript" src="{$smarty.const.TEMPLATE}scripts/sys/main.js"></script>
 
 	<!--[if lt IE 9]>
 	<script type="text/javascript">

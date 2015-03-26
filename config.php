@@ -62,6 +62,7 @@ define('VAR_ACTION'		,'action');
 define('VAR_PREVIEW'	,'preview');
 define('VAR_DELETE'		,'delete');
 define('VAR_SEARCH'		,'search');
-define('TERM_SEARCH'	,'searchby');
+define('TERM_SEARCH'	,'search-by');
+define('VAR_TEMPLATE'	,'template');
 define('RESULTS'		,'contData');
 ?>

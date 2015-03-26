@@ -250,15 +250,16 @@ body {
 	color: #1F97D7;
 	max-width: 250px;
 }
-.content .extra a {
+.content .extra .box .tag-search {
 	font-family: "Aller_Bold";
 	font-size: 16px;
 	color: black;
 	line-height: 180%;
 	letter-spacing: -1px;
 	margin-left: 20px;
+	cursor: pointer;
 }
-.content .extra a:hover {
+.content .extra .box .tag-search:hover {
 	text-decoration: underline;
 }
 

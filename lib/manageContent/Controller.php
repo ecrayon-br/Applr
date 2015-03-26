@@ -1105,5 +1105,13 @@ class manageContent_Controller extends CRUD_Controller {
 			$this->arrFieldType[$objField->field_name] = $strType;
 		}
 	}
+	
+	static function isAjaxRequest() {
+		if( isset($_SERVER['HTTP_X_REQUESTED_WITH']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest') ) {
+			return true;
+		} else {
+			return false;
+		}
+	} 
 }
 ?>

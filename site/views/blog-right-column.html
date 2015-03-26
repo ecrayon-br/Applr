@@ -3,13 +3,15 @@
 			<input type="text" name="search" id="search" placeholder="Faça sua busca por aqui" /> <div class="button"></div>
 		</div>
 		
+		{if !empty($arrHashtag)}
 		<div class="box">
 			<h1>Canais</h1>
 			
-			<a href="" title="">&gt; Teste de tag</a><br />
-			<a href="" title="">&gt; Teste de tag</a><br />
-			<a href="" title="">&gt; Teste de tag</a><br />
+			{foreach from=$arrHashtag item="strHashtag"}
+			<div class="tag-search" search="{$strHashtag}" {*{$smarty.const.SECTION_PERMALINK}search/?hashtag={$strHashtag}*}>&gt; {ucwords($strHashtag)}</div>
+			{/foreach}
 		</div>
+		{/if}
 		
 		<div class="fb-page" data-href="https://www.facebook.com/facebook" data-width="290" data-height="260" data-hide-cover="false" data-show-facepile="true" data-show-posts="false"></div>
 	</div>

@@ -37,6 +37,8 @@ class Hotspot_controller extends Main_controller {
 		} else {
 			$this->isLead = true;
 		}
+
+		#var_dump($this->intContentID);		var_dump($this->isLead); die();
 		
 		$this->objSmarty->assign('isLead',$this->isLead);
 		$this->objSmarty->assign('confirmLead',$this->confirmLead);
@@ -161,15 +163,29 @@ class Hotspot_controller extends Main_controller {
 				}
 				#$this->renderTemplate($this->strTemplate);
 			} else {
+				// Sets LEAD cookie
+				$intExpire = time()+60*60*24*365;
+				setcookie(PROJECT . '_isLead',true,$intExpire,'/');
+				
 				$objResult->status			= 2;
 				$objResult->alert->color	= 'green';
-				$objResult->alert->msg		= 'Seu e-mail já está cadastrado em nossa base de dados!';
+				$objResult->alert->msg		= 'Seu e-mail já está cadastrado em nossa base de dados!<br /><br />Você será redirecionado ao conteúdo desejado.';
+				$objResult->redirectURI		= $this->strRedirectURI;
 			}
 			
 		} else {
-			$objResult->status			= 2;
-			$objResult->alert->color	= 'green';
-			$objResult->alert->msg		= 'Seu e-mail já está cadastrado em nossa base de dados!';
+			
+			// If is AJAX request
+			if( $this->isAjaxRequest() ) {
+				$objResult->status			= 2;
+				$objResult->alert->color	= 'green';
+				$objResult->alert->msg		= 'Seu e-mail já está cadastrado em nossa base de dados!';
+				$objResult->redirectURI		= $this->strRedirectURI;
+			} else {
+				header("Location: " . $this->strRedirectURI);
+				exit();
+			}
+			
 		}
 		
 		echo json_encode($objResult);

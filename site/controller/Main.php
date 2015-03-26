@@ -21,7 +21,7 @@ class Main_controller extends manageContent_Controller {
 	public function __construct($boolRenderTemplate = true,$intSecID = 0,$intContentID = 0,$boolGetContent = true,$checkAuth = false,$strTemplateDir = ROOT_TEMPLATE) {
 		parent::__construct($intSecID,$checkAuth,$strTemplateDir);
 		
-		#setcookie(PROJECT . '_isLead',true,1,'/');
+		if(!empty($_REQUEST['clear'])) setcookie(PROJECT . '_isLead',true,1,'/');
 		
 		// Sets Section vars
 		if(empty($intSecID)) $intSecID = SECTION;
@@ -117,9 +117,12 @@ class Main_controller extends manageContent_Controller {
 		if($boolRenderTemplate) $this->renderTemplate();
 	}
 	
-	protected function getSectionContent($strTemplate = '') {
+	protected function getSectionContent($strTemplate = '', $intContent = null) {
+		// Checks for $intContent value; if numeric > 0, goes for it; if == 0, gets list; otherwise, gets $this->intContentID value
+		if(is_null($intContent) || !is_numeric($intContent)) $intContent = $this->intContentID;
+		
 		// LIST
-		if(!$this->intContentID) {
+		if(!$intContent) {
 			// Gets content
 			$this->objData	= $this->content();
 			if(!empty($this->objData)) {
@@ -142,7 +145,7 @@ class Main_controller extends manageContent_Controller {
 		// CONTENT
 		} else {
 			// Gets content
-			$this->objData = $this->objModel->getData($this->intContentID);
+			$this->objData = $this->objModel->getData($intContent);
 		
 			if(!empty($this->objData)) {
 				// Formats relationship data
@@ -192,32 +195,55 @@ class Main_controller extends manageContent_Controller {
 	
 	public function Search($strSearch = '',$strTemplate = '') {
 		if($_SESSION[PROJECT]['URI_SEGMENT'][1] != SECTION_SEGMENT) return false;
-		if(empty($strSearch)) $strSearch = $_SESSION[PROJECT]['URI_SEGMENT'][3];
+		#if(empty($strSearch)) $strSearch = $_SESSION[PROJECT]['URI_SEGMENT'][3];
 		if(empty($strSearch)) $strSearch = SEARCH;
 		if(empty($strSearch)) return false;
 		if(empty($strTemplate)) $strTemplate = TEMPLATE_FILE;
 		
+		// Parses query_string search params
+		parse_str($_SERVER['QUERY_STRING'],$arrParams);
+		$arrParams = array_intersect_key($arrParams,array_flip($this->objField));
+		
 		// Defines SEARCH SQL
 		$arrSearch = array();
-		foreach($this->objStruct AS $objField) {
-			if($objField->type == 1) {
-				$arrSearch[] = 'LOWER(' . $this->objSection->table_name . '.' . $objField->field_name . ') LIKE "%' . strtolower($strSearch) . '%"';
-			} else {
-				#print_r($objField);
-				$arrChild = explode(',',$objField->child_fields);
-				foreach($arrChild AS $strChild) {
-					$arrSearch[] = 'LOWER(' . $objField->child_section_table_name . '.' . $strChild . ') LIKE "%' . strtolower($strSearch) . '%"';
+		
+		if(!empty($arrParams)) {
+			#echo '<pre>'; print_r($arrParams); die();
+			foreach($arrParams AS $strKey => $strValue) {
+				$arrSearch[] = $strKey . ' LIKE "%' . $strValue . '%"';
+			}
+			$this->objModel->arrWhereList[] = implode(' AND ',$arrSearch);
+			
+			define('SEARCH_BY', implode(' e ',$arrParams));
+		} else {
+			foreach($this->objStruct AS $objField) {
+				if($objField->type == 1) {
+					$arrSearch[] = 'LOWER(' . $this->objSection->table_name . '.' . $objField->field_name . ') LIKE "%' . strtolower($strSearch) . '%"';
+				} else {
+					#print_r($objField);
+					$arrChild = explode(',',$objField->child_fields);
+					foreach($arrChild AS $strChild) {
+						$arrSearch[] = 'LOWER(' . $objField->child_section_table_name . '.' . $strChild . ') LIKE "%' . strtolower($strSearch) . '%"';
+					}
 				}
 			}
+			$this->objModel->arrWhereList[] = '(' . implode(' OR ',$arrSearch) . ')';
+			
+			define('SEARCH_BY', '');
 		}
-		$this->objModel->arrWhereList[] = '(' . implode(' OR ',$arrSearch) . ')';
 		
 		// Searches for term
 		$this->getSectionContent($strTemplate);
 		
 		// Fetches template
+		#var_dump($this->objData); die();
 		$objResult->html = $this->fetchTemplate();
 		
-		echo json_encode($objResult);
+		// If is AJAX request
+		if( $this->isAjaxRequest() ) {
+			echo json_encode($objResult);
+		} else {
+			echo $objResult->html;
+		}
 	}
 }

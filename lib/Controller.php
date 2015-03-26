@@ -379,6 +379,8 @@ class Controller {
 			define('SEARCH',$_REQUEST[TERM_SEARCH]);
 		} elseif(isset($_REQUEST[VAR_SEARCH]) && !empty($_REQUEST[VAR_SEARCH])) {
 			define('SEARCH',$_REQUEST[VAR_SEARCH]);
+		} elseif($this->arrURL[2] == 'search') {
+			define('SEARCH',$this->arrURL[3]);
 		} else {
 			define('SEARCH','');
 		}

@@ -6,8 +6,11 @@ BlogSearch.send = function() {
 	
 	CONFIG.clearError();
 
+	console.log($(this));
+	console.log($(this).attr('search'));
+	
 	var action		= HTTP + 'blog/search';
-	var name = $('.search input#search').val().trim();
+	var name = ($(this).attr('search') ? $(this).attr('search') : $('.search input#search').val().trim() );
 	
 	if(name == '') {
 		 $('.search input#search').parent().addClass('error type1');
@@ -46,6 +49,7 @@ BlogSearch.render = function() {
 		BlogSearch.rendered = true;
 		
 		$('.search .button').click(BlogSearch.send);
+		$('.box .tag-search').click(BlogSearch.send);
 		
 	}
 }

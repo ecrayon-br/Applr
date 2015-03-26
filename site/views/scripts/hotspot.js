@@ -32,7 +32,11 @@ Hotspot.send = function() {
 				$('.msg.show').hide(500);
 				$('.note').hide(500);
 				
-				switch(data.status == 1){
+				if(data.alert.msg != '') 	$('.msg.hide').html(data.alert.msg);
+				if(data.alert.color != '') 	$('.msg.hide').addClass(data.alert.color);
+				$('.msg.hide').show(500);
+				
+				switch(data.status){
 					case 0:
 					break;
 					
@@ -41,13 +45,9 @@ Hotspot.send = function() {
 					break;
 					
 					case 2:
-						
+						setTimeout( function() { window.location.href = data.redirectURI; }, 5000);
 					break;
 				}
-				
-				if(data.alert.msg != '') 	$('.msg.hide').html(data.alert.msg);
-				if(data.alert.color != '') 	$('.msg.hide').addClass(data.alert.color);
-				$('.msg.hide').show(500);
 			},
 			error:function(data){
 				//if you need something to happen when an error occurs

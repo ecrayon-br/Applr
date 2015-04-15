@@ -74,7 +74,8 @@ function GetUrlParam( paramName )
 }
 
 var oConnector = new Object() ;
-oConnector.CurrentFolder	= '/' ;
+oConnector.CurrentFolder	= '/';
+var APPLR_folder = oConnector.CurrentFolder; // + GetUrlParam( 'SectionSegment' ); // + GetUrlParam( 'SectionSegment' ) + '/' ;
 
 var sConnUrl = GetUrlParam( 'Connector' ) ;
 
@@ -98,7 +99,7 @@ oConnector.SendCommand = function( command, params, callBackFunction )
 {
 	var sUrl = this.ConnectorUrl + 'Command=' + command ;
 	sUrl += '&Type=' + this.ResourceType ;
-	sUrl += '&CurrentFolder=' + encodeURIComponent( this.CurrentFolder ) ;
+	sUrl += '&CurrentFolder=' + this.CurrentFolder
 
 	if ( params ) sUrl += '&' + params ;
 
@@ -106,7 +107,7 @@ oConnector.SendCommand = function( command, params, callBackFunction )
 	sUrl += '&uuid=' + new Date().getTime() ;
 
 	var oXML = new FCKXml() ;
-
+	
 	if ( callBackFunction )
 		oXML.LoadUrl( sUrl, callBackFunction ) ;	// Asynchronous load.
 	else

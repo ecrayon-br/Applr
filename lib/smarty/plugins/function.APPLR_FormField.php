@@ -32,7 +32,6 @@ function smarty_function_APPLR_FormField($params,$template) {
 	
 	// RELATIONSHIP FIELDS
 	if($params['field']->type == 2) {
-		
 		$objSection = new SectionContent_controller(false,$params['field']->child_id);
 		$objList	= $objSection->content();
 
@@ -70,6 +69,11 @@ function smarty_function_APPLR_FormField($params,$template) {
 				return smarty_function_html_options($arrParams,$template);
 			break;
 			
+			case 'embed':
+				$strField	= str_replace(array('#name#','name="','id="','for="','value="','</textarea'),array($strName, 'name="'.$strName, 'id="'.$strName, 'for="'.$strName, 'value="'.$params['value']->original, $params['value']->original.'</textarea'), $strHTML);
+				return $strField;
+			break;
+			
 			// RICHTEXT
 			case 'richtext':
 				smarty_function_APPLR_FCKeditor(array('name' => $strName, 'value' => smarty_modifier_APPLR_html_entity_decode($params['value'])));
@@ -78,29 +82,29 @@ function smarty_function_APPLR_FormField($params,$template) {
 			
 			// PHONE
 			case 'phone':
-				$strField	= str_replace(array('name="','id="','_ddd" value="','value=""'),array('name="' . $strName, 'id="' . $strName, '_ddd" value="' . $params['value']->original[0], 'value="' . $params['value']->original[1] . '"'), $strHTML);
+				$strField	= str_replace(array('name="','id="','for="','_ddd" value="','value=""'),array('name="' . $strName, 'id="' . $strName, 'for="'.$strName, '_ddd" value="' . $params['value']->original[0], 'value="' . $params['value']->original[1] . '"'), $strHTML);
 				return $strField;
 			break;
 			
 			// UPLOAD
 			case 'upload':
-				$strField	= str_replace(array('name="','id="','_old" value="','#content#'),array('name="' . $strName, 'id="' . $strName, '_old" value="' . $params['value']->original, $params['value']->uri), $strHTML);
+				$strField	= str_replace(array('name="','id="','for="','_old" value="','#content#'),array('name="' . $strName, 'id="' . $strName, 'for="'.$strName, '_old" value="' . $params['value']->original, $params['value']->uri), $strHTML);
 				return $strField;
 			break;
 			
 			// SEX
 			case 'sex':
 			// TREATMENT TITLE
-			case 'title':
+			case 'treatment':
 			// DAY PERIOD
 			case 'period':
-				$strField	= str_replace(array('name="','id="','value="' . $params['value']->intval),array('name="' . $strName, 'id="' . $strName, 'checked value="' . $params['value']->intval), $strHTML);
+				$strField	= str_replace(array('name="','id="','for="','value="' . $params['value']->intval),array('name="' . $strName, 'id="' . $strName, 'for="'.$strName, 'checked value="' . $params['value']->intval), $strHTML);
 				return $strField;
 			break;
 			
 			// PASSWORD
 			case 'pwd':
-				$strField	= str_replace(array('#name#','name="','id="','value="'),array($strName,'name="' . $strName, 'id="' . $strName, 'value="' . $params['value']->original), $strHTML);
+				$strField	= str_replace(array('#name#','name="','id="','for="','value="'),array($strName,'name="' . $strName, 'id="' . $strName, 'for="'.$strName, 'value="' . $params['value']->original), $strHTML);
 				return $strField;
 			break;
 				
@@ -108,7 +112,9 @@ function smarty_function_APPLR_FormField($params,$template) {
 			case 'bool':
 			// CHECKBOX
 			case 'check':
-				$strField	= str_replace(array('name="','id="','value="' . $params['value']),array('name="' . $strName, 'id="' . $strName, 'checked value="' . $params['value']), $strHTML);
+			// READ STATUS
+			case 'msgstatus':
+				$strField	= str_replace(array('name="','id="','for="','value="' . $params['value']),array('name="' . $strName, 'id="' . $strName, 'for="'.$strName, 'checked value="' . $params['value']), $strHTML);
 				return $strField;
 			break;
 			
@@ -128,19 +134,20 @@ function smarty_function_APPLR_FormField($params,$template) {
 			
 			// CURRENCY
 			case 'currency':
-				$strField	= str_replace(array('name="','id="','value="' . $params['value']->intval),array('name="' . $strName, 'id="' . $strName, 'checked value="' . $params['value']->intval), $strHTML);
+				$strField	= str_replace(array('name="','id="','for="','value="' . $params['value']->intval),array('name="' . $strName, 'id="' . $strName, 'for="'.$strName, 'checked value="' . $params['value']->intval), $strHTML);
 				return $strField;
 			break;
 			
 			// ZIPCODE
 			case 'zipcode':
-				$strField	= str_replace(array('name="','id="','value="'),array('name="' . $strName, 'id="' . $strName, 'value="' . $params['value']->formatted), $strHTML);
+				$strField	= str_replace(array('name="','id="','for="','value="'),array('name="' . $strName, 'id="' . $strName, 'for="'.$strName, 'value="' . $params['value']->formatted), $strHTML);
 				return $strField;
 			break;
 			
 			// DEFAULT FIELD
 			default:
-				if(is_string($params['value'])) $strField	= str_replace(array('#name#','name="','id="','for="','value="','</textarea'),array($strName, 'name="'.$strName, 'id="'.$strName, 'for="'.$strName, 'value="'.$params['value'], $params['value'].'</textarea'), $strHTML);
+				/*if(is_string($params['value'])) */
+				$strField	= str_replace(array('#name#','name="','id="','for="','value="','</textarea'),array($strName, 'name="'.$strName, 'id="'.$strName, 'for="'.$strName, 'value="'.$params['value'], $params['value'].'</textarea'), $strHTML);
 			    return $strField;
 			break;
 		}

@@ -44,11 +44,11 @@ if(!isset($_SERVER["HTTP_HOST"]) || strpos($_SERVER["HTTP_HOST"],URI_DOMAIN_DEVE
 	define('DB_NAME'	,DB_HOMOLOG_DB);
 
 } else {
-
+	
 	define('URI_DOMAIN'	,URI_DOMAIN_PROD);
 	define('LOCAL_DIR'	,'/');
 
-	error_reporting(0);
+	error_reporting(E_ALL);
 	
 	define('DB_HOST'	,DB_PROD_HOST);
 	define('DB_USER'	,DB_PROD_USER);
@@ -57,7 +57,8 @@ if(!isset($_SERVER["HTTP_HOST"]) || strpos($_SERVER["HTTP_HOST"],URI_DOMAIN_DEVE
 }
 
 define('SYS_DIR'	, (LOCAL_DIR != '' && LOCAL_DIR != '/' ? LOCAL_DIR : '/'));
-define('SYS_ROOT'	, (empty($_SERVER['DOCUMENT_ROOT']) ? realpath(dirname($_SERVER['PHP_SELF'])) : $_SERVER['DOCUMENT_ROOT']) . SYS_DIR);
+define('ROOT'		, (empty($_SERVER['DOCUMENT_ROOT']) ? realpath(dirname($_SERVER['PHP_SELF'])) : $_SERVER['DOCUMENT_ROOT']));
+define('SYS_ROOT'	, ROOT . SYS_DIR);
 define('SMARTY_DIR'	, SYS_ROOT . 'lib/smarty/');
 
 /*********************************************************/
@@ -94,10 +95,32 @@ function APPLR_autoload($strPackage) {
 	// Defines Package's File Path
 	$strFile	= $arrFolder[0] . '.php';
 	$strPath	= (is_file(SYS_ROOT . 'lib/' . $strFile) ? SYS_ROOT . 'lib/' . $strFile : SYS_ROOT . 'lib/' . implode('/',$arrFolder) . '.php');
+
+	// Defines Package's File Path FIXES UPPERCASE
+	$strPathFix	= (is_file(SYS_ROOT . 'lib/' . $strFile) ? SYS_ROOT . 'lib/' . $strFile : SYS_ROOT . 'lib/' . implode('/',$arrFolder) . '.php');
+	$strPathFix = str_replace($strFile,strtolower($strFile),$strPathFix);
 	
-	if(is_file($strPath)) {
+	// Tests if path/to/file exists in include_path
+	/*
+	if( function_exists('stream_resolve_include_path') && ($strIncludePath = stream_resolve_include_path($strPath)) !== false) {
+		echo '<h1>here</h1>';
+		echo $strIncludePath.'<br>'; 
+		include_once $strIncludePath; 
+	
+	// Tests if /file exists in include_path
+	} elseif( function_exists('stream_resolve_include_path') && ($strIncludePath = stream_resolve_include_path($strFile)) !== false) {
+		echo '<h1>there</h1>';
+		echo $strIncludePath.'<br>'; 
+		include_once $strIncludePath;
+	
+	// Tests other path/to/file locations
+	} else
+	*/if(is_file($strPath)) {
 		// Includes File
 		include_once $strPath;
+	} elseif(is_file($strPathFix)) {
+		// Includes File
+		include_once $strPathFix;
 	} else {
 		/**
 		 * APPLR common files
@@ -110,12 +133,13 @@ function APPLR_autoload($strPackage) {
 		if(count($arrFolder) == 1) $arrFolder[] = $arrFolder[0];
 		
 		// Defines APPLR dir
-		$strApplrDir = explode('/', str_replace(array(SYS_DIR,'main'),array('','site'),$_SERVER['REQUEST_URI']) );
+		$strRequestURI = ( strpos($_SERVER['REQUEST_URI'],'/cms/') == 0 ? str_replace('/cms/','cms/',$_SERVER['REQUEST_URI']) : ( strpos($_SERVER['REQUEST_URI'],'/site/') == 0 ? str_replace('/site/','site/',$_SERVER['REQUEST_URI']) : $_SERVER['REQUEST_URI'] ) );
+		$strApplrDir = explode('/', str_replace(array( (SYS_DIR != '/' ? SYS_DIR : '') ,'main'),array('','site'),$strRequestURI) );
 		$strApplrDir = ($strApplrDir[0] == 'cms' ? 'cms/' : 'site/');
-				
+
 		// Defines Package's File Path
 		$strPath	= SYS_ROOT . $strApplrDir . implode('/',$arrFolder) . '.php';
-		
+
 		// Includes File
 		if(is_file($strPath)) include_once $strPath;
 	}

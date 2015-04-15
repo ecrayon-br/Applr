@@ -130,7 +130,7 @@ class authUser_Controller extends Controller {
 			!isset($_SESSION[self::$strProjectName]['fingerprintAuth']) 									|| 
 			!isset($_SESSION[self::$strProjectName]['serverNameAuth']) 										|| 
 			$_SESSION[self::$strProjectName]['serverNameAuth'] !== $_SERVER['SERVER_NAME'] 					|| 
-			md5((string) $_SERVER['REMOTE_ADDR']) !== $_SESSION[self::$strProjectName]['remoteAddrAuth'] 	|| 
+			/*md5((string) $_SERVER['REMOTE_ADDR']) !== $_SESSION[self::$strProjectName]['remoteAddrAuth'] 	||*/ 
 			md5(self::$strProjectName.'_AUTHSYS_'.$_SESSION[self::$strProjectName]['user']) !== $_SESSION[self::$strProjectName]['fingerprintAuth']
 		) {
 			return false;

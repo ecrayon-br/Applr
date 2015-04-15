@@ -14,14 +14,15 @@
 			
 			{if $confirmLead}
 			<div class="msg green show">
-			Você já faz parte do nosso banco de dados. Porém, é preciso confirmar o seu e-mail.<br /><br />
-			<div class="button inline" hotspot-id="{$objData->id}" name="{$smarty.cookies.APPLR_confirmLead}">CLIQUE AQUI</div> para reenviar o link de confirmação para <u>{$smarty.cookies.APPLR_confirmLead}</u>.
+				Você já faz parte do nosso banco de dados. Porém, é preciso confirmar o seu e-mail.<br /><br />
+				<div class="button inline" hotspot-id="{$objData->id}" name="{$smarty.cookies.APPLR_confirmLead}">CLIQUE AQUI</div> para reenviar o link de confirmação para <u>{$smarty.cookies.APPLR_confirmLead}</u>.
 			</div>
 			<div class="msg hide"></div>
 			{else}
-			<div class="form" hotspot-id="{$objData->id}" {*redirect-uri="{$smarty.const.SECTION_SEGMENT}/{$smarty.const.PERMALINK}"*}>
+			<div class="form field" hotspot-id="{$objData->id}" avatar-id="{$objData->rel_avatar.0->id}" data-error1="Campo obrigatório!" data-error2="E-mail inválido!">
 				{$objData->label} <input type="text" name="name" id="name" size=40 />
-				
+			</div>
+			<div class="form">
 				<div class="button {$objData->button_color}">{$objData->button} {if $objData->button_icon_bool}<div class="icon"></div>{/if}</div>
 			</div>
 			

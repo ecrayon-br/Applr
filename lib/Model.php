@@ -380,7 +380,6 @@ class Model {
 		}
 		
 		if(MDB2::isError($objQuery)) {
-			echo '<pre>'; var_dump($objQuery); die();
 			define('ERROR_MSG','Error on Model::prepareInsertQuery(): ' . $objQuery->getMessage());
 			return false;
 		} else {
@@ -607,7 +606,7 @@ class Model {
 		
 		if($this->_boolDebug || $boolDebug) { echo '<pre>'; print_r($strQuery); echo '<hr />'; var_dump($objQuery); echo '</pre>'; }
 		
-		if(MDB2::isError($objQuery)) {
+		if(MDB2::isError($objQuery)) { #echo '<pre>'; var_dump($objQuery);
 			define('ERROR_MSG',"Error on Model::select->$arrFetch[$strFetchMode](): " . $objQuery->getMessage());
 			return false;
 		} else {
@@ -636,12 +635,12 @@ class Model {
 		
 		// Prepares and execute query
 		$objQuery = $this->prepareInsertQuery($strTable,$arrField);
+		
 		if($objQuery !== false) {
 			// Treats UTF-8 and HTML SPECIAL CHARS
 			$this->prepareDataSyntax($arrField,false);
 			
 			$objQuery = $this->objConn->extended->executeMultiple($objQuery,$arrField);
-			
 			#$this->objConn->free();
 			
 			if(MDB2::isError($objQuery)) {
@@ -706,7 +705,7 @@ class Model {
 				}
 			} else {
 				#echo '<pre>'; var_dump($objQuery); die();
-					define('ERROR_MSG','Error on Model::replace->prepareInsertQuery(): ' . $objQuery->getMessage());
+				define('ERROR_MSG','Error on Model::replace->prepareInsertQuery(): ' . $objQuery->getMessage());
 				return false;
 			}
 			
@@ -740,7 +739,7 @@ class Model {
 		
 		// Prepares and execute query
 		$objQuery = $this->objConn->extended->autoExecute($strTable,$arrField,MDB2_AUTOQUERY_UPDATE,$strWhere);
-		#echo '<pre>'; var_dump($objQuery); die();
+		
 		if(MDB2::isError($objQuery)) {
 			define('ERROR_MSG','Error on Model::update->execute(): ' . $objQuery->getMessage());
 			return false;
@@ -826,7 +825,7 @@ class Model {
 						'LEFT JOIN rel_sec_template AS tpl_type_home 	ON tpl_type_home.sec_config_id = sec_config.id AND tpl_type_home.sys_template_type_id = 3',
 						'LEFT JOIN sys_template AS tpl_file_home 		ON tpl_file_home.id = tpl_type_home.sys_template_id',
 						);
-		$objReturn 	= $this->select($arrFields,'sec_config',$arrJoins,(!$boolType ? 'sec_config.id = ' . $mxdSection : 'sec_config.permalink = "' . $mxdSection . '"'));
+		$objReturn 	= $this->select($arrFields,'sec_config',$arrJoins,(!$boolType ? 'sec_config.id = ' . $mxdSection : 'sec_config.permalink = "' . $mxdSection . '"')); //,array(),array(),0,null,'All',1);
 		
 		if(!empty($objReturn)) {
 			return reset($objReturn);

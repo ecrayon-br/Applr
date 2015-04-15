@@ -12,7 +12,7 @@ define('PROJECT'			,'APPLR');
 define('PROJECT_ID'			,1);
 define('CLIENT_EMAIL'		,'contato@ecrayon.com.br');
 
-define('MAIN_SECTION'		,1);
+define('MAIN_SECTION'		,10);
 define('MAIN_LANGUAGE'		,2);
 define('CMS_ROOT_TEMPLATE'	,SYS_ROOT . 'cms/views/');
 

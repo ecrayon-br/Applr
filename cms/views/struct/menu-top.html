@@ -5,6 +5,7 @@
 			<input type="button" value="List" onclick="window.location.href = '{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/list{if $smarty.const.ACTION == 'section-content'}/{$strPermalink}{/if}';" />
 			{if $smarty.const.ACTION != 'section-struct'}
 			<input type="button" value="Insert" onclick="window.location.href = '{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/insert{if $smarty.const.ACTION == 'section-content'}/{$strPermalink}{/if}';" />
+			{if $smarty.const.ACTION == 'section-content' && $strSectionAction != 'list'}<input type="button" value="Duplicate" onclick="window.location.href = '{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/duplicate/{$strPermalink}/{$objData->id}';" />{/if}
 			{/if}
 			{/if}
 		</td>

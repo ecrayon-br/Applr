@@ -10,20 +10,39 @@
 	{else}
 		<div class="box">
 		{if $objData->private_bool && !$isLead}
+			{if $confirmLead}
+			<div class="tag"></div>
+			<h1>Conteúdo exclusivo!</h1>
+			Este conteúdo é exclusivo para os assinantes do blog e você está a um passo de fazer parte dete grupo!<br /><br />
+			Confirme seu e-mail através do link que eu enviei para você no endereço {$smarty.cookies.APPLR_confirmLead} e pronto!<br /><br />
+			Caso não tenha recebido o link, <div class="button" hotspot-id="{$objData->id}" name="{$smarty.cookies.APPLR_confirmLead}" display="box">clique aqui</div> e eu reenvio a mensagem para você!<br /><br />
+			Muito obrigado e um grande abraço!<br /><br />
+			<b>Edilson Rahal Tavares.</b>
+			{else}
 			<div class="tag"></div>
 			<h1>Conteúdo exclusivo!</h1>
 			Este conteúdo é exclusivo para os assinantes do blog!<br />
 			Caso deseje fazer parte deste seleto grupo, informe seu e-mail e clique em "Quero Receber!" no cabeçalho da página.<br /><br />
 			Muito obrigado e um grande abraço!<br /><br />
 			<b>Edilson Rahal Tavares.</b>
+			{/if}
 		{else}
 			{if $objData->private_bool}<div class="tag"></div>{/if}
 			<h1>{$objData->name}</h1>
+			
 			{if !empty($objData->content_date->original->Timestamp)}<h5>Postado em {$objData->content_date->formatted}</h5>{/if}
+			
+			{if !empty($objData->image_upload->uri) && empty($objData->video_embed->original)}<img src="{$objData->image_upload->uri}" alt="{$objData->name}" class="display" />{/if}
+			{if !empty($objData->video_embed->original)}
+				<iframe src="{$objData->video_embed->embed_uri}?color=c9ff23&title=0&byline=0&portrait=0" width="555" height="312" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+				{*<p><a href="https://vimeo.com/120836912">Dicas de Produtividade | V&iacute;deo 1 | Edilson Rahal Tavares</a> from <a href="https://vimeo.com/aetotal">AE Total</a> on <a href="https://vimeo.com">Vimeo</a>.</p>*}
+			{/if}
+			
 			{$objData->content_richtext|APPLR_html_entity_decode}
+			
 			<div class="fb-like" data-href="{$objData->url_permalink}" data-layout="button_count" data-action="like" data-show-faces="false" data-share="true"></div>
 			<br class=" clearfix" />
-			<div class="back"><a href="" title="">&lt; Voltar</a></div>
+			<div class="back"><a href="{$smarty.const.SECTION_PERMALINK}" title="Voltar">&lt; Voltar</a></div>
 			
 			<div class="fb-comments" data-href="{$objData->url_permalink}" data-width="" data-numposts="5" data-colorscheme="light"></div>
 		{/if}

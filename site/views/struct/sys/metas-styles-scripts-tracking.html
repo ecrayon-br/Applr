@@ -65,6 +65,7 @@
 		var ACTION 				= '{$smarty.const.ACTION}';
 		var SEARCH 				= '{$smarty.const.SEARCH}';
 		var PROJECT 			= '{$smarty.const.PROJECT}';
+		var TITLE 				= '{$smarty.const.TITLE}';
 		var URI_DOMAIN 			= '{$smarty.const.URI_DOMAIN}';
 		var URI_DOMAIN_PROD		= '{$smarty.const.URI_DOMAIN_PROD}';
 		var SYS_DIR 			= '{$smarty.const.SYS_DIR}';
@@ -90,7 +91,7 @@
 		  var js, fjs = d.getElementsByTagName(s)[0];
 		  if (d.getElementById(id)) return;
 		  js = d.createElement(s); js.id = id;
-		  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&appId=" + FB_APP_ID +"&version=v2.0";
+		  js.src = "//connect.facebook.net/pt_BR/sdk.js#xfbml=1&appId=" + FB_APP_ID +"&version=v2.0";
 		  fjs.parentNode.insertBefore(js, fjs);
 		}(document, 'script', 'facebook-jssdk'));
 	}
@@ -100,7 +101,7 @@
 		if (!_fbq.loaded) {
 		var fbds = document.createElement('script');
 		fbds.async = true;
-		fbds.src = '//connect.facebook.net/en_US/fbds.js';
+		fbds.src = '//connect.facebook.net/pt_BR/fbds.js';
 		var s = document.getElementsByTagName('script')[0];
 		s.parentNode.insertBefore(fbds, s);
 		_fbq.loaded = true;

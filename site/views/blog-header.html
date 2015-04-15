@@ -1,22 +1,27 @@
 <div class="header">
-	<a href="{$smarty.const.SECTION_PERMALINK}" title="{$smarty.const.PROJECT}"><img src="{$smarty.const.TEMPLATE}content/image/blog/logo.png" /></a>
+	<a href="{$smarty.const.HTTP}blog" title="{$smarty.const.TITLE}"><img src="{$smarty.const.TEMPLATE}content/image/blog/logo.png" /></a>
 	
 	{if !$isLead}
 	<div class="mailing">
-		<div class="form" hotspot-id="">
+		{if $confirmLead}
+		<div class="msg show">
+			Você já faz parte do nosso banco de dados. Porém, é preciso confirmar o seu e-mail.<br /><br />
+			<div class="button green" hotspot-id="{$objData->id}" name="{$smarty.cookies.APPLR_confirmLead}">CLIQUE AQUI</div> para reenviar o link de confirmação para <u>{$smarty.cookies.APPLR_confirmLead}</u>.
+		</div>
+		{else}
+		<div class="form" hotspot-id="1" data-error1="Preencha seu e-mail!" data-error2="E-mail inválido!">
 			Receba dicas e conteúdos exclusivos
 			<input type="text" name="name" id="name" placeholder="Digite aqui o seu melhor e-mail" />
 			<div class="button green">Quero receber!</div>
 		</div>
-		<div class="msg hide">
-			Lorem ipsum
-		</div>
+		<div class="msg hide"></div>
+		{/if}
 	</div>
 	{/if}
 </div>
 <div class="menu">
-	<a href="{$smarty.const.SECTION_PERMALINK}sobre" title="Sobre">Sobre</a>
+	<a href="{$smarty.const.HTTP}blog/sobre" title="Sobre">Sobre</a>
 	<a href="{$smarty.const.HTTP}contato" title="Contato">Contato</a>
-	<a href="{$smarty.const.SECTION_PERMALINK}" title="Início">Início</a>
+	<a href="{$smarty.const.HTTP}blog" title="Início">Início</a>
 </div>
 <script type="text/javascript" src="{$smarty.const.TEMPLATE}scripts/blog-header.js" charset="utf-8"></script>

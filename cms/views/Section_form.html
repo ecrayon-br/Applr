@@ -100,9 +100,9 @@
 			<br />
 			<input type="radio" name="applr_orderby" id="applr_orderby_2"	value="name DESC"			onclick="document.formConfig.orderby.value = this.value; document.formConfig.orderby.readOnly = true;" {if $objData->orderby == 'name DESC'}{assign var="radioChecked" value=1}checked{/if}> <label for="applr_orderby_2">Name DESC</label>
 			<br />
-			<input type="radio" name="applr_orderby" id="applr_orderby_3"	value="publish_date ASC"	onclick="document.formConfig.orderby.value = this.value; document.formConfig.orderby.readOnly = true;" {if $objData->orderby == 'publish_date ASC'}{assign var="radioChecked" value=1}checked{/if}> <label for="applr_orderby_3">Publish Date ASC</label>
+			<input type="radio" name="applr_orderby" id="applr_orderby_3"	value="date_publish ASC"	onclick="document.formConfig.orderby.value = this.value; document.formConfig.orderby.readOnly = true;" {if $objData->orderby == 'date_publish ASC'}{assign var="radioChecked" value=1}checked{/if}> <label for="applr_orderby_3">Publish Date ASC</label>
 			<br />
-			<input type="radio" name="applr_orderby" id="applr_orderby_4"	value="publish_date DESC"	onclick="document.formConfig.orderby.value = this.value; document.formConfig.orderby.readOnly = true;" {if !isset($objData->orderby) || $objData->orderby == 'publish_date DESC'}{assign var="radioChecked" value=1}checked{/if}> <label for="applr_orderby_4">Publish Date DESC</label>
+			<input type="radio" name="applr_orderby" id="applr_orderby_4"	value="date_publish DESC"	onclick="document.formConfig.orderby.value = this.value; document.formConfig.orderby.readOnly = true;" {if !isset($objData->orderby) || $objData->orderby == 'date_publish DESC'}{assign var="radioChecked" value=1}checked{/if}> <label for="applr_orderby_4">Publish Date DESC</label>
 			<br />
 			<input type="radio" name="applr_orderby" id="applr_orderby_5"	value="RAND()"				onclick="document.formConfig.orderby.value = this.value; document.formConfig.orderby.readOnly = true;" {if $objData->orderby == 'RAND()'}{assign var="radioChecked" value=1}checked{/if}> <label for="applr_orderby_5">Random</label>
 			<br />

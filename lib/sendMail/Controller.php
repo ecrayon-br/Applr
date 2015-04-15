@@ -15,6 +15,8 @@ class sendMail_Controller extends Controller {
 	private		$strSenderName		= 'ECRAYON Tecnologia Criativa';
 	private		$intPort			= 25;
     
+	private		$arrConst 			= array('FB_APP_ID', 'FB_ADMIN_ID', 'GA_ID', 'PAGING_LIMIT', 'HTTP', 'HTTP_SITE', 'HTTP_TEMPLATE', 'SECTION_SEGMENT', 'SECTION_PERMALINK', 'PERMALINK', 'URL_PERMALINK', 'LANGUAGE', 'LOCALE', 'CONTENT', 'HOME', 'PAGE', 'MEDIA_GALLERY', 'PREVIEW', 'ACTION', 'SEARCH', 'PROJECT', 'TITLE', 'URI_DOMAIN', 'URI_DOMAIN_PROD', 'SYS_DIR');
+	
 	/**
 	 * Class constructor
 	 *
@@ -242,7 +244,7 @@ class sendMail_Controller extends Controller {
 	public function setSubject($strSubject) {
 		if(!is_string($strSubject) || empty($strSubject))	return false;
 		
-		$this->strSubject	= $strSubject;
+		$this->strSubject	= utf8_decode( html_entity_decode($strSubject,ENT_QUOTES,'UTF-8') );
 		
 		return true;
 	}
@@ -260,6 +262,7 @@ class sendMail_Controller extends Controller {
 	 * @since		2008-12-03
 	 * @author 		Diego Flores <diegotf [at] gmail [dot] com>
 	 * 
+	 * @todo		eval SMARTY vars
 	 */
 	public function setHTML($strHTML, $arrVars = null, $boolGET = false, $boolPOST = false) {
 		if(!is_string($strHTML) || empty($strHTML))	return false;
@@ -267,36 +270,42 @@ class sendMail_Controller extends Controller {
 		Controller::unsecureGlobals();
 		
 		// If $strHTML is a file path, get file's content
-		if(is_file($strHTML)) $strHTML = utf8_decode(file_get_contents($strHTML));
+		if(is_file($strHTML)) $strHTML = file_get_contents($strHTML);
 		
 		// Replaces array of variables
 		if(is_array($arrVars) || is_object($arrVars)) {
 			foreach($arrVars AS $intKey => $strVar) {
-				$strHTML 	= str_replace('#'.$intKey.'#',nl2br($strVar),$strHTML);
+				if(!is_array($strVar) && !is_object($strVar)) $strHTML 	= str_replace('#'.$intKey.'#',$strVar,$strHTML);
 			}
 		}
 		
 		// Replaces $_POST variables
 		if($boolPOST) {
 			foreach($_POST AS $intKey => $strVar) {
-				$strHTML 	= str_replace('#'.$intKey.'#',nl2br($strVar),$strHTML);
+				$strHTML 	= str_replace('#'.$intKey.'#',$strVar,$strHTML);
 			}
 		}
 		
 		// Replaces $_GET variables
 		if($boolGET) {
 			foreach($_GET AS $intKey => $strVar) {
-				$strHTML 	= str_replace('#'.$intKey.'#',nl2br($strVar),$strHTML);
+				$strHTML 	= str_replace('#'.$intKey.'#',$strVar,$strHTML);
 			}
 		}
 		
 		// Replaces CONSTANT variables
-		$arrData = get_defined_constants(true);
-		foreach($arrData['user'] AS $intKey => $strVar) {
-			$strHTML 	= str_replace('#'.$intKey.'#',nl2br($strVar),$strHTML);
+		foreach($this->arrConst AS $intKey => $strVar) {
+			$strHTML 	= str_replace('#'.$strVar.'#',constant($strVar),$strHTML);
+		}
+
+		// Replaces array of variables
+		if(is_array($arrVars) || is_object($arrVars)) {
+			foreach($arrVars AS $intKey => $strVar) {
+				if(!is_array($strVar) && !is_object($strVar)) $strHTML 	= str_replace('#'.$intKey.'#',$strVar,$strHTML);
+			}
 		}
 		
-		$this->strHTML		= $strHTML;
+		$this->strHTML		= utf8_decode( html_entity_decode($strHTML,ENT_QUOTES,'UTF-8') );
 		
 		return true;
 	}
@@ -355,6 +364,7 @@ class sendMail_Controller extends Controller {
 	 * 
 	 */
 	public function sendMessage($arrRcpt = null, $strSubject = null, $strHTML = null, $arrVars = null) {
+		
 		// Defines message recipient
 		if(!is_null($arrRcpt)) 		$this->setRecipient($arrRcpt);
 		
@@ -392,13 +402,16 @@ class sendMail_Controller extends Controller {
 			
 			// Sends 'To' messages
 			foreach($this->arrRecipient['To'] AS $strAddress => $objData) {
-				$this->objReport->To->$strAddress = mail($strAddress,$this->strSubject,$this->strHTML,$strHeader . "To: " . $objData->name . '<' . $objData->address . '>'."\n");
+				$this->objReport->To->$strAddress = mail($strAddress,$this->strSubject,$this->strHTML,$strHeader . "To: " . $objData->name . '<' . $objData->email . '>'."\n");
 			}
+			if(count($this->arrRecipient['To']) == 1 && count($this->arrRecipient['Bcc']) == 0) return $this->objReport->To->$strAddress;
 			
 			// Sends 'Bcc' messages
 			foreach($this->arrRecipient['Bcc'] AS $strAddress => $objData) {
-				$this->objReport->Bcc->$strAddress = mail($strAddress,$this->strSubject,$this->strHTML,$strHeader . "To: " . $objData->name . '<' . $objData->address . '>'."\n");
+				$this->objReport->Bcc->$strAddress = mail($strAddress,$this->strSubject,$this->strHTML,$strHeader . "To: " . $objData->name . '<' . $objData->email . '>'."\n");
 			}
+			
+			return true;
 		} else {
 			// Sends message through SMTP authentication server
 			$arrHeaders = array(	
@@ -437,6 +450,8 @@ class sendMail_Controller extends Controller {
 					$objSend							= $objSMTP->send($strAddress, $arrHeaders, $this->strHTML);
 					$this->objReport->Bcc->$strAddress	= (PEAR::isError($objSend) ? false : true);
 				}
+				
+				return true;
 			} else {
 				define('ERROR_MSG','Error on $this->sendMessage!');
 				return false;

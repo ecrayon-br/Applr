@@ -7,7 +7,7 @@ CONFIG.clearError = function() {
 	$('*').removeClass('type3');
 }
 
-dumpProps = function(obj, parent) {
+CONFIG.dumpProps = function(obj, parent) {
    // Go through all the properties of the passed-in object
    for (var i in obj) {
       // if a parent (2nd parameter) was passed in, then use that to
@@ -24,32 +24,11 @@ dumpProps = function(obj, parent) {
    }
 }
 
-disableField = function(originalRequest) {
-	$(originalRequest.request.container.success).disabled = true;
-}
-enableField = function(originalRequest) {
-	$(originalRequest.request.container.success).disabled = false;
-}
-
-enableCountry = function(mxdValue,strID) {
-	if(mxdValue == '1' || mxdValue.toUpperCase() == 'BRASIL' || mxdValue.toUpperCase() == 'BRAZIL' || mxdValue.toUpperCase() == 'BR') {
-		$(strID).disabled = false;
-	} else {
-		$(strID).disabled = true;
-		$(strID).selectedIndex = 0;
-		
-		if($('tb_municipio_bn_id') !== undefined) {
-			$('tb_municipio_bn_id').disabled = true;
-			$('tb_municipio_bn_id').selectedIndex = 0;
-		}
-	}
-}
-
-clearField = function(objField,strText) {
+CONFIG.clearField = function(objField,strText) {
 	if(objField.value == strText) { objField.value = ''; } else if(objField.value == '') { objField.value = strText; }
 }
 
-onlyNumber = function(event) {
+CONFIG.onlyNumber = function(event) {
     if (event.keyCode) {
     	if ((event.keyCode < 48 || event.keyCode >= 58) && event.keyCode != 8 && event.keyCode != 9 && event.keyCode != 13 && event.keyCode != 27 && event.keyCode != 32 && event.keyCode != 37 && event.keyCode != 38 && event.keyCode != 39 && event.keyCode != 40 && event.keyCode != 46) {
             return false;
@@ -63,6 +42,67 @@ onlyNumber = function(event) {
             return true;
         }
     }
+}
+
+CONFIG.checkMailSyntax = function(value) {
+	var origin = value.trim();
+	var pattern = new RegExp(/^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i);
+    
+	if(origin != '') {
+		if(!pattern.test(origin)) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+}
+
+CONFIG.showMessage = function(message,label,color) {
+	$('.content-holder .message-box').removeClass('green');
+	$('.content-holder .message-box').removeClass('red');
+	
+	if(message !== undefined) 	$('.content-holder .message-box .message').text(message);
+	if(label !== undefined) 	$('.content-holder .message-box .label').text(label);
+	
+	switch(color) {
+		case 1:
+			$('.content-holder .message-box').addClass('green');
+		break;
+		case 2:
+			$('.content-holder .message-box').addClass('red');
+		break;
+	}
+
+	$("html, body").animate({ scrollTop: 300 }, "slow");
+	
+	$('.content-holder .message-box').show(500);
+	setTimeout(function(){$('.content-holder .message-box').hide(500);},5000);
+}
+
+$.fn.enterKey = function (fnc) {
+    return this.each(function () {
+        $(this).keypress(function (ev) {
+            var keycode = (ev.keyCode ? ev.keyCode : ev.which);
+            if (keycode == '13') {
+                fnc.call(this, ev);
+            }
+        })
+    })
+}
+
+/*
+enableCountry = function(mxdValue,strID) {
+	if(mxdValue == '1' || mxdValue.toUpperCase() == 'BRASIL' || mxdValue.toUpperCase() == 'BRAZIL' || mxdValue.toUpperCase() == 'BR') {
+		$(strID).disabled = false;
+	} else {
+		$(strID).disabled = true;
+		$(strID).selectedIndex = 0;
+		
+		if($('tb_municipio_bn_id') !== undefined) {
+			$('tb_municipio_bn_id').disabled = true;
+			$('tb_municipio_bn_id').selectedIndex = 0;
+		}
+	}
 }
 
 valiDate = function(strForm,strPrefix,boolMandatory) {
@@ -112,36 +152,6 @@ cityFilter = function(formID,intStateID,strFieldCity,strCombo,intType,intFilter,
 	}
 	
 	return new Ajax.Updater(strCombo,PATH+'../include-sistema/sys/cityFilter.php',{ method: 'post', parameters: 'name='+strFieldCity+'&type='+intType+'&userFilter='+intFilter+'&state='+arrIDField.toString()+'&width='+intWidth, onLoading: loadingIcon, onError: loadingIconHide });
-}
-
-loadingIconHide = function(originalRequest) {
-	$(originalRequest.request.container.success).innerHTML = '';
-}
-
-showAndHide = function(strValue,intValue,strDisplay) {
-	if(strDisplay == undefined) strDisplay = (navigator.appName.indexOf('Microsoft') >= 0 ? 'block' : 'table-row');
-	
-	if(intValue !== undefined) {
-		switch(intValue) {
-			case 1:
-			case '1':
-			case true:
-				$(strValue).style.display = strDisplay;
-			break;
-			
-			default:
-				$(strValue).className = $(strValue).className.replace('hidden','');
-				$(strValue).style.display = 'none';
-			break;
-		}
-	} else {
-		if($(strValue).style.display != strDisplay) {
-			$(strValue).style.display = strDisplay;
-		} else {
-			$(strValue).className = $(strValue).className.replace('hidden','');
-			$(strValue).style.display = 'none';
-		}
-	}
 }
 
 setPhoneSyntax = function(object,boolSeparateFields) {
@@ -196,3 +206,4 @@ setCNPJSyntax = function(objDOM, keyPress){
 		return true;
 	} else { return false; }
 }
+*/

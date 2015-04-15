@@ -1,8 +1,11 @@
 <?php
 class SectionContent_controller extends manageContent_Controller {
+	
 	private		$strSecTable;
+	private		$arrSectionActions = array('update','insert','add','list','duplicate','delete');
+	private		$strSectionAction;
 
-	protected	$arrFieldType = array();
+	protected	$arrFieldType	= array();
 	
 	public		$objFCK;
 	
@@ -31,7 +34,7 @@ class SectionContent_controller extends manageContent_Controller {
 			$this->intSecID	= intval($intSecID);
 			$strSection		= $this->objModel->recordExists('permalink','sec_config','id = "' . $this->intSecID . '"',true);
 		} else {
-			$strSection		= (!in_array($_SESSION[self::$strProjectName]['URI_SEGMENT'][3],array('update','insert','add','list','duplicate')) ? $_SESSION[self::$strProjectName]['URI_SEGMENT'][3] : $_SESSION[self::$strProjectName]['URI_SEGMENT'][4]);
+			$strSection		= (!in_array($_SESSION[self::$strProjectName]['URI_SEGMENT'][3],$this->arrSectionActions) ? $_SESSION[self::$strProjectName]['URI_SEGMENT'][3] : $_SESSION[self::$strProjectName]['URI_SEGMENT'][4]);
 			$this->intSecID	= intval($this->objModel->recordExists('id','sec_config','permalink = "' . $strSection . '"',true));
 			
 			if(empty($this->intSecID)) {
@@ -43,33 +46,40 @@ class SectionContent_controller extends manageContent_Controller {
 		}
 		$this->objSmarty->assign('strPermalink',$strSection);
 		
+		// Sets SECTION ACTION
+		$this->strSectionAction = (in_array($_SESSION[self::$strProjectName]['URI_SEGMENT'][3],$this->arrSectionActions) ? $_SESSION[self::$strProjectName]['URI_SEGMENT'][3] : (in_array($_SESSION[self::$strProjectName]['URI_SEGMENT'][4],$this->arrSectionActions) ? $_SESSION[self::$strProjectName]['URI_SEGMENT'][4] : 'list') );
+		$this->objSmarty->assign('strSectionAction',$this->strSectionAction);
+		
 		// Sets Section vars
 		$this->setSection($this->intSecID);
-		$this->objSection	= $this->objModel->getSectionConfig($this->intSecID);
-		$this->objSmarty->assign('objSection',$this->objSection);
 		
 		// Gets Section Fields list
 		$this->getFieldList();
-		$this->objSmarty->assign('objStruct',$this->objStruct);
 		
-		$this->setFieldType();
-		
+		/**
+		 * @todo Checar a setagem direta de parametros ->objModel; o correto não seria setar as do controller???
+		 */
 		// Sets Content List vars
 		$this->objModel->strTable		= $this->objSection->table_name;
 		$this->objModel->arrTable		= array($this->objSection->table_name);
 		$this->objModel->arrFieldType	= $this->arrFieldType;
 		
-		$this->objModel->arrFieldList	= array('*');
+		$this->objModel->arrFieldList	= array($this->objSection->table_name . '.*');
 		$this->objModel->arrJoinList	= array();
-		$this->objModel->arrWhereList	= array('deleted = 0');
-		$this->objModel->arrOrderList	= array('date_publish DESC');
-		$this->objModel->arrGroupList	= array('id');
-
+		$this->objModel->arrWhereList	= array($this->objSection->table_name . '.deleted = 0');
+		$this->objModel->arrOrderList	= array($this->objSection->orderby);
+		$this->objModel->arrGroupList	= array($this->objSection->table_name . '.id');
+		$this->objModel->intOffsetList	= 0; #($this->objSection->list_items ? ($this->intCurrentPage * $this->objSection->list_items) - $this->objSection->list_items : null);
+		$this->objModel->intLimitList	= null; #intval($this->objSection->list_items);
+		
 		$this->objModel->arrFieldData	= array($this->objModel->strTable . '.*');
 		$this->objModel->arrJoinData	= array();
 		$this->objModel->arrWhereData	= array($this->objModel->strTable . '.id = {id}');
-		$this->objModel->arrOrderData	= array($this->objModel->strTable . '.date_publish DESC');
+		$this->objModel->arrOrderData	= array($this->objSection->orderby);
 		$this->objModel->arrGroupData	= array($this->objModel->strTable . '.id');
+
+		// Sets related content sql instructions
+		$this->setRelContent();
 		
 		// Shows default interface
 		if($boolRenderTemplate) $this->_read();
@@ -120,7 +130,7 @@ class SectionContent_controller extends manageContent_Controller {
 			}
 			
 			if(empty($this->objPrintData->id)) $this->objPrintData = $this->setupFieldSufyx($this->objRawData,array_keys((array) $this->objRawData),2);
-			#echo '<pre>'; print_r($this->objPrintData);			
+						
 			$this->objSmarty->assign('objData',$this->objPrintData);
 			
 		}
@@ -166,29 +176,6 @@ class SectionContent_controller extends manageContent_Controller {
 			$this->_read(); exit();
 		}
 		
-		$intRel = 0;
-		foreach($this->arrRelContent AS $objRel) {
-			$arrTables = explode('_rel_',str_replace(array('sec_rel_','_parent','_child'),'',$objRel->table_name));
-			$strTable = ($objRel->parent ? $arrTables[1] : $arrTables[0]); 
-			
-			$arrChildField = explode(',',$objRel->child_fields);
-			foreach($arrChildField AS &$strField) {
-				if($strField != 'permalink') {
-					$strField = '\"' . $strField . '\":\"",IF(' . $arrTables[1] . '.' . $strField. ' IS NULL,"",' . $arrTables[1] . '.' . $strField. '),"\"';
-				} else {
-					$strAttrPermalink = 'IF(' . $arrTables[1] . '.' . $strField. ' IS NULL,"", CONCAT("' . $objRel->child_section_permalink . '/",' . $arrTables[1] . '.' . $strField. ') )';
-					$strField = '\"' . $strField . '\":\"",' . $strAttrPermalink . ',"\"';
-				}
-			}
-			$arrChildField[] = '\"url_permalink\":\"", CONCAT("' . HTTP . '",' . $strAttrPermalink . '),"\"';
-				
-			$this->objModel->arrFieldData[$objRel->field_name]	= $this->objModel->arrFieldList[$objRel->field_name]	= 'CONCAT("[",GROUP_CONCAT(DISTINCT CONCAT("{\"id\":\"",' . $arrTables[1] . '.id,"\",\"value\":\"",' . $arrTables[1] . '.' . $objRel->field_rel. ',"\",' . implode(',',$arrChildField) . '}") SEPARATOR ","),"]") AS ' . $objRel->field_name;
-			$this->objModel->arrJoinData['rel_tbl_' . $intRel]	= $this->objModel->arrJoinList['rel_tbl_' . $intRel]	= 'LEFT JOIN ' . $objRel->table_name . ' AS rel_tbl_' . $intRel . ' ON rel_tbl_' . $intRel . '.parent_id = ' . $this->objModel->strTable . '.id';
-			$this->objModel->arrJoinData[$arrTables[1]]	= $this->objModel->arrJoinList[$arrTables[1]]	= 'LEFT JOIN ' . $arrTables[1] . ' ON rel_tbl_' . $intRel . '.child_id = ' . $arrTables[1] . '.id';
-				
-			$intRel++;
-		}
-		
 		$this->_create($intID,$boolRenderTemplate);
 	}
 	
@@ -196,7 +183,10 @@ class SectionContent_controller extends manageContent_Controller {
 	 * @see CRUD_Controller::delete()
 	 */
 	public function delete() {
-		parent::delete(0);
+		$this->strTable	= $this->objSection->table_name;
+		$this->arrTable	= array($this->objSection->table_name);
+		
+		parent::delete(1);
 	}
 	
 	/**
@@ -212,8 +202,8 @@ class SectionContent_controller extends manageContent_Controller {
 		$this->unsecureGlobals();
 		
 		// Sets Section's DB Entity name
-		$strTable		= $this->strTable;
-		$arrTable		= $this->arrTable;
+		#$strTable		= $this->strTable;
+		#$arrTable		= $this->arrTable;
 		$this->strTable	= $this->objSection->table_name;
 		$this->arrTable	= array($this->objSection->table_name);
 		
@@ -259,18 +249,29 @@ class SectionContent_controller extends manageContent_Controller {
 		$this->objData	= $this->setupFieldSufyx($objData,array_keys((array) $objData),1);
 		
 		// Insert / Updates data
-		$this->_update((array) $this->objData,false);
+		$objReturn = $this->_update((array) $this->objData,false);
 		
-		// Formats data array to screen
-		$this->objPrintData	= reset($this->objPrintData);
-		
-		// Shows Section's form template
-		if(empty($this->objPrintData->id)) {
-			$this->insert();
+		// If is DUPLICATE and $objReturns == false, shows content's list
+		if(!$objReturn && $this->strSectionAction == 'duplicate') {
+			$this->_read();
+			exit();
 		} else {
-			$this->update($this->objPrintData->id);
+	
+			// Formats data array to screen
+			$this->objPrintData	= reset($this->objPrintData);
+			
+			// If id duplicating content, sets new ID
+			if($this->strSectionAction == 'duplicate') { $this->objPrintData->id = $this->objData->id; }
+			
+			// Shows Section's form template
+			if(empty($this->objPrintData->id)) {
+				$this->insert();
+			} else {
+				$this->update($this->objPrintData->id);
+			}
+			
+			$this->secureGlobals();
+			
 		}
-		
-		$this->secureGlobals();
 	}
 }

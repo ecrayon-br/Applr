@@ -17,6 +17,9 @@ class CRUD_Controller extends Controller {
 	protected	$arrWhereData	= array();
 	protected	$arrOrderData	= array();
 	protected	$arrGroupData	= array();
+	protected	$intOffsetList	= 0;
+	protected	$intLimitList	= null;
+	protected	$intCurrentPage = 1;
 	
 	public		$objData;
 	
@@ -42,9 +45,9 @@ class CRUD_Controller extends Controller {
 		$strModelClass		= $this->strModule . '_model';
 		
 		if(class_exists($strModelClass)) {
-			$this->objModel = new $strModelClass($this->arrTable,$this->arrFieldType,$this->arrFieldList,$this->arrJoinList,$this->arrWhereList,$this->arrOrderList,$this->arrGroupList,$this->arrFieldData,$this->arrJoinData,$this->arrWhereData,$this->arrOrderData,$this->arrGroupData);
+			$this->objModel = new $strModelClass($this->arrTable,$this->arrFieldType,$this->arrFieldList,$this->arrJoinList,$this->arrWhereList,$this->arrOrderList,$this->arrGroupList,$this->intLimitList,$this->intOffsetList,$this->arrFieldData,$this->arrJoinData,$this->arrWhereData,$this->arrOrderData,$this->arrGroupData);
 		} else {
-			$this->objModel	= new CRUD_Model($this->arrTable,$this->arrFieldType,$this->arrFieldList,$this->arrJoinList,$this->arrWhereList,$this->arrOrderList,$this->arrGroupList,$this->arrFieldData,$this->arrJoinData,$this->arrWhereData,$this->arrOrderData,$this->arrGroupData);
+			$this->objModel	= new CRUD_Model($this->arrTable,$this->arrFieldType,$this->arrFieldList,$this->arrJoinList,$this->arrWhereList,$this->arrOrderList,$this->arrGroupList,$this->intLimitList,$this->intOffsetList,$this->arrFieldData,$this->arrJoinData,$this->arrWhereData,$this->arrOrderData,$this->arrGroupData);
 		}
 		
 		if($boolRenderTemplate) $this->_read();
@@ -113,7 +116,7 @@ class CRUD_Controller extends Controller {
 	 *
 	 */
 	public function delete($boolMode = 1) {
-		if(!isset($_POST['delete']) || empty($_POST['delete'])) {
+		if(empty($_POST['delete'])) {
 			$this->objSmarty->assign('ERROR_MSG','You must check items to delete!');
 		} else {
 			$objReturn = $this->_delete($_POST['delete'],$boolMode);
@@ -160,6 +163,7 @@ class CRUD_Controller extends Controller {
 	protected function _read() {
 		$this->objData	= $this->content();
 		$this->objSmarty->assign('objData',$this->objData);
+		
 		$this->renderTemplate();
 	}
 	
@@ -189,7 +193,7 @@ class CRUD_Controller extends Controller {
 				} else {
 					$intID = intval($arrData['id']);
 				}
-				
+
 				// Insert relationship values
 				foreach($this->objStruct AS $objField) {
 					if($objField->type == 2) {
@@ -199,7 +203,7 @@ class CRUD_Controller extends Controller {
 						// Format insert data array
 						$mxdContent = array();
 						foreach($arrData[$objField->field_name] AS $mxdData) {
-							$mxdContent[] = array('parent_id' => $intID, 'child_id' => $mxdData);
+							if(!empty($mxdData)) $mxdContent[] = array('parent_id' => $intID, 'child_id' => $mxdData);
 						}
 						
 						// Delete previous relationships

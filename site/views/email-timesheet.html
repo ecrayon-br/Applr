@@ -2,11 +2,36 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>Insert title here</title>
+<title>#TITLE#</title>
 </head>
-<body bgcolor="#ffcc00">
-Teste imagem permalink: <img src="#HTTP#campanhas/confirm/?md5=#md5#&display=1" width=1 height=1 /><br />
-Teste imagem *.php: <img src="#HTTP#confirm-email-open.php?md5=#md5#&display=1" width=1 height=1 /><br />
-Bem vindo!<br />
-Esse é um teste de agendamento de e-mail. Ao visualizar essa mensagem, seu status deve ser atualizado no banco de dados e você estará apto a receber a próxima mensagem.<br /><br />
-<a href="#HTTP#confirm-email-open.php?md5=#md5#&redirect-uri=#url#" title="Clique aqui">Clique aqui para visualizar o conteúdo!</a>
+<body style="background: #D6DBD6; text-align: center; font-family: Arial; padding: 50px; color: #5C5B5B;">
+
+<div style="border: none; background: white; padding: 50px 50px 0px 50px; margin: 0 auto; width: 500px; text-align: left;">
+
+	<div style="font-size: 30px;">
+		#subject#
+	</div>
+	
+	<div style="font-size: 18px;">
+		#content_richtext#
+		
+		<!-- #HTTP#campanhas/confirm/?md5=#md5#&redirect-uri=#url# -->
+		<div>
+			<div style="display: inline-block; vertical-align: top;">
+				Um abraço,<br />
+				<b>Edilson Rahal Tavares</b>
+			</div>
+			<img src="#HTTP#campanhas/confirm/?md5=#md5#&display=1" style="display: inline-block; width: 90px; margin-top: -15px; vertical-align: bottom;" />
+		</div>
+	</div>
+	
+</div>
+<div style="border: none; background: #293B65; color: white; font-size: 10px; padding: 20px; margin: 0 auto; width: 560px; text-align: left;">
+	Nós somos contra o SPAM. Seu e-mail cadastrado não será utilizado para outros fins, não será comercializado ou 
+	cedido a terceiros, sob nenhuma condição. Se você se cadastrou por engano ou deseja se descadastrar, clique aqui 
+	e tiraremos seu email de nossa lista exclusiva. Você não receberá mais nenhuma dica valiosa para aumentar a 
+	produtividade de sua empesa através da TI. Perdoe-me algum eventual transtorno.<br /><br />
+	Caso não deseje receber mais mensagens, <a href="#HTTP#email/unsubscribe/#md5#" title="Clique Aqui Para Descadastrar" style="font-weight: bold; color: white; text-decoration: underline;">clique aqui</a> para descadrastrar seu e-mail da lista de envios.
+</div>
+</body>
+</html>

@@ -280,7 +280,7 @@ class SectionStruct_controller extends Section_controller {
 		$arrReplace[$intMoveOrder]['field_order'] 	= $intOrder + 1;
 		$arrReplace[$intOrder]['field_order'] 		= $intMoveOrder + 1;
 		
-		return $this->objModel->replace('sec_config_order',$arrReplace);
+		return $this->objModel->replace('sec_config_order',$arrReplace,false);
 	}
 	public function orderUp() {
 		if(!$this->orderField(-1)) {

@@ -15,8 +15,6 @@ class Login_controller extends Main_controller {
 	 */
 	public function __construct($boolRenderTemplate = true) {
 		parent::__construct($boolRenderTemplate);
-		
-		$this->objAuth = new authUser_Controller();
 	}
 	
 	/**
@@ -37,6 +35,8 @@ class Login_controller extends Main_controller {
 		if(!is_string($strPwd)		|| empty($strPwd))	 $strPwd	= $_REQUEST['password'];
 		if(!is_string($strLogin) 	|| empty($strLogin)) return false;
 		if(!is_string($strPwd)		|| empty($strPwd))	 return false;
+
+		$this->objAuth = new authUser_Controller();
 		
 		if($this->objAuth->authUser($strLogin,$strPwd)) {
 			header("Location: " . HTTP_CMS . "main");

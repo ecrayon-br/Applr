@@ -1,0 +1,40 @@
+.form .label {
+	font-family: "Aller";
+	font-size: 18px;
+	color: black;
+	display: inline-block;
+	width: 140px;
+	text-align: right;
+}
+.form .label.top {
+	vertical-align: top;
+}
+.form .label.small {
+	font-size: 14px;
+}
+.form .label.left {
+	text-align: left;
+}
+.form .input {
+	display: inline-block;
+	margin-left: 10px;
+	margin-bottom: 10px;
+}
+.form .input input[type=text],
+.form .input textarea {
+	width: 390px;
+	height: 35px;
+	padding: 5px;
+	border: 1px solid #606162;
+	background: #E5E6E7;
+	border-radius: 5px;
+}
+.form .input textarea {
+	height: 210px;
+}
+.form .button {
+	text-transform: uppercase;
+	font-size: 24px;
+	color: #1F97D7;
+}
+	

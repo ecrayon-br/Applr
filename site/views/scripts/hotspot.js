@@ -6,19 +6,28 @@ Hotspot.send = function() {
 	
 	CONFIG.clearError();
 	
+	var error		= false;
 	var action		= HTTP + 'hotspot/save';
-	var hotspotID	= ($(this).attr('hotspot-id') ? $(this).attr('hotspot-id') : $('.form').attr('hotspot-id'));
-	var name 		= ($(this).attr('name') ? $(this).attr('name') : $('.form input#name').val()).trim();
+	var hotspotID	= ($(this).attr('hotspot-id') ? $(this).attr('hotspot-id') : $('.form.field').attr('hotspot-id'));
+	var avatarID	= ($(this).attr('avatar-id') ? $(this).attr('avatar-id') : $('.form.field').attr('avatar-id'));
+	var name 		= ($(this).attr('name') ? $(this).attr('name') : $('.form.field input#name').val()).trim();
 	
 	if(name == '') {
-		 $('.form input#name').parent().addClass('error type1');
-	} else {
+		error = true;
+		 $('.form.field input#name').parent().addClass('error type1');
+	} else if(!CONFIG.checkMailSyntax(name)) {
+		error = true;
+		$('.mailing .form input#name').parent().addClass('error type2');
+	}
+
+	if(!error) {
 		$.ajax({
 			type: 'POST',
 			url: action,
 			data: {
 					'name': name,
 					'hotspot-id': hotspotID,
+					'rel_avatar': avatarID
 					//'redirect-uri': redirectURI
 				  },
 			beforeSend:function(){
@@ -62,6 +71,7 @@ Hotspot.render = function() {
 		Hotspot.rendered = true;
 		
 		$('.button').click(Hotspot.send);
+		$('.box .body .form input#name').enterKey(Hotspot.send);
 	}
 }
 

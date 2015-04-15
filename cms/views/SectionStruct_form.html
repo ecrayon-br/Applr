@@ -11,6 +11,7 @@ SecStruct.sec_field = JSON.parse('{/literal}{json_encode($arrSec)}{literal}');
 console.log(SecStruct.sec_field);
 
 SecStruct.fillCombo = function() {
+	console.log('fillCombo');
 	var combo		= $($('#child_id')[0].selectedOptions[0].parentElement);
 	var folder_id 	= combo.attr('folder');
 	var child_id 	= $('#child_id').val();
@@ -57,15 +58,15 @@ SecStruct.fillCombo = function() {
 	<tr>
 		<td>Fill is mandatory?</td>
 		<td>
-			<input type="radio" name="mandatory" value=1 {if $objField->mandatory == 1}checked{/if} /> Yes<br />
-			<input type="radio" name="mandatory" value=0 {if $objField->mandatory == 0}checked{/if} /> No
+			<input type="radio" name="mandatory" value=1 id="mandatory_1" {if $objField->mandatory == 1}checked{/if} /> <label for="mandatory_1">Yes</label><br />
+			<input type="radio" name="mandatory" value=0 id="mandatory_0" {if $objField->mandatory == 0}checked{/if} /> <label for="mandatory_0">No</label>
 		</td>
 	</tr>
 	<tr>
 		<td>Requires administrative privileges?</td>
 		<td>
-			<input type="radio" name="admin" value=1 {if $objField->admin == 1}checked{/if} /> Yes<br />
-			<input type="radio" name="admin" value=0 {if $objField->admin == 0}checked{/if} /> No
+			<input type="radio" name="admin" value=1 id="admin_1" {if $objField->admin == 1}checked{/if} /> <label for="admin_1">Yes</label><br />
+			<input type="radio" name="admin" value=0 id="admin_0" {if $objField->admin == 0}checked{/if} /> <label for="admin_0">No</label>
 		</td>
 	</tr>
 	<tr>
@@ -74,8 +75,8 @@ SecStruct.fillCombo = function() {
 	<tr>
 		<td>Field Category</td>
 		<td>
-			<input type="radio" name="field" value=1 {if empty($objField->field_rel)}checked{/if} /> Dynamic<br />
-			<input type="radio" name="field" value=2 {if !empty($objField->field_rel)}checked{/if} /> Relationship
+			<input type="radio" name="field" id="field_1" value=1 {if empty($objField->field_rel)}checked{/if} /> <label for="field_1">Dynamic</label><br />
+			<input type="radio" name="field" id="field_2" value=2 {if !empty($objField->field_rel)}checked{/if} /> <label for="field_2">Relationship</label>
 		</td>
 	</tr>
 	<tr>
@@ -112,9 +113,9 @@ SecStruct.fillCombo = function() {
 	<tr>
 		<td>Relationship Type</td>
 		<td>
-			<input type="radio" name="fieldtype" value=2 {if $objField->fieldtype == 2}checked{/if} /> Check Box<br />
-			<input type="radio" name="fieldtype" value=1 {if $objField->fieldtype == 1}checked{/if} /> Radio Button<br />
-			<input type="radio" name="fieldtype" value=0 {if $objField->fieldtype == 0}checked{/if} /> Combo Box
+			<input type="radio" name="fieldtype" value=2 id="fieldtype_2" {if $objField->fieldtype == 2}checked{/if} /> <label for="fieldtype_2">Check Box</label><br />
+			<input type="radio" name="fieldtype" value=1 id="fieldtype_1" {if $objField->fieldtype == 1}checked{/if} /> <label for="fieldtype_1">Radio Button</label><br />
+			<input type="radio" name="fieldtype" value=0 id="fieldtype_0" {if $objField->fieldtype == 0}checked{/if} /> <label for="fieldtype_0">Combo Box</label>
 		</td>
 	</tr>
 	<tr>

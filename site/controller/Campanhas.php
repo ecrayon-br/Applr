@@ -2,6 +2,7 @@
 class Campanhas_controller extends Main_controller {
 
 	private $tryConfirm = 0;
+	private $strImgMailConfirm = 'site/views/content/image/e-mails/edilson.jpg';
 	
 	protected $intSecID = 6;
 	protected $objMail;
@@ -47,42 +48,74 @@ class Campanhas_controller extends Main_controller {
 		}
 		if(!$contentControl) return false;
 		
-		// MENSAGENS e AGENDAMENTOS
+		// MAIL SCHEDULE
 		// Gets EMAILS content
-		$this->objMail = new Email_controller($this->objData->id);
+		$this->objMail = new Email_controller($this->objData->id,true);
 		
 		// Sets Email Report object
 		$this->objMailReport = new EmailReport_controller();
 		
 		// Iterates through all e-mails on this campaign
-		$intPrevMailID	= 0;
 		foreach($this->objMail->objData AS $intMailKey => $objMail) {
 			// Checks if e-mail templates exists
-			if(!$this->objSmarty->templateExists($objMail->mail_tpl_filename)) { $intPrevMailID = $objMail->id; continue; }
-			// LISTA
+			if(!$this->objSmarty->templateExists($objMail->mail_tpl_filename)) continue;
+
+			// Gets AB_Test result, if exists
+			$objAB_Result = $this->getAB_Result($objMail->id);
+			
 			// Gets user's address list
-			switch($objMail->timesheet_int) {
-				case 0:
-				case null:
-					$this->objList = new Leads_controller('rel_tbl_0.child_id is null');
-				break;
+			if(empty($objMail->rel_email)) {
+				// Full list, for non-deppending e-mail
+				$this->objList = new Leads_controller('',false);
+				if($objMail->inactive_bool) $this->objList->objModel->arrWhereList = $this->objList->strWhere = str_replace($this->objList->objSection->table_name.'.active = 1 AND ','',$this->objList->strWhere);
+				$this->objList->getSectionContent();
+				#$this->objList = new Leads_controller('rel_tbl_0.child_id is null');
 				
-				default:
-					$strWhere = 'aet_fl_email_report.read_bool = 1 AND rel_tbl_email_report.child_id = ' . $intPrevMailID . ' AND datediff(now(),aet_fl_email_report.date_expire) = ' . $objMail->timesheet_int . (!is_null($objAB_Result) ? ' AND aet_fl_leads.id NOT IN (SELECT DISTINCT rel_leads FROM aet_fl_email_report WHERE rel_email = ' . $objMail->id . ')' : ''); 
-					$this->objList = new Leads_controller($strWhere);
-				break;
+			} else {
+				// Partial list, for deppending e-mail
+				$arrWhere = array();
+				
+				// WHERE previous e-mail ID matches
+				$strWhereMail 	= '(';
+				foreach($objMail->rel_email AS $objTmp) {
+					$strWhereMail .= 'rel_tbl_email_report.child_id = ' . $objTmp->id . ' OR ';
+				}
+				$strWhereMail .= ')';
+				$strWhereMail 	= str_replace(' OR )',')',$strWhereMail);
+				$arrWhere[] 	= $strWhereMail;
+				
+				// WHERE previous e-mail READ STATUS matches
+				if($objMail->previous_msgstatus != 2) $arrWhere[] = 'aet_fl_email_report.read_bool = ' . $objMail->previous_msgstatus;
+				
+				// WHERE timesheet matches
+				#if($objMail->timesheet_int > 0) $arrWhere[] = 'datediff(now(),aet_fl_email_report.date_expire) = ' . $objMail->timesheet_int;
+				
+				// WHERE AB_Tests results matches
+				if(!is_null($objAB_Result)) $arrWhere[] = 'aet_fl_leads.id NOT IN (SELECT DISTINCT rel_leads FROM aet_fl_email_report WHERE rel_email = ' . $objMail->id . ')';
+				
+				// Concats WHERE clauses
+				$strWhere = implode(' AND ',$arrWhere);
+				
+				// Get list
+				$this->objList = new Leads_controller($strWhere);
+				if($objMail->inactive_bool) $this->objList->objModel->arrWhereList = $this->objList->strWhere = str_replace($this->objList->objSection->table_name.'.active = 1 AND ','',$this->objList->strWhere);
+				$this->objList->getSectionContent();
 			}
-			// Sets previous e-mail ID
-			$intPrevMailID = $objMail->id;
+			
+			
+			if($_REQUEST['result']) {
+				echo '<pre>';
+				echo '<h1>'.$objMail->name.'</h1>';
+				echo $strWhere.'<br /><br />';
+				foreach($this->objList->objData AS $obj) echo $obj->name.'<br />';
+				echo '<hr />';
+				continue;
+			}
 			
 			// If there's no destinatary, gets next mail iteration
 			if(empty($this->objList->objData)) continue;
 			
-			
 			// A/B Test
-			// Gets AB_Test result, if exists
-			$objAB_Result = $this->getAB_Result($objMail->id);
-
 			if(!empty($objMail->subject_02)) {
 				
 				// Sets Scheduled Job Action
@@ -127,7 +160,7 @@ class Campanhas_controller extends Main_controller {
 					
 							default:
 								// Sets CronTab job
-								$strCronJob = date('i H d m *',$intTime); #(date('i') + 2) . ' ' . (date('H')) . date(' d m ') . (date(' N') == 7 ? 0 : date('N'));
+								$strCronJob = date('i H d m *',$intTime);
 								
 								$objCronTab = new CrontabManager();
 								$objJob		= $objCronTab->newJob();
@@ -217,12 +250,13 @@ class Campanhas_controller extends Main_controller {
 					/**
 					 * @todo get 2nd level relationship data
 					 */
-					$objMailContent = null;
-					$objMailContent->md5		= md5($objMail->id . '-' . $objLead->id);
-					$objMailContent->name 		= $objLead->name;
-					$objMailContent->first_name = $objLead->first_name;
-					$objMailContent->url		= urlencode($this->objModel->select('CONCAT("'.HTTP.'","blog/",aet_fl_blog.permalink) AS url', 'aet_fl_email', array('JOIN sec_rel_aet_fl_email_rel_aet_fl_destino AS rel_1 ON rel_1.parent_id = aet_fl_email.id','JOIN sec_rel_aet_fl_destino_rel_aet_fl_blog AS rel_2 ON rel_2.parent_id = rel_1.child_id','JOIN aet_fl_blog ON aet_fl_blog.id = rel_2.child_id'),'aet_fl_email.id = ' . $objMail->id,array(),array(),0,null,'One'));
-		
+					$objMailContent 				= clone $objMail;
+					$objMailContent->md5			= md5($objMail->id . '-' . $objLead->id);
+					$objMailContent->name 			= $objLead->name;
+					$objMailContent->first_name 	= $objLead->first_name;
+					$objMailContent->url			= (!empty($objMail->rel_blog[0]->url_permalink) ? urlencode($objMail->rel_blog[0]->url_permalink) : HTTP);
+					$objMailContent->redirect_uri	= str_replace(array(HTTP,'/'),array('','_'),urldecode($objMailContent->url));
+					
 					// Sends e-mail - if error, retries `$this->objData->error_int` times
 					do {
 						// Delays error resend
@@ -234,7 +268,7 @@ class Campanhas_controller extends Main_controller {
 							
 						// Send it
 						$objSend = $objSendMail->sendMessage(array($objLead->name => $objLead->first_name),$strSubject, ROOT_TEMPLATE.$objMail->mail_tpl_filename ,$objMailContent);
-							
+						
 						// If send succeed, inserts report
 						if($objSend) {
 							$arrReportData = array(
@@ -247,7 +281,7 @@ class Campanhas_controller extends Main_controller {
 							);
 							$arrReportData['permalink'] = $this->permalinkSyntax($arrReportData['name']);
 							
-							$this->objMailReport->insert($arrReportData);
+							$this->objMailReport->insertContent($arrReportData);
 						}
 							
 						$intSend++;
@@ -272,7 +306,7 @@ class Campanhas_controller extends Main_controller {
 
 		$strMD5 		= $_REQUEST['md5'];
 		$boolDisplay 	= (!empty($_REQUEST['display']) ? true : false);
-		$strURL 		= (!empty($_REQUEST['redirect-uri']) ? urldecode($_REQUEST['redirect-uri']) : '');
+		$strURL 		= (!empty($_REQUEST['redirect-uri']) ? HTTP . str_replace('_','/',$_REQUEST['redirect-uri']) : '');
 		
 		$arrUpdateData	= array(
 							'active' 		=> 1,
@@ -285,8 +319,7 @@ class Campanhas_controller extends Main_controller {
 			if(!$boolDisplay) {
 				header("Location: " . $strURL);
 			} else {
-				header('Content-type:image/jpeg'); echo file_get_contents(HTTP . 'icone.jpg');
-				exit();
+				$this->displayImage();
 			}
 		} else {
 			// Retries confirmation
@@ -297,11 +330,34 @@ class Campanhas_controller extends Main_controller {
 					header("Location: " . HTTP . '/?error=2');
 					exit();
 				} else {
-					header('Content-type:image/jpeg'); echo file_get_contents(HTTP . 'icone.jpg');
-					exit();
+					$this->displayImage();
 				}
 			}
 		}
+	}
+	
+	private function displayImage() {
+		// Gets image extension
+		$strExt = end(explode('.',$this->strImgMailConfirm));
+		
+		// Defines header content-type
+		switch($strExt) {
+			case 'png':
+				header('Content-type:image/png');
+			break;
+			
+			case 'gif':
+				header('Content-type:image/gif');
+			break;
+			
+			default:
+				header('Content-type:image/jpeg');
+			break;
+		}
+		
+		// Shows image
+		echo file_get_contents(SYS_ROOT . $this->strImgMailConfirm);
+		exit();
 	}
 }
 ?>

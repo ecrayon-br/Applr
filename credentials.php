@@ -4,11 +4,11 @@
 /***												***/
 /*** PRODUCTION ENVIRONMENT CONFIG AND CREDENTIALS  ***/
 /***												***/
-define('URI_DOMAIN_PROD',	'applr.com.br');
-define('DB_PROD_HOST',		'localhost');
-define('DB_PROD_DB',		'ecrayon_applr');
-define('DB_PROD_USER',		'');
-define('DB_PROD_PWD',		'');
+define('URI_DOMAIN_PROD',	(strpos($_SERVER["HTTP_HOST"],'www') !== false ? 'www.' : '') . 'ertavares.com.br');
+define('DB_PROD_HOST',		'mysql.totalwork.com.br');
+define('DB_PROD_DB',		'ertavares');
+define('DB_PROD_USER',		'ertavares');
+define('DB_PROD_PWD',		'wir584');
 
 
 /******************************************************/
@@ -16,7 +16,7 @@ define('DB_PROD_PWD',		'');
 /***												***/
 /***   HOMOLOG ENVIRONMENT CONFIG AND CREDENTIALS   ***/
 /***												***/
-define('URI_DOMAIN_HOMOLOG','ecrayon.com.br');
+define('URI_DOMAIN_HOMOLOG',(strpos($_SERVER["HTTP_HOST"],'www') !== false ? 'www.' : '') . 'ecrayon.com.br');
 define('DIR_HOMOLOG',		'applr');
 define('DB_HOMOLOG_HOST',	'cpmy0041.servidorwebfacil.com');
 define('DB_HOMOLOG_DB',		'ecrayon_applr');

@@ -182,7 +182,7 @@ class Controller {
 			define('DIR_IMAGE'		,$objConfig->dir_image);
 			define('DIR_VIDEO'		,$objConfig->dir_video);
 			
-			$strWebUpload			= str_replace('/images','/upload',$objConfig->dir_image);
+			$strWebUpload			= str_replace(array('/images','/image'),'/upload',$objConfig->dir_image);
 			define('ROOT_WEB_UPLOAD',SYS_ROOT.$strWebUpload);
 			define('ROOT_UPLOAD'	,( is_dir($objConfig->dir_upload) ? $objConfig->dir_upload : SYS_ROOT.$objConfig->dir_upload) );
 			define('ROOT_IMAGE'		,SYS_ROOT.$objConfig->dir_image);
@@ -210,6 +210,7 @@ class Controller {
 			define('HTTP_UPLOAD'	,HTTP . $objConfig->dir_upload);
 			define('HTTP_IMAGE'		,HTTP . $objConfig->dir_image);
 			define('HTTP_VIDEO'		,HTTP . $objConfig->dir_video);
+			define('HTTP_TEMPLATE'	,HTTP . $objConfig->dir_template);
 			define('HTTP_STATIC'	,HTTP . $objConfig->dir_static);
 			define('HTTP_DYNAMIC'	,HTTP . $objConfig->dir_dynamic);
 			define('HTTP_XML'		,HTTP . $objConfig->dir_xml);
@@ -230,17 +231,23 @@ class Controller {
 				if(is_null($_REQUEST[VAR_ACTION])) {
 					// Sets alternative names to main sessions
 					switch($this->arrURL[1]) {
+						case 'main':
+							$this->arrURL[1] = $this->objModel->select('permalink','sec_config','','id = "' . MAIN_SECTION . '"',array(),array(),0,null,'One');
+						break;
+						
 						default:
+							#$this->arrURL[1] = $this->arrURL[1];
 						break;
 					}
 					
-					$strTable = $this->objModel->recordExists('table_name', 'sec_config', 'permalink = "' . str_replace('-','_',$this->arrURL[1]) . '"',true);
+					$objInfoSection = $this->objModel->getSectionConfig(str_replace('-','_',$this->arrURL[1])); #$this->objModel->select('id,name,permalink,table_name','sec_config','','permalink = "' . str_replace('-','_',$this->arrURL[1]) . '"',array(),array(),0,null,'Row');
+					$strTable 		= $objInfoSection->table_name; #$this->objModel->recordExists('table_name', 'sec_config', 'permalink = "' . str_replace('-','_',$this->arrURL[1]) . '"',true);
 					$strWhere = str_replace('#table#',$strTable.'.',SYS_WHERE);
 					
 					// Gets SECTION ID
-					$_REQUEST[VAR_SECTION] = $this->objModel->select('id','sec_config','','table_name = "' . $strTable . '"',array(),array(),0,null,'One');
+					$_REQUEST[VAR_SECTION] 	= $objInfoSection->id; #$this->objModel->select('id','sec_config','','table_name = "' . $strTable . '"',array(),array(),0,null,'One');
 					if(MDB2::isError($_REQUEST[VAR_SECTION]) || is_null($_REQUEST[VAR_SECTION])) $_REQUEST[VAR_SECTION] = MAIN_SECTION;
-					$this->objSection = $this->objModel->getSectionConfig($_REQUEST[VAR_SECTION]);
+					$this->objSection = $objInfoSection; #$this->objModel->getSectionConfig($_REQUEST[VAR_SECTION]);
 					
 					// Gets LANGUAGE ID
 					$mxdLanguage 	= (!empty($this->arrURL[3]) ? $this->arrURL[3] : (!empty($this->arrURL[2]) ? $this->arrURL[2] : 0) );
@@ -267,20 +274,24 @@ class Controller {
 							$_REQUEST[VAR_CONTENT] = $this->objModel->select('MAX(id)',$strTable,'',$strWhere);
 						}
 					}
-					#var_dump($this->objSection->permalink); die();
+					
 					define('SECTION'			, $_REQUEST[VAR_SECTION]);
 					define('SECTION_SEGMENT'	, $this->arrURL[1]);
 					define('SECTION_PERMALINK'	, HTTP . $this->objSection->permalink . '/');
 					define('PERMALINK'			, (!empty($this->arrURL[2]) ? $this->arrURL[2] : ''));
 					define('URL_PERMALINK'		, HTTP . SECTION_PERMALINK . '/' . (!empty($this->arrURL[2]) ?  $this->arrURL[2] : ''));
 				} else {
+					
 					$strSectionPermalink = (empty($this->arrURL[4]) ? $this->arrURL[3] : $this->arrURL[4]);
 					$this->objSection = $this->objModel->getSectionConfig($strSectionPermalink);
 					
-					define('SECTION_PERMALINK'	, HTTP . $this->objSection->permalink . '/');
+					define('SECTION'			, $this->objSection->id);
 					define('SECTION_SEGMENT'	, $this->objSection->permalink);
+					define('SECTION_PERMALINK'	, HTTP . $this->objSection->permalink . '/');
+					
 				}
 			} else {
+				
 				if(isset($_REQUEST[VAR_SECTION])) {
 					define('SECTION'		, $_REQUEST[VAR_SECTION]);
 				} elseif(!isset($inSistema)) {
@@ -485,14 +496,13 @@ class Controller {
 	 *
 	 */
 	static function getURISegment() {
-		$strURL = str_replace(array(URI_DOMAIN,LOCAL_DIR,'site/','conteudo/') ,'',$_SERVER['REQUEST_URI']);
+		$strURL = str_replace(array(URI_DOMAIN,(LOCAL_DIR != '/' ? LOCAL_DIR : ''),'site/','conteudo/') ,'',$_SERVER['REQUEST_URI']);
 		if(strpos($strURL,'/') !== 0) $strURL = '/' . $strURL;
 		
 		$arrURL = explode('/', $strURL );
 		$_SESSION[self::$strProjectName]['URI_SEGMENT'] = $arrURL;
 		
 		switch($arrURL[1]) {
-			#case 'main':
 			case 'site':
 			case 'include-sistema':
 				return '';
@@ -1047,9 +1057,12 @@ class Controller {
 		if(!is_array($arrDataType) 	|| count($arrDataType) 	== 0)							return false;
 		
 		#echo '<pre>'; print_r($arrDataType); die();
+		
 		// Validates $arrParams data
 		foreach($arrDataType AS $strKey => $strDataType) {
 			if(!array_key_exists($strKey,$arrValues)) 										$arrValues[$strKey] = null;
+			
+			#echo $strKey.'-'.$strDataType.'-'; var_dump($arrValues[$strKey]); echo '<hr>';
 			
 			switch(strtolower($strDataType)) {
 				case 'numeric':
@@ -1057,7 +1070,11 @@ class Controller {
 				break;
 				
 				case 'numeric_empty':
-					if(!is_numeric($arrValues[$strKey]) && !empty($arrValues[$strKey])) 	return $strKey;
+					if(	
+						!is_numeric($arrValues[$strKey]) &&
+						!empty($arrValues[$strKey]) && 
+						$arrValues[$strKey] != 0
+					) 																		return $strKey;
 				break;
 				
 				case 'numeric_clearchar':
@@ -1065,8 +1082,11 @@ class Controller {
 				break;
 				
 				case 'numeric_clearchar_empty':
-					if(	!is_numeric($this->escapeXSS($arrValues[$strKey]))	&&
-						!empty($arrValues[$strKey])) 										return $strKey;
+					if(	
+						!is_numeric($this->escapeXSS($arrValues[$strKey]))	&&
+						!empty($arrValues[$strKey]) &&
+					 	$arrValues[$strKey] != 0
+					) 																		return $strKey;
 				break;
 				
 				case 'string':
@@ -1082,7 +1102,7 @@ class Controller {
 				break;
 				
 				case 'date_empty':
-					if(!empty($arrValues[$strKey]) && !checkdate(date('m',strtotime($arrValues[$strKey])),date('d',strtotime($arrValues[$strKey])),date('Y',strtotime($arrValues[$strKey])))) return $strKey;
+					if(!empty($arrValues[$strKey]) && $arrValues[$strKey] != 0 && !checkdate(date('m',strtotime($arrValues[$strKey])),date('d',strtotime($arrValues[$strKey])),date('Y',strtotime($arrValues[$strKey])))) return $strKey;
 				break;
 				
 				case 'email':
@@ -1104,7 +1124,8 @@ class Controller {
 				break;
 				
 				case 'array':
-					if(!is_array($arrValues[$strKey])) 										return $strKey;
+					if(is_string($arrValues[$strKey]) || is_numeric($arrValues[$strKey]))	$arrValues[$strKey] = array($arrValues[$strKey]);
+					elseif(!is_array($arrValues[$strKey])) 									return $strKey;
 				break;
 				
 				default:

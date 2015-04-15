@@ -4,35 +4,27 @@
 
 <div class="content">
 	<div class="list">
-	{if is_array($objData)}
-		{foreach from=$objData item="objTemp" name="contentList"}
 		<div class="box">
-			{if $objTemp->private_bool}<div class="tag"></div>{/if}
-			<h1><a href="{$objTemp->url_permalink}" title="{$objTemp->name}">{$objTemp->name}</a></h1>
-			<h5>Postado em {$objTemp->content_date->formatted}</h5>
-			<a href="">{$objTemp->content_richtext|APPLR_html_entity_decode|truncate:280:"...":true}</a>
+			<h1>Fale com o Edilson Rahal Tavares</h1>
 			
-			<div class="fb-like" data-href="{$objTemp->url_permalink}" data-layout="button_count" data-action="like" data-show-faces="false" data-share="true"></div>
-			<br class="clearfix" />
-		</div>
-		{/foreach}
-	{else}
-		<div class="box">
-		{if $objData->private_bool && !$isLead}
-			<h1>Voc� precisa ser cadastrado!</h1>
-		{else}
-			{if $objData->private_bool}<div class="tag"></div>{/if}
-			<h1>{$objData->name}</h1>
-			<h5>Postado em {$objData->content_date->formatted}</h5>
-			{$objData->content_richtext|APPLR_html_entity_decode}
-			<div class="fb-like" data-href="{$objData->url_permalink}" data-layout="button_count" data-action="like" data-show-faces="false" data-share="true"></div>
-			<br class=" clearfix" />
-			<div class="back"><a href="" title="">&lt; Voltar</a></div>
+			<div class="form" data-error1="Campo obrigatório!">
+				<div class="label">Nome*</div><div class="input"><input type="text" name="name" id="name" /></div>
+			</div>
+			<div class="form" data-error1="Campo obrigatório!" data-error2="E-mail inválido!">
+				<div class="label">E-mail*</div><div class="input"><input type="text" name="mail" id="mail" /></div>
+			</div>
+			<div class="form" data-error1="Campo obrigatório!">
+				<div class="label">Assunto*</div><div class="input"><input type="text" name="subject" id="subject" /></div>
+			</div>
+			<div class="form" data-error1="Campo obrigatório!">
+				<div class="label top">Mensagem*</div><div class="input"><textarea name="text" id="text"></textarea></div>
+			</div>
+			<div class="form">
+				<div class="label small left">* Campos Obrigatórios</div><div class="button right">Enviar</div>
+			</div>
 			
-			<div class="fb-comments" data-href="{$objData->url_permalink}" data-width="" data-numposts="5" data-colorscheme="light"></div>
-		{/if}
+			<br class="clearBoth" />
 		</div>
-	{/if}
 	</div>
 	
 	{include file="blog-right-column.html"}

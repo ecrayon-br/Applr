@@ -1,7 +1,7 @@
 {include file="struct/header.html"}
 
-<form name="formList" id="formList" method="post" action="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/delete/">
-<table border=1 width=650>
+<form name="formList" id="formList" method="post" action="{$smarty.const.HTTP_CMS}{$smarty.session.APPLR.URI_SEGMENT.2}/delete{if $smarty.const.ACTION == 'section-content'}/{$strPermalink}{/if}">
+<table border=1 width=750>
 	<caption>{$objSection->name}</caption>
 	{include file="struct/menu-top.html"}
 	<tr>
@@ -15,7 +15,7 @@
 	</tr>
 	{if count($objData) == 0}
 	<tr>
-		<td colspan=6 align="center">No records found!</td>
+		<td colspan=7 align="center">No records found!</td>
 	</tr>
 	{else}
 	{foreach from=$objData name="listData" item="objTmp"}
@@ -29,6 +29,10 @@
 		<td align="center"><input type="checkbox" name="delete[]" id="delete_{$objTmp->id}" value="{$objTmp->id}" /></td>
 	</tr>
 	{/foreach}
+	<tr>
+		<td colspan=7 align="right">
+			<input type="submit" name="btn_delete" value=" Deletar " />  
+		</td>
 	{/if}
 </table>
 </form>
